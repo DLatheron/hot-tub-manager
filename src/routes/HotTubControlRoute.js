@@ -12,7 +12,7 @@ const temperatureUnits = [
 const validation = {
     getTemperature: {
         params: {
-            id: Joi.string().required()
+            id: Joi.string().guid().required()
         },
         query: {
             units: Joi.valid(temperatureUnits.map(unit => unit.name))
@@ -20,8 +20,8 @@ const validation = {
     },
     setTemperature: {
         params: {
-            id: Joi.string().required(),
-            temperature: Joi.number().min(0).max(50).required()
+            id: Joi.string().guid().required(),
+            temperature: Joi.number().required()
         },
         query: {
             units: Joi.valid(temperatureUnits.map(unit => unit.name))
@@ -31,17 +31,16 @@ const validation = {
 
 class HotTubControlRoute {
     constructor() {
-        console.info('Constructed HotTubControl');
     }
 
     route(app) {
         // TODO: Add Authentication.
 
-        app.get('/api/get/temperature/:id',
+        app.get('/api/:id/temperature/',
             validate(validation.getTemperature),
             this.getTemperature.bind(this)
         );
-        app.post('/api/set/temperature/:id/:temperature',
+        app.post('/api/:id/temperature/:temperature',
             validate(validation.setTemperature),
             this.setTemperature.bind(this)
         );
@@ -50,6 +49,7 @@ class HotTubControlRoute {
     convertTemperature(temperature, fromUnits, toUnits) {
         const fromUnitType = temperatureUnits.find(unit => unit.name === fromUnits);
         const toUnitType = temperatureUnits.find(unit => unit.name === toUnits);
+
         if (!fromUnitType) { throw new Error(`Unknown fromUnits: ${fromUnits}`); }
         if (!toUnitType) { throw new Error(`Unknown toUnits: ${fromUnits}`); }
 
