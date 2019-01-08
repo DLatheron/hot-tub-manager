@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import Styled from 'styled-components';
+import ReactTooltip from 'react-tooltip';
 
-const StyledContainer = styled.div`
+const StyledContainer = Styled.div`
     display: block;
     width: auto;
     position: relative;
     text-align: left;
 `;
 
-const StyledGraphicContainer = styled.div`
+const StyledGraphicContainer = Styled.div`
     display: inline-block;
     width: calc(400px + 40px);
     height: 20px;
@@ -23,7 +24,7 @@ const StyledGraphicContainer = styled.div`
     border-color: black;
 `;
 
-const StyledBulb = styled.div`
+const StyledBulb = Styled.div`
     position: absolute;
     left: 0;
     top: 0;
@@ -32,7 +33,7 @@ const StyledBulb = styled.div`
     background-color: silver;
 `;
 
-const StyledBulbFill = styled.div`
+const StyledBulbFill = Styled.div`
     position: absolute;
     left: 0;
     right: 400px;
@@ -41,16 +42,17 @@ const StyledBulbFill = styled.div`
     background-image: linear-gradient(red, darkred);
 `;
 
-const StyledTube = styled.div`
+const StyledTube = Styled.div`
     position: absolute;
     left: 40px;
     right: 0;
     top: 0;
     bottom: 0;
+    cursor: pointer;
     background-image: ${props => props.colourGradient};
 `;
 
-const StyledTubeFill = styled.span.attrs({
+const StyledTubeFill = Styled.span.attrs({
 })`
     position: absolute;
     top: 0;
@@ -60,7 +62,7 @@ const StyledTubeFill = styled.span.attrs({
     background-color: beige;
 `;
 
-const StyledHighlight = styled.div`
+const StyledHighlight = Styled.div`
     position: absolute;
     left: 0;
     right: 0;
@@ -73,7 +75,7 @@ const StyledHighlight = styled.div`
     );
 `;
 
-const StyledMeasurement = styled.span`
+const StyledMeasurement = Styled.span`
     position: absolute;
     left: ${props => props.offset}%;
     min-width: 1px;
@@ -83,16 +85,16 @@ const StyledMeasurement = styled.span`
     background-color: black;
 `;
 
-const StyledNumerics = styled.span`
+const StyledNumerics = Styled.span`
     font-size: 16px;
     vertical-align: middle;
     margin-left: 10px;
 `;
 
-const StyledNumericValue = styled.span`
+const StyledNumericValue = Styled.span`
 `;
 
-const StyledNumericTarget = styled.span`
+const StyledNumericTarget = Styled.span`
     border-radius: 10px;
     border: 1px solid black;
     margin-left: 10px;
@@ -100,11 +102,11 @@ const StyledNumericTarget = styled.span`
     padding-right: 10px;
 
     &:focus-within {
-        box-shadow: 0 0 3pt 2pt blue;
+        box-shadow: 0 0 2pt 1pt blue;
     }
 `;
 
-const StyledInput = styled.input`
+const StyledInput = Styled.input`
     display: inline-block;
     width: 40px;
     height: 16px;
@@ -114,26 +116,36 @@ const StyledInput = styled.input`
     outline: none;
 `;
 
-const StyledValue = styled.span`
+const StyledValue = Styled.span`
 `;
 
-const StyledUnits = styled.span`
+const StyledUnits = Styled.span`
 `;
 
-const StyledTarget = styled.span`
+const StyledTarget = Styled.span`
     margin: auto;
     font-size: 12px;
     font-family: 'Material Icons';
 `;
 
+const StyledTooltip = Styled(ReactTooltip)`
+    opacity: 1 !important;
+    min-width: 50px;
+    text-align: center;
+`;
+
 export default class TemperatureGauge extends React.PureComponent {
     inputRef = React.createRef();
+    tubeRef = React.createRef();
 
     static propTypes = {
+        id: PropTypes.string.isRequired,
         min: PropTypes.number,
         max: PropTypes.number,
         value: PropTypes.number,
         initialTargetValue: PropTypes.number,
+        decimalPlaces: PropTypes.number,
+        nearest: PropTypes.number,
         units: PropTypes.string,
         markings: PropTypes.arrayOf(PropTypes.shape({
             percentage: PropTypes.number.isRequired,
@@ -145,10 +157,13 @@ export default class TemperatureGauge extends React.PureComponent {
     };
 
     static defaultProps = {
+        id: undefined,
         min:   0,
         max: 100,
         value: 0,
         initialTargetValue: 0,
+        decimalPlaces: 1,
+        nearest: 0.5,
         units: '%',
         markings: TemperatureGauge.generateMarkingsBetween(0, 100, [
             { everyX:  5, height: 2 },
@@ -164,7 +179,8 @@ export default class TemperatureGauge extends React.PureComponent {
     }
 
     static state = {
-        targetValue: 0
+        targetValue: 0,
+        hoverValue: null
     }
 
     static celsiusToFahrenheit(celsius) {
@@ -188,16 +204,12 @@ export default class TemperatureGauge extends React.PureComponent {
         const count = Math.floor((end - start) / everyX);
         const markings = {};
 
-        console.log(`Min ${min}, Max ${max}, EveryX ${everyX} = Start: ${start}, End: ${end}, Count: ${count}`);
-
         for (let i = 0; i < count; ++i) {
             const value = start + (i * everyX);
             if (value >= min && value <= max) {
                 markings[value] = markingHeight;
             }
         }
-
-        console.log(JSON.stringify(markings, null, 4));
 
         return markings;
     }
@@ -253,10 +265,11 @@ export default class TemperatureGauge extends React.PureComponent {
         stops.forEach(({ at, color }) => {
             const percentage = offsetToPercentage(at);
 
-            results.push(`${color} calc(${percentage}% + 1.5px)`);
+            results.push(`${color} ${percentage}%`);
         });
 
         const gradient = `linear-gradient(to right, ${results.join(',')})`;
+
         console.log(gradient);
 
         return gradient;
@@ -265,7 +278,10 @@ export default class TemperatureGauge extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.state = { targetValue: props.initialTargetValue || props.value };
+        this.state = {
+            ...this.state,
+            targetValue: props.initialTargetValue || props.value
+        };
     }
 
     renderMarking(measurement) {
@@ -298,6 +314,20 @@ export default class TemperatureGauge extends React.PureComponent {
         }
     }
 
+    static nearest(value, nearest) {
+        return Math.round(value / nearest) * nearest;
+    }
+
+    calculateValueFromXOffset = (control, clientX) => {
+        const { min, max, decimalPlaces, nearest } = this.props;
+
+        const clientRect = control.getBoundingClientRect();
+        const fraction = (clientX - clientRect.x - 1) / clientRect.width;
+        const value = TemperatureGauge.nearest(min + (fraction * (max - min)), nearest);
+
+        return Math.min(Math.max(value, min), max).toFixed(decimalPlaces);
+    };
+
     handleValueChange = (event) => {
         const targetValue = event.target.value;
 
@@ -320,11 +350,28 @@ export default class TemperatureGauge extends React.PureComponent {
         this.inputRef.current.focus();
     }
 
+    handleTubeClick = (event) => {
+        const targetValue = this.calculateValueFromXOffset(this.tubeRef.current, event.clientX);
+
+        this.targetValueChanged(targetValue, true);
+    }
+
+    handleTubeHover = (event) => {
+        const hoverValue = this.calculateValueFromXOffset(this.tubeRef.current, event.clientX);
+
+        this.setState({ hoverValue });
+    }
+
+    handleTubeHoverEnd = (event) => {
+        this.setState({ hoverValue: null });
+    }
+
     render() {
-        const { min, max, value, units, markings, colourGradient } = this.props;
-        const { targetValue } = this.state;
+        const { id, min, max, value, units, markings, colourGradient } = this.props;
+        const { targetValue, hoverValue } = this.state;
         const initialOffset = 50;
         const percentage = TemperatureGauge.timeToPercentageFactory(min, max)(value);
+        const formattedHoverValue = hoverValue && `${hoverValue}${units}`;
 
         return (
             <StyledContainer>
@@ -341,9 +388,26 @@ export default class TemperatureGauge extends React.PureComponent {
                         />
                     </StyledTube>
                     <StyledHighlight />
-                    <StyledTube>
+                    <StyledTube
+                        ref={this.tubeRef}
+                        onClick={this.handleTubeClick}
+                        onMouseMove={this.handleTubeHover}
+                        onMouseLeave={this.handleTubeHoverEnd}
+                        data-tip
+                        data-for={`${id}_hoverTime`}
+                        data-offset='{ "top": 10, "right": 1 }'
+                    >
                         { markings.map(this.renderMarking) }
                     </StyledTube>
+                    <StyledTooltip
+                        id={`${id}_hoverTime`}
+                        type='light'
+                        place='top'
+                        effect='solid'
+                        border={true}
+                    >
+                        <span>{formattedHoverValue}</span>
+                    </StyledTooltip>
                 </StyledGraphicContainer>
                 <StyledNumerics>
                     <StyledNumericValue>

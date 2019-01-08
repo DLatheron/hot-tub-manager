@@ -14,6 +14,7 @@ export default class App extends Component {
             <div className="App">
                 <StyledContainer>
                     <TemperatureGauge
+                        id='TP1'
                         min={0}
                         max={100}
                         value={100}
@@ -32,19 +33,20 @@ export default class App extends Component {
                      />
                 </StyledContainer>
                 <StyledContainer>
-                    <TemperatureGauge min={0} max={100} value={25} />
+                    <TemperatureGauge id='TP2' min={0} max={100} value={25} />
                 </StyledContainer>
                 <StyledContainer>
-                    <TemperatureGauge min={0} max={100} value={50} />
+                    <TemperatureGauge id='TP3' min={0} max={100} value={50} />
                 </StyledContainer>
                 <StyledContainer>
-                    <TemperatureGauge min={0} max={100} value={75} />
+                    <TemperatureGauge id='TP4' min={0} max={100} value={75} />
                 </StyledContainer>
                 <StyledContainer>
-                    <TemperatureGauge min={0} max={100} value={100} />
+                    <TemperatureGauge id='TP5' min={0} max={100} value={100} />
                 </StyledContainer>
                 <StyledContainer>
                     <TemperatureGauge
+                        id='TP6'
                         min={19.5}
                         max={44}
                         value={44}
@@ -52,7 +54,7 @@ export default class App extends Component {
                         units='℃'
                         markings={
                             TemperatureGauge.generateMarkingsBetween(19.5, 44, [
-                                { everyX:  0.5, height:  1 },
+                                { everyX:  0.5, height:  2 },
                                 { everyX:  1.0, height:  4 },
                                 { everyX:  5.0, height:  7 },
                                 { everyX: 10.0, height: 10 }
@@ -72,6 +74,7 @@ export default class App extends Component {
                 </StyledContainer>
                 <StyledContainer>
                     <TemperatureGauge
+                        id='TP7'
                         min={67.5}
                         max={111.2}
                         value={111.2}
