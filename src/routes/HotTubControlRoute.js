@@ -46,14 +46,14 @@ class HotTubControlRoute {
         );
     }
 
-    convertTemperature(temperature, fromUnits, toUnits) {
-        const fromUnitType = temperatureUnits.find(unit => unit.name === fromUnits);
-        const toUnitType = temperatureUnits.find(unit => unit.name === toUnits);
+    convertTemperature(temperature, srcUnit, dstUnit) {
+        const srcUnitType = temperatureUnits.find(unit => unit.name === srcUnit);
+        const dstUnitType = temperatureUnits.find(unit => unit.name === dstUnit);
 
-        if (!fromUnitType) { throw new Error(`Unknown fromUnits: ${fromUnits}`); }
-        if (!toUnitType) { throw new Error(`Unknown toUnits: ${fromUnits}`); }
+        if (!srcUnitType) { throw new Error(`Unknown source unit: ${srcUnit}`); }
+        if (!dstUnitType) { throw new Error(`Unknown destination unit: ${dstUnit}`); }
 
-        if (fromUnitType.type === toUnitType.type) {
+        if (srcUnitType.type === dstUnitType.type) {
             return temperature;
         }
 
@@ -61,7 +61,7 @@ class HotTubControlRoute {
         let tempInKelvin;
 
         // Convert into kelvin.
-        switch (fromUnits) {
+        switch (srcUnit) {
             case 'celsius':
             case 'centigrade':
                 tempInKelvin = temperature + absoluteZero;
@@ -77,7 +77,7 @@ class HotTubControlRoute {
         }
 
         // Convert into requested units.
-        switch (toUnits) {
+        switch (dstUnit) {
             case 'celsius':
             case 'centigrade':
                 return tempInKelvin - absoluteZero;
@@ -98,7 +98,7 @@ class HotTubControlRoute {
             // TODO: Actually get the temperature from the hot-tub.
             const temperatureInC = 37.5;
 
-            console.log(`Getting temperature for hot-tub '${id}' = ${temperatureInC}℃`);
+            // console.log(`Getting temperature for hot-tub '${id}' = ${temperatureInC}℃`);
 
             const temperature = this.convertTemperature(
                 temperatureInC,
@@ -128,6 +128,11 @@ class HotTubControlRoute {
 
             console.log(`Setting temperature for hot-tub '${id}' = ${temperatureInC}℃`);
 
+            // TODO: Failure conditions:
+            // - Unknown hot tub id;
+            // - No rights?
+            // - Hot tub did not respond;
+            //   - Service currently unavailable?
             // TODO: Actually set the hot-tub to the requested temperature.
 
             res.status(HttpStatusCodes.OK).send();

@@ -1,7 +1,7 @@
 /* globals describe, it, beforeEach, afterEach */
 'use strict';
 
-// const assert = require('assert');
+const assert = require('assert');
 const bodyParser = require('body-parser');
 const express = require('express');
 const HttpStatusCode = require('http-status-codes');
@@ -11,11 +11,15 @@ const sinon = require('sinon');
 const validate = require('express-validation');
 
 describe('#HotTubControlRoute', () => {
+    const hotTubId = 'c2d4afa5-3a0f-47e6-adff-5227fc8f1997';
+
     let sandbox;
     let app;
     let wrapper;
     let HotTubControlRoute;
     let hotTubControlRoute;
+    let fakeRequest;
+    let fakeResponse;
 
     beforeEach(() => {
         sandbox = sinon.createSandbox();
@@ -27,6 +31,15 @@ describe('#HotTubControlRoute', () => {
             validate: function() {
                 return validate(...arguments);
             }
+        };
+        fakeRequest = {
+            params: {},
+            query: {},
+            body: {}
+        };
+        fakeResponse = {
+            status: () => fakeResponse,
+            send: () => fakeResponse
         };
 
         HotTubControlRoute = proxyquire('../../src/routes/HotTubControlRoute', {
@@ -48,7 +61,6 @@ describe('#HotTubControlRoute', () => {
 
     describe('#route', () => {
         const baseUrl = `/api`;
-        const hotTubId = 'c2d4afa5-3a0f-47e6-adff-5227fc8f1997';
         const routes = [
             {
                 method: 'get', routeFn: 'getTemperature', baseUrl: `${baseUrl}/${hotTubId}/temperature/`,
@@ -163,18 +175,123 @@ describe('#HotTubControlRoute', () => {
     });
 
     describe('#convertTemperature', () => {
-        it('should correctly convert a temperature from {...} to {...}')
-        it('should throw if the fromUnits are invalid');
-        it('should throw if the toUnits are invalid');
+        const acceptableTolerance = 0.00000000001;
+
+        [
+            { from: { value: 37.5, units: 'celsius' }, to: { value: 37.5, units: 'centigrade' }},
+            { from: { value: 0, units: 'kelvin' }, to: { value: -273.15, units: 'centigrade' }},
+            { from: { value: 0, units: 'kelvin' }, to: { value: -459.67, units: 'fahrenheit' }},
+            { from: { value: 0, units: 'celsius' }, to: { value: 32, units: 'fahrenheit' }},
+            { from: { value: 0, units: 'celsius' }, to: { value: 273.15, units: 'kelvin' }},
+        ]
+            .forEach(({ from, to }) => {
+                it(`should convert ${from.value}° ${from.units} to ${to.value}° ${to.units}`, () => {
+                    const toValue = hotTubControlRoute.convertTemperature(
+                        from.value,
+                        from.units,
+                        to.units
+                    );
+
+                    assert(Math.abs(to.value - toValue) < acceptableTolerance, 'Converted value is not within tolerance');
+                });
+            });
+
+        it('should throw if the fromUnits are invalid', () => {
+            try {
+                hotTubControlRoute.convertTemperature(
+                    37.5,
+                    'not-a-valid-source-unit',
+                    'kelvin'
+                );
+                assert.fail();
+            } catch (error) {
+                assert.deepStrictEqual(error, new Error(`Unknown source unit: not-a-valid-source-unit`));
+            }
+        });
+
+        it('should throw if the toUnits are invalid', () => {
+            try {
+                hotTubControlRoute.convertTemperature(
+                    37.5,
+                    'kelvin',
+                    'not-a-valid-destination-unit'
+                );
+                assert.fail();
+            } catch (error) {
+                assert.deepStrictEqual(error, new Error(`Unknown destination unit: not-a-valid-destination-unit`));
+            }
+        });
     });
 
     describe('#getTemperature', () => {
-        it('should respond with a 200 (OK) and the temperature in {...}');
-        it('should callback if there is an exception');
-        it('should get the temperature from the specified hot tub');
+        beforeEach(() => {
+            fakeRequest.params.id = hotTubId;
+        });
+
+        it('should attempt to convert the temperature into the requested units', async () => {
+            fakeRequest.query.units = 'kelvin';
+
+            sandbox.mock(hotTubControlRoute)
+                .expects('convertTemperature')
+                .withExactArgs(
+                    37.5,
+                    'celsius',
+                    'kelvin'
+                )
+                .once()
+                .returns(310.65);
+
+            await hotTubControlRoute.getTemperature(fakeRequest, fakeResponse);
+
+            sandbox.verify();
+        });
+
+        it('should respond with the converted temperature', async () => {
+            fakeRequest.query.units = 'kelvin';
+
+            sandbox.stub(hotTubControlRoute, 'convertTemperature').returns(310.65);
+            sandbox.mock(fakeResponse)
+                .expects('send')
+                .withExactArgs({
+                    temperature: 310.65,
+                    units: 'kelvin'
+                });
+
+            await hotTubControlRoute.getTemperature(fakeRequest, fakeResponse);
+
+            sandbox.verify();
+        });
+
+        it('should respond with a 200 (OK)', async () => {
+            sandbox.stub(hotTubControlRoute, 'convertTemperature').returns(37.5);
+            sandbox.mock(fakeResponse)
+                .expects('status')
+                .withExactArgs(HttpStatusCode.OK)
+                .once()
+                .returns(fakeResponse);
+
+            await hotTubControlRoute.getTemperature(fakeRequest, fakeResponse);
+
+            sandbox.verify();
+        });
+
+        it('should callback if there is an exception', (done) => {
+            const expectedError = new Error('An error occurred');
+
+            sandbox.stub(hotTubControlRoute, 'convertTemperature').throws(expectedError);
+
+            hotTubControlRoute.getTemperature(fakeRequest, fakeResponse, (error) => {
+                assert.deepStrictEqual(error, expectedError);
+                done();
+            });
+        });
+
+        xit('should get the temperature from the specified hot tub');
     });
 
     describe('#setTemperature', () => {
-        it('should respond with a 200 (OK)')
+        it('should attempt to set the temperature of the hot tub');
+        it('should respond with a 200 (OK) if successful');
+        it('should respond with a xxx (X) if it fails');
     });
 });
