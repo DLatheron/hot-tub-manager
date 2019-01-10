@@ -8,7 +8,8 @@
             "type": "node",
             "request": "launch",
             "name": "Backend",
-            "program": "${workspaceFolder}/server.js"
+            "program": "${workspaceFolder}/server.js",
+            "runtimeVersion": "8.11.1"
         },
         {
             "type": "node",
@@ -22,13 +23,12 @@
                 "200000",
                 "--colors",
                 "--exit",
-                "--file",
                 "${workspaceRoot}/test/",
                 "--recursive"
             ],
             "outputCapture": "std",
             "internalConsoleOptions": "openOnSessionStart",
-            "runtimeExecutable": "/Users/davidlatheron/.nvm/versions/node/v8.11.1/bin/node"
+            "runtimeVersion": "8.11.1"
         }
     ]
 }
