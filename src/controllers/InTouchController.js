@@ -4,6 +4,7 @@ const dgram = require('dgram');
 const { promisify } = require('util');
 
 const Controller = require('./Controller');
+const Logger = require('../Logger');
 
 const messages = {
     hello: '<HELLO>{0}</HELLO>',
@@ -28,7 +29,7 @@ class InTouchController extends Controller {
                 if (error) return reject(error);
 
                 const { address, port } = this.client.address();
-                console.log(`Listening on: ${address}:${port}`);
+                Logger.info(`Listening on: ${address}:${port}`);
 
                 this.sequenceNumber = 1;
 
@@ -44,7 +45,7 @@ class InTouchController extends Controller {
 
                 this.client.close(error => {
                     if (error) return reject(error);
-                    console.log(`Disconnected from ${address}:${port}`);
+                    Logger.info(`Disconnected from ${address}:${port}`);
                     resolve();
                 });
                 this.client = null;
@@ -58,7 +59,7 @@ class InTouchController extends Controller {
         return new Promise((resolve, reject) => {
             this.client.send(buffer, 0, buffer.length, this.serverPort, this.serverHost, (error, bytes) => {
                 if (error) return reject(error);
-                console.log(`UDP message of ${bytes} bytes sent to ${this.serverHost}:${this.serverPort}`);
+                Logger.info(`UDP message of ${bytes} bytes sent to ${this.serverHost}:${this.serverPort}`);
                 resolve();
             });
         });

@@ -3,13 +3,11 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
-// const UnitTestHelper = require('../helpers/UnitTestHelper');
 
 describe('#InTouchController', () => {
     const id = 'c2d4afa5-3a0f-47e6-adff-5227fc8f1997';
 
     let sandbox;
-    let unitTestHelper;
     let InTouchController;
     let inTouchController;
     let fakeClient;

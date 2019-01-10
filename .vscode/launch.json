@@ -23,6 +23,8 @@
                 "200000",
                 "--colors",
                 "--exit",
+                "--file",
+                "${workspaceRoot}/test/helpers/SilenceTests.js",
                 "${workspaceRoot}/test/",
                 "--recursive"
             ],
