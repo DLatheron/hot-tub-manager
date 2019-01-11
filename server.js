@@ -47,9 +47,11 @@ async function startApp(app, port) {
     const controller = new InTouchController('c2d4afa5-3a0f-47e6-adff-5227fc8f1997');
 
     controller.connect();
-    await controller.sendMessage('Hello World');
+    const response = await controller.sendAndReceiveMessage('<HELLO>${seq}</HELLO>');
+    console.log(response);
+    // const response = await controller.receiveMessage();
 
-    controller.disconnect();
+    //controller.disconnect();
 }
 
 startApp(app, port);
