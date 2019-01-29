@@ -1,7 +1,6 @@
 'use strict';
 
 const dgram = require('dgram');
-const { promisify } = require('util');
 
 const Controller = require('./Controller');
 const Logger = require('../Logger');
@@ -11,11 +10,11 @@ const messages = {
     getCurrentChannel: '<PACKT><SRCCN>${0}</SRCCN><DESCN>${1}</DESCN><DATAS>CURCH${seq}</DATAS></PACKT>',
     getWatercare: '<PACKT><SRCCN>${0}</SRCCN><DESCN>${1}</DESCN><DATAS>GETWC${seq}</DATAS></PACKT>',
 	getStatus: '<PACKT><SRCCN>${0}</SRCCN><DESCN>${1}</DESCN><DATAS>STATU${seq}\x00\x00\x02\x00</DATAS></PACKT>'
-}
+};
 
 class InTouchController extends Controller {
-    constructor(id) {
-        super(id);
+    constructor(config) {
+        super(config);
 
         this.client = null;
         this.serverHost = 'intouch.geckoal.com';

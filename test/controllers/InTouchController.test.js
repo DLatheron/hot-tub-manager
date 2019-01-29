@@ -55,7 +55,7 @@ describe.only('#InTouchController', () => {
         let expectedResponse;
         let fakeRemoteInfo;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             expectedMessage = new Buffer('1 - 2');
             expectedError = new Error('Something bad happened');
             expectedResponse = new Buffer('Response message');
@@ -64,7 +64,7 @@ describe.only('#InTouchController', () => {
                 port: 1234
             };
 
-            inTouchController.connect();
+            await inTouchController.connect();
         });
 
         it('should attempt to send the message', async () => {

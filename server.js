@@ -1,12 +1,31 @@
 const bodyParser = require('body-parser');
+const DAO = require('./src/helpers/DAO');
 const express = require('express');
 const fs = require('fs');
-const HttpStatusCodes = require('http-status-codes');
+const Logger = require('../Logger');
+const MongoClient = require('mongodb').MongoClient;
+const nconf = require('nconf');
+
 const { version } = require('./package.json');
 const { promisify } = require('util');
 
+const yargs = require('yargs')
+    .version(version)
+    .usage('Hot Tub Manager')
+    .strict();
+
+nconf.argv(yargs)
+    .env({ lowerCase: true })
+    .file('credentials', { file: './credentials.json' })
+    .file('config', { file: './config.json' })
+    .defaults({
+        controller: {
+            telemetryIntervalInMs: 60000
+        }
+    });
+
 const app = express();
-const port = process.env.PORT || 4999;
+const port = nconf.get('port') || 4999;
 
 const readdir = promisify(fs.readdir);
 
@@ -30,25 +49,63 @@ async function registerRoutes(app) {
     });
 }
 
+function connectToDatabase() {
+    const dbUrl = nconf.get('database:url');
+    const dbName = nconf.get('database:name');
+    const dbOptions = {
+        useNewUrlParser: true,
+        connectTimeoutMS: 10000,
+        socketTimeoutMS: 10000,
+
+        ssl: true,
+        sslKey: fs.readFileSync('./ssl/mongodb-cert.key'),
+        sslCert: fs.readFileSync('./ssl/mongodb-cert.crt'),
+
+        auth: {
+            user: nconf.get('mongo:username'),
+            password: nconf.get('mongo:password')
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        MongoClient.connect(dbUrl, dbOptions, (error, client) => {
+            if (error) {
+                return reject(error);
+            }
+
+            const database = client.db(dbName);
+            Logger.echo(`Connected to '${dbName}' at '${dbUrl}'`);
+
+            resolve(database);
+        });
+    });
+}
+
 async function startApp(app, port) {
     app.get('/api/version',
         (req, res) => {
-            console.log('/api/version');
+            Logger.echo('/api/version');
             res.send({ version });
         }
     );
 
+    const database = await connectToDatabase();
+    const dao = new DAO(database);
+
     await registerRoutes(app);
 
-    app.listen(port, () => console.log(`Listening on port ${port}`));
+    app.listen(port, () => Logger.echo(`Listening on port ${port}`));
 
     // TEMPORARY...
     const InTouchController = require('./src/controllers/InTouchController');
-    const controller = new InTouchController('c2d4afa5-3a0f-47e6-adff-5227fc8f1997');
+    const controller = new InTouchController({
+        id: 'c2d4afa5-3a0f-47e6-adff-5227fc8f1997',
+        dao
+    });
 
     controller.connect();
     const response = await controller.sendAndReceiveMessage('<HELLO>${seq}</HELLO>');
-    console.log(response);
+    Logger.echo(response);
     // const response = await controller.receiveMessage();
 
     //controller.disconnect();

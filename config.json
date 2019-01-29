@@ -1,0 +1,10 @@
+{
+    "controller": {
+        "telemetryIntervalInMs": 1000
+    },
+    "database": {
+        "url": "mongodb://localhost:27017",
+        "name": "hot-tub-manager"
+    },
+    "port": 4999
+}

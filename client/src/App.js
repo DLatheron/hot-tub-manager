@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
 import './App.css';
@@ -8,7 +8,7 @@ const StyledContainer = styled.div`
     margin: 20px;
 `;
 
-export default class App extends Component {
+export default class App extends React.Component {
     render() {
         return (
             <div className="App">
