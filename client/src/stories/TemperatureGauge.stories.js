@@ -14,7 +14,7 @@ storiesOf('TemperatureGauge', module)
             <State store={store}>
                 <TemperatureGauge
                     id='defaultTemperatureGauge'
-                    setNewTarget={(value) => store.set({value})}
+                    setNewTarget={value => store.set({ value: parseFloat(value) })}
                 />
             </State>
         );
@@ -40,8 +40,9 @@ storiesOf('TemperatureGauge', module)
                             { at: 100, color: '#ff0' }
                         ])
                     }
-                    setNewTarget={(value) => store.set({value})}
+                    setNewTarget={value => store.set({ value: parseFloat(value) })}
                 />
+                <p>{store.state.value}</p>
             </State>
         );
     })
@@ -76,7 +77,7 @@ storiesOf('TemperatureGauge', module)
                             { at: TemperatureGauge.celsiusToFahrenheit(44), color: '#f00' }
                         ])
                     }
-                    setNewTarget={(value) => store.set({value})}
+                    setNewTarget={value => store.set({ value: parseFloat(value) })}
                 />
             </State>
         );
@@ -112,7 +113,7 @@ storiesOf('TemperatureGauge', module)
                             { at: TemperatureGauge.celsiusToFahrenheit(44), color: '#f00' }
                         ])
                     }
-                    setNewTarget={(value) => store.set({value})}
+                    setNewTarget={value => store.set({ value: parseFloat(value) })}
                 />
             </State>
         );
