@@ -37,16 +37,92 @@ const StyledTimeHeader = Styled.th`
     border: 1px solid black;
 `;
 
-const StyledTimeLabel = Styled(StyledTimeHeader)`
+const StyledTimeCell = Styled(StyledTimeHeader)`
+    position: relative;
     background-color: beige;
     padding: 0px;
 `;
 
-const startDateTime = '2018-01-01T00:00:00.000';
+const StyledTimeSubCell = Styled.span`
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: ${props => props.offsetPercentage}%;
+    width: 25%;
+    opacity: ${props => props.opacity};
+    background-color: green;
+`;
+
+class Helper {
+    // Nicely chosen start time date with January 1st as a Monday.
+    static startDateTime = '2018-01-01T00:00:00.000';
+
+    static offsetToTimeCloseTo(x, element, baseMoment, roundToNearestMinutes) {
+        const clientRect = element.getBoundingClientRect();
+        const percentage = (x - clientRect.x) / clientRect.width;
+        let offsetInMins = percentage * 60;
+
+        if (roundToNearestMinutes) {
+            offsetInMins = Math.round(offsetInMins / roundToNearestMinutes) * roundToNearestMinutes;
+        }
+
+        return moment.utc(baseMoment).add(offsetInMins, 'minutes');
+    }
+
+    static getValue(values, startMoment) {
+        const day = startMoment.format('ddd');
+        const hour = startMoment.format('HH');
+        const minute = startMoment.format('mm');
+        const key = `${day}.${hour}.${minute}`;
+
+        return _.get(values, key, 0);
+    }
+
+    static setValue(values, startMoment, value = 1.0) {
+        const day = startMoment.format('ddd');
+        const hour = startMoment.format('HH');
+        const minute = startMoment.format('mm');
+        const key = `${day}.${hour}.${minute}`;
+
+        value = Math.max(value, _.get(values, key, 0));
+        value = Math.max(Math.min(value, 1.0), 0.0);
+
+        _.set(values, key, value);
+    }
+
+    static setValueAndRange(values, valueMoment, minutesBefore = 60, minutesAfter = 60) {
+        const points = [
+            -0.75,
+            -0.50,
+            -0.25,
+            0.0,
+            0.25,
+            0.50,
+            0.75
+        ];
+
+        const newValues = { ...values };
+
+        points.forEach(point => {
+            let atTime = moment.utc(valueMoment);
+            if (point < 0) {
+                atTime.add(point * minutesBefore, 'minutes');
+            } else if (point > 0) {
+                atTime.add(point * minutesAfter, 'minutes');
+            }
+            const value = 1.0 - Math.abs(point);
+
+            Helper.setValue(newValues, atTime, value);
+        });
+
+        return newValues;
+    }
+}
 
 class TimeCell extends React.PureComponent {
     static propTypes = {
         startDateTime: PropTypes.string.isRequired,
+        values: PropTypes.object,
         handleClick: PropTypes.func,
         handleMouseMove: PropTypes.func
     };
@@ -57,21 +133,44 @@ class TimeCell extends React.PureComponent {
     };
 
     render() {
-        const { startDateTime, handleClick, handleMouseMove } = this.props;
+        const { startDateTime, values, handleClick, handleMouseMove } = this.props;
         const startMoment = moment.utc(startDateTime);
 
+        const moments = [
+            startMoment,
+            moment.utc(startMoment).add(15, 'minutes'),
+            moment.utc(startMoment).add(30, 'minutes'),
+            moment.utc(startMoment).add(45, 'minutes')
+        ];
+
         return (
-            <StyledTimeLabel
-                onClick={event => handleClick(event, startMoment)}
-                onMouseMove={event => handleMouseMove(event, startMoment)}
-            />
+            <StyledTimeCell>
+                {
+                    moments.map(
+                        (startMoment, index) => {
+                            const offsetPercentage = (index / moments.length) * 100;
+                            const opacity = Helper.getValue(values, startMoment);
+
+                            return (
+                                <StyledTimeSubCell
+                                    key={offsetPercentage}
+                                    offsetPercentage={offsetPercentage}
+                                    opacity={opacity}
+                                    onClick={event => handleClick(event, startMoment)}
+                                    onMouseMove={event => handleMouseMove(event, startMoment)}
+                                />
+                            );
+                        }
+                    )
+                }
+            </StyledTimeCell>
         );
     }
 }
 
 class HeaderRow extends React.PureComponent {
     render() {
-        const startMoment = moment.utc(startDateTime, moment.ISO_8601);
+        const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
 
         return (
             <thead>
@@ -97,6 +196,7 @@ class HeaderRow extends React.PureComponent {
 class DayRow extends React.PureComponent {
     static propTypes = {
         startDateTime: PropTypes.string.isRequired,
+        values: PropTypes.object.isRequired,
         handleClick: PropTypes.func,
         handleMouseMove: PropTypes.func,
         handleMouseLeave: PropTypes.func,
@@ -109,7 +209,7 @@ class DayRow extends React.PureComponent {
     };
 
     render() {
-        const { startDateTime, handleClick, handleMouseMove, handleMouseLeave } = this.props;
+        const { startDateTime, values, handleClick, handleMouseMove, handleMouseLeave } = this.props;
         const startMoment = moment.utc(startDateTime, moment.ISO_8601);
 
         return (
@@ -126,6 +226,7 @@ class DayRow extends React.PureComponent {
                             return (
                                 <TimeCell
                                     key={hourMoment.format('HH')}
+                                    values={values}
                                     startDateTime={hourMoment.toISOString()}
                                     handleClick={handleClick}
                                     handleMouseMove={handleMouseMove}
@@ -152,24 +253,41 @@ export default class WeekPlanner extends React.PureComponent {
         selectTimeHandler: () => {}
     };
 
-    calculateTime(x, element, baseMoment) {
-        const { roundToNearestMinutes } = this.props;
-
-        const clientRect = element.getBoundingClientRect();
-        const percentage = (x - clientRect.x) / clientRect.width;
-        let offsetInMins = percentage * 60;
-
-        if (roundToNearestMinutes) {
-            offsetInMins = Math.round(offsetInMins / roundToNearestMinutes) * roundToNearestMinutes;
+    state = {
+        values: {
+            Mon: {
+                '08': {
+                    '15': 0.25,
+                    '30': 0.5,
+                    '45': 0.75,
+                },
+                '09': {
+                    '00': 1,
+                    '15': 0.75,
+                    '30': 0.5,
+                    '45': 0.25,
+                }
+            },
+            Wed: {
+                '15': {
+                    '30': 0.25,
+                    '45': 0.50
+                },
+                '16': {
+                    '00': 0.75,
+                    '15': 1.0,
+                    '30': 0.75,
+                    '45': 0.50
+                },
+                '17': {
+                    '00': 0.25
+                }
+            }
         }
-
-        return moment.utc(baseMoment).add(offsetInMins, 'minutes');
-    }
+    };
 
     handleMouseMove = (event, startMoment) => {
-        const dateTime = this.calculateTime(event.clientX, event.target, startMoment);
-
-        this.props.hoverTimeHandler(dateTime);
+        this.props.hoverTimeHandler(startMoment);
     }
 
     handleMouseLeave = () => {
@@ -177,13 +295,15 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     handleClick = (event, startMoment) => {
-        const dateTime = this.calculateTime(event.clientX, event.target, startMoment);
+        this.setState(state => ({
+            values: Helper.setValueAndRange(state.values, startMoment)
+        }));
 
-        this.props.selectTimeHandler(dateTime);
+        this.props.selectTimeHandler(startMoment);
     }
 
     render() {
-        const startMoment = moment.utc(startDateTime, moment.ISO_8601);
+        const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
 
         return (
             <StyledContainer>
@@ -198,6 +318,7 @@ export default class WeekPlanner extends React.PureComponent {
                                 return (
                                     <DayRow
                                         key={day}
+                                        values={this.state.values}
                                         startDateTime={dayMoment.toISOString()}
                                         handleClick={this.handleClick}
                                         handleMouseMove={this.handleMouseMove}
