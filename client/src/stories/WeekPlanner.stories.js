@@ -10,19 +10,21 @@ storiesOf('WeekPlanner', module)
             hoverDateTime: null
         });
 
+        const hoverTimeHandler = startDateTime => {
+            store.set({ hoverDateTime: startDateTime });
+        };
+        const selectTimeHandler = startDateTime => {
+            console.log(`Called ${startDateTime}`);
+        };
+
         return (
             <State store={store}>
                 {
                     state => (
                         <>
                             <WeekPlanner
-                                roundToNearestMinutes={15}
-                                hoverTimeHandler={startDateTime => {
-                                    store.set({ hoverDateTime: startDateTime });
-                                }}
-                                selectTimeHandler={(startDateTime) => {
-                                    console.log(`Called ${startDateTime}`);
-                                }}
+                                hoverTimeHandler={hoverTimeHandler}
+                                selectTimeHandler={selectTimeHandler}
                             />
                             {
                                 (state.hoverDateTime) && <p>Mouse hovering at: {state.hoverDateTime.format('ddd HH:mm')}</p>
