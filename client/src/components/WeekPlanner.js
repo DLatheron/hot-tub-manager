@@ -2,12 +2,12 @@ import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
+import _ from 'lodash';
 
 const StyledContainer = Styled.table`
     width: 100%;
     margin: 0;
     padding: 0;
-    /* border: 1px solid black; */
     border-collapse: collapse;
 `;
 
@@ -42,137 +42,170 @@ const StyledTimeLabel = Styled(StyledTimeHeader)`
     padding: 0px;
 `;
 
-const times = [
-    // '12am',
-    // '1am',
-    // '2am',
-    // '3am',
-    // '4am',
-    // '5am',
-    // '6am',
-    // '7am',
-    // '8am',
-    // '9am',
-    // '10am',
-    // '11am',
-    // '12am',
-    // '1pm',
-    // '2pm',
-    // '3pm',
-    // '4pm',
-    // '5pm',
-    // '6pm',
-    // '7pm',
-    // '8pm',
-    // '9pm',
-    // '10pm',
-    // '11pm'
-    '00:00',
-    '01:00',
-    '02:00',
-    '03:00',
-    '04:00',
-    '05:00',
-    '06:00',
-    '07:00',
-    '08:00',
-    '09:00',
-    '10:00',
-    '11:00',
-    '12:00',
-    '13:00',
-    '14:00',
-    '15:00',
-    '16:00',
-    '17:00',
-    '18:00',
-    '19:00',
-    '20:00',
-    '21:00',
-    '22:00',
-    '23:00'
-];
+const startDateTime = '2018-01-01T00:00:00.000';
 
-export default class WeekPlanner extends React.Component {
+class TimeCell extends React.PureComponent {
     static propTypes = {
-        days: PropTypes.arrayOf(PropTypes.string).isRequired,
+        startDateTime: PropTypes.string.isRequired,
+        handleClick: PropTypes.func,
+        handleMouseMove: PropTypes.func
+    };
+
+    static defaultProps = {
+        handleClick: () => {},
+        handleMouseMove: () => {}
+    };
+
+    render() {
+        const { startDateTime, handleClick, handleMouseMove } = this.props;
+        const startMoment = moment.utc(startDateTime);
+
+        return (
+            <StyledTimeLabel
+                onClick={event => handleClick(event, startMoment)}
+                onMouseMove={event => handleMouseMove(event, startMoment)}
+            />
+        );
+    }
+}
+
+class HeaderRow extends React.PureComponent {
+    render() {
+        const startMoment = moment.utc(startDateTime, moment.ISO_8601);
+
+        return (
+            <thead>
+                <StyledDayRow key='header'>
+                    <StyledDayHeader key='header'/>
+                    {
+                        _.range(24).map(
+                            hour => {
+                                const hourMoment = moment.utc(startMoment).add(hour, 'hours');
+
+                                return (
+                                    <StyledTimeHeader key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeHeader>
+                                );
+                            }
+                        )
+                    }
+                </StyledDayRow>
+            </thead>
+        );
+    }
+}
+
+class DayRow extends React.PureComponent {
+    static propTypes = {
+        startDateTime: PropTypes.string.isRequired,
+        handleClick: PropTypes.func,
+        handleMouseMove: PropTypes.func,
+        handleMouseLeave: PropTypes.func,
+    };
+
+    static defaultProps = {
+        handleClick: () => {},
+        handleMouseMove: () => {},
+        handleMouseLeave: () => {}
+    };
+
+    render() {
+        const { startDateTime, handleClick, handleMouseMove, handleMouseLeave } = this.props;
+        const startMoment = moment.utc(startDateTime, moment.ISO_8601);
+
+        return (
+            <StyledDayRow>
+                <StyledDayLabel
+                    key='header'
+                    onMouseEnter={handleMouseLeave}>{startMoment.format('ddd')}
+                </StyledDayLabel>
+                {
+                    _.range(24).map(
+                        hour => {
+                            const hourMoment = moment.utc(startMoment).add(hour, 'hours');
+
+                            return (
+                                <TimeCell
+                                    key={hourMoment.format('HH')}
+                                    startDateTime={hourMoment.toISOString()}
+                                    handleClick={handleClick}
+                                    handleMouseMove={handleMouseMove}
+                                />
+                            );
+                        }
+                    )
+                }
+            </StyledDayRow>
+        );
+    }
+}
+
+export default class WeekPlanner extends React.PureComponent {
+    static propTypes = {
+        roundToNearestMinutes: PropTypes.number,
         hoverTimeHandler: PropTypes.func,
         selectTimeHandler: PropTypes.func
     };
 
     static defaultProps = {
-        days: [
-            'Mon',
-            'Tue',
-            'Wed',
-            'Thu',
-            'Fri',
-            'Sat',
-            'Sun'
-        ],
+        roundToNearestMinutes: null,
         hoverTimeHandler: () => {},
         selectTimeHandler: () => {}
     };
 
-    calculateTime(x, element, baseTime, timeFormat = 'HH:mm') {
+    calculateTime(x, element, baseMoment) {
+        const { roundToNearestMinutes } = this.props;
+
         const clientRect = element.getBoundingClientRect();
         const percentage = (x - clientRect.x) / clientRect.width;
-        const offsetInMins = percentage * 60;
-        const time = moment(baseTime, timeFormat, false).add(offsetInMins, 'minutes').format(timeFormat);
+        let offsetInMins = percentage * 60;
 
-        return time;
+        if (roundToNearestMinutes) {
+            offsetInMins = Math.round(offsetInMins / roundToNearestMinutes) * roundToNearestMinutes;
+        }
+
+        return moment.utc(baseMoment).add(offsetInMins, 'minutes');
     }
 
-    handleMouseMove = (day, baseTime, event) => {
-        const time = this.calculateTime(event.clientX, event.target, baseTime, 'HH:mm');
+    handleMouseMove = (event, startMoment) => {
+        const dateTime = this.calculateTime(event.clientX, event.target, startMoment);
 
-        this.props.hoverTimeHandler(day, time);
+        this.props.hoverTimeHandler(dateTime);
     }
 
     handleMouseLeave = () => {
         this.props.hoverTimeHandler();
     }
 
-    handleClick = (day, baseTime, event) => {
-        const time = this.calculateTime(event.clientX, event.target, baseTime, 'HH:mm');
+    handleClick = (event, startMoment) => {
+        const dateTime = this.calculateTime(event.clientX, event.target, startMoment);
 
-        this.props.selectTimeHandler(day, time);
+        this.props.selectTimeHandler(dateTime);
     }
 
     render() {
-        const { days } = this.props;
+        const startMoment = moment.utc(startDateTime, moment.ISO_8601);
 
         return (
             <StyledContainer>
-                <thead>
-                    <StyledDayRow key='header'>
-                        <StyledDayHeader key='header'/>
-                        {
-                            times.map(time => <StyledTimeHeader key={time}>{time}</StyledTimeHeader>)
-                        }
-                    </StyledDayRow>
-                </thead>
+                <HeaderRow />
 
                 <tbody onMouseLeave={this.handleMouseLeave}>
                     {
-                        days.map(day => (
-                            <StyledDayRow key={day}>
-                                <StyledDayLabel
-                                    key='header'
-                                    onMouseEnter={this.handleMouseLeave}>{day}
-                                </StyledDayLabel>
-                                {
-                                    times.map(
-                                        time =>
-                                            <StyledTimeLabel
-                                                key={time}
-                                                onClick={this.handleClick.bind(this, day, time)}
-                                                onMouseMove={this.handleMouseMove.bind(this, day, time)}
-                                            />
-                                    )
-                                }
-                            </StyledDayRow>
-                        ))
+                        _.range(7).map(
+                            day => {
+                                const dayMoment = moment.utc(startMoment).add(day, 'days');
+
+                                return (
+                                    <DayRow
+                                        key={day}
+                                        startDateTime={dayMoment.toISOString()}
+                                        handleClick={this.handleClick}
+                                        handleMouseMove={this.handleMouseMove}
+                                        handleMouseLeave={this.handleMouseLeave}
+                                    />
+                                );
+                            }
+                        )
                     }
                 </tbody>
             </StyledContainer>

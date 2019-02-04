@@ -7,8 +7,7 @@ import WeekPlanner from '../components/WeekPlanner';
 storiesOf('WeekPlanner', module)
     .add('default', () => {
         const store = new Store({
-            hoverDay: null,
-            hoverTime: null
+            hoverDateTime: null
         });
 
         return (
@@ -17,16 +16,16 @@ storiesOf('WeekPlanner', module)
                     state => (
                         <>
                             <WeekPlanner
-                                hoverTimeHandler={(day, time) => {
-                                    store.set({ hoverDay: day, hoverTime: time });
-                                    console.log(`hover: ${store.state.hoverDay} at ${store.state.hoverTime}`)
+                                roundToNearestMinutes={15}
+                                hoverTimeHandler={startDateTime => {
+                                    store.set({ hoverDateTime: startDateTime });
                                 }}
-                                selectTimeHandler={(day, time) => {
-                                    console.log(`Called ${day} at ${time}`);
+                                selectTimeHandler={(startDateTime) => {
+                                    console.log(`Called ${startDateTime}`);
                                 }}
                             />
                             {
-                                (state.hoverDay) && <p>Mouse hovering at: {state.hoverDay}, {state.hoverTime}</p>
+                                (state.hoverDateTime) && <p>Mouse hovering at: {state.hoverDateTime.format('ddd HH:mm')}</p>
                             }
                         </>
                     )
