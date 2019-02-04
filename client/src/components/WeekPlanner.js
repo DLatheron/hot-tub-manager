@@ -12,21 +12,23 @@ const StyledContainer = Styled.table`
 `;
 
 const StyledDayRow = Styled.tr`
-    background-color: red;
+    background-color: beige;
     vertical-align: middle;
     margin: 0;
     padding: 0;
 `;
 
 const StyledDayHeader = Styled.th`
-    width: 4%;
+    width: 1%;
     vertical-align: middle;
     border: 1px solid black;
+    background-color: red;
 `;
 
 const StyledDayLabel = Styled(StyledDayHeader)`
     text-align: right;
     padding-right: 4px;
+    background-color: red;
 `;
 
 const StyledTimeHeader = Styled.th`
@@ -34,21 +36,14 @@ const StyledTimeHeader = Styled.th`
     width: 4%;
     font-size: 0.75em;
     text-align: left;
+    background-color: red;
     border: 1px solid black;
 `;
 
 const StyledTimeCell = Styled(StyledTimeHeader)`
-    position: relative;
+    width: 1%;
     background-color: beige;
     padding: 0px;
-`;
-
-const StyledTimeSubCell = Styled.span`
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: ${props => props.offsetPercentage}%;
-    width: 25%;
     opacity: ${props => props.opacity};
     background-color: green;
 `;
@@ -56,6 +51,7 @@ const StyledTimeSubCell = Styled.span`
 class Helper {
     // Nicely chosen start time date with January 1st as a Monday.
     static startDateTime = '2018-01-01T00:00:00.000';
+    static minutes = 15;
 
     static offsetToTimeCloseTo(x, element, baseMoment, roundToNearestMinutes) {
         const clientRect = element.getBoundingClientRect();
@@ -73,35 +69,32 @@ class Helper {
         const day = startMoment.format('ddd');
         const hour = startMoment.format('HH');
         const minute = startMoment.format('mm');
-        const key = `${day}.${hour}.${minute}`;
+        const key = `${day}_${hour}_${minute}`;
 
         return _.get(values, key, 0);
     }
 
-    static setValue(values, startMoment, value = 1.0) {
+    static setValue(existingValues, startMoment, value = 1.0) {
         const day = startMoment.format('ddd');
         const hour = startMoment.format('HH');
         const minute = startMoment.format('mm');
-        const key = `${day}.${hour}.${minute}`;
+        const key = `${day}_${hour}_${minute}'`;
 
-        value = Math.max(value, _.get(values, key, 0));
+        value = Math.max(value, _.get(existingValues, key, 0));
         value = Math.max(Math.min(value, 1.0), 0.0);
 
-        _.set(values, key, value);
+        return { [key]: value };
     }
 
-    static setValueAndRange(values, valueMoment, minutesBefore = 60, minutesAfter = 60) {
-        const points = [
-            -0.75,
-            -0.50,
-            -0.25,
-            0.0,
-            0.25,
-            0.50,
-            0.75
-        ];
+    static setValueAndRange(existingValues, valueMoment, minutesBefore = 60, minutesAfter = 60) {
+        const points = [];
 
-        const newValues = { ...values };
+        for (let i = -minutesBefore; i <= minutesAfter; i += Helper.minutes) {
+            let value = (i / minutesBefore);
+            points.push(value);
+        }
+
+        let newValues = {};
 
         points.forEach(point => {
             let atTime = moment.utc(valueMoment);
@@ -111,60 +104,23 @@ class Helper {
                 atTime.add(point * minutesAfter, 'minutes');
             }
             const value = 1.0 - Math.abs(point);
+            if (value > 0) {
+                const day = atTime.format('ddd');
+                const key = atTime.format('HH:mm');
 
-            Helper.setValue(newValues, atTime, value);
+                if (!newValues[day]) {
+                    newValues[day] = { ...existingValues[day] || {} };
+                }
+
+                const existingValue = newValues[day][key] || 0;
+
+                newValues[day][key] = Math.max(value, existingValue);
+            }
         });
 
+        console.log(`newValues: ${JSON.stringify(newValues, null, 4)}`);
+
         return newValues;
-    }
-}
-
-class TimeCell extends React.PureComponent {
-    static propTypes = {
-        startDateTime: PropTypes.string.isRequired,
-        values: PropTypes.object,
-        handleClick: PropTypes.func,
-        handleMouseMove: PropTypes.func
-    };
-
-    static defaultProps = {
-        handleClick: () => {},
-        handleMouseMove: () => {}
-    };
-
-    render() {
-        const { startDateTime, values, handleClick, handleMouseMove } = this.props;
-        const startMoment = moment.utc(startDateTime);
-
-        const moments = [
-            startMoment,
-            moment.utc(startMoment).add(15, 'minutes'),
-            moment.utc(startMoment).add(30, 'minutes'),
-            moment.utc(startMoment).add(45, 'minutes')
-        ];
-
-        return (
-            <StyledTimeCell>
-                {
-                    moments.map(
-                        (startMoment, index) => {
-                            const offsetPercentage = (index / moments.length) * 100;
-                            const opacity = Helper.getValue(values, startMoment);
-
-                            return (
-                                <StyledTimeSubCell
-                                    key={offsetPercentage}
-                                    offsetPercentage={offsetPercentage}
-                                    opacity={opacity}
-                                    onClick={event => handleClick(event, startMoment)}
-                                    onMouseMove={event => handleMouseMove(event, startMoment)}
-                                />
-                            );
-                        }
-                    )
-                }
-            </StyledTimeCell>
-        );
     }
 }
 
@@ -182,7 +138,7 @@ class HeaderRow extends React.PureComponent {
                                 const hourMoment = moment.utc(startMoment).add(hour, 'hours');
 
                                 return (
-                                    <StyledTimeHeader key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeHeader>
+                                    <StyledTimeHeader key={hourMoment.format('HH')} colSpan={60 / Helper.minutes}>{hourMoment.format('HH:mm')}</StyledTimeHeader>
                                 );
                             }
                         )
@@ -196,7 +152,7 @@ class HeaderRow extends React.PureComponent {
 class DayRow extends React.PureComponent {
     static propTypes = {
         startDateTime: PropTypes.string.isRequired,
-        values: PropTypes.object.isRequired,
+        values: PropTypes.object,
         handleClick: PropTypes.func,
         handleMouseMove: PropTypes.func,
         handleMouseLeave: PropTypes.func,
@@ -219,17 +175,16 @@ class DayRow extends React.PureComponent {
                     onMouseEnter={handleMouseLeave}>{startMoment.format('ddd')}
                 </StyledDayLabel>
                 {
-                    _.range(24).map(
-                        hour => {
-                            const hourMoment = moment.utc(startMoment).add(hour, 'hours');
+                    _.range((24 * 60) / Helper.minutes).map(
+                        index => {
+                            const valueMoment = moment.utc(startMoment).add(index * Helper.minutes, 'minutes');
 
                             return (
-                                <TimeCell
-                                    key={hourMoment.format('HH')}
-                                    values={values}
-                                    startDateTime={hourMoment.toISOString()}
-                                    handleClick={handleClick}
-                                    handleMouseMove={handleMouseMove}
+                                <StyledTimeCell
+                                    key={index}
+                                    onClick={event => handleClick(event, valueMoment)}
+                                    onMouseMove={event => handleMouseMove(event, valueMoment)}
+                                    opacity={_.get(values, valueMoment.format('HH:mm'), 0)}
                                 />
                             );
                         }
@@ -254,35 +209,9 @@ export default class WeekPlanner extends React.PureComponent {
     };
 
     state = {
-        values: {
-            Mon: {
-                '08': {
-                    '15': 0.25,
-                    '30': 0.5,
-                    '45': 0.75,
-                },
-                '09': {
-                    '00': 1,
-                    '15': 0.75,
-                    '30': 0.5,
-                    '45': 0.25,
-                }
-            },
-            Wed: {
-                '15': {
-                    '30': 0.25,
-                    '45': 0.50
-                },
-                '16': {
-                    '00': 0.75,
-                    '15': 1.0,
-                    '30': 0.75,
-                    '45': 0.50
-                },
-                '17': {
-                    '00': 0.25
-                }
-            }
+        Mon: {
+            '09:15': 1.0,
+            '09:30': 0.75
         }
     };
 
@@ -295,9 +224,12 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     handleClick = (event, startMoment) => {
-        this.setState(state => ({
-            values: Helper.setValueAndRange(state.values, startMoment)
-        }));
+        const stateChanges = Helper.setValueAndRange(this.state, startMoment);
+        this.setState(state => {
+            console.log(`state: ${JSON.stringify(state, null, 0)}`);
+            console.log(`stateChanges: ${JSON.stringify(stateChanges, null, 0)}`);
+            return stateChanges
+        });
 
         this.props.selectTimeHandler(startMoment);
     }
@@ -318,7 +250,7 @@ export default class WeekPlanner extends React.PureComponent {
                                 return (
                                     <DayRow
                                         key={day}
-                                        values={this.state.values}
+                                        values={this.state[dayMoment.format('ddd')]}
                                         startDateTime={dayMoment.toISOString()}
                                         handleClick={this.handleClick}
                                         handleMouseMove={this.handleMouseMove}
