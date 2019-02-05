@@ -4,22 +4,60 @@ import PropTypes from 'prop-types';
 import Styled from 'styled-components';
 import _ from 'lodash';
 
-const StyledContainer = Styled.table`
+import './WeekPlanner.scss';
+
+const StyledContainer = Styled.div`
     width: 100%;
     margin: 0;
     padding: 0;
     border-collapse: collapse;
+    box-sizing: border-box;
+    display: grid;
+    position: relative;
+    border: 0;
+    border-radius: 12px;
+    overflow: hidden;
 `;
 
-const StyledDayRow = Styled.tr`
+const StyledTableHeader = Styled.div`
+    color: #fff;
+    background-color: #0a3444;
+    grid-template-columns: 150px repeat(24, 1fr);
+`
+
+const StyledTableLabel = Styled.div`
+    padding: 20px 2px 20px 2px;
+`;
+
+const StyledTimeLabel = Styled.span`
+    color: #fff;
+    background-color: #0a3444;
+    padding: 2px;
+    font-size: 0.75em;
+    text-align: left;
+`;
+
+
+
+
+const StyledDayRow = Styled.div`
+    display: block;
     background-color: beige;
     vertical-align: middle;
     margin: 0;
     padding: 0;
 `;
 
-const StyledDayHeader = Styled.th`
-    width: 1%;
+const StyledDayLabels = Styled.div`
+    float: left;
+    background: pink;
+    width: 50px;
+    text-align: right;
+`
+
+const StyledDayHeader = Styled.span`
+    display: inline-block;
+    width: 4%;
     vertical-align: middle;
     border: 1px solid black;
     background-color: red;
@@ -40,12 +78,22 @@ const StyledTimeHeader = Styled.th`
     border: 1px solid black;
 `;
 
-const StyledTimeCell = Styled(StyledTimeHeader)`
-    width: 1%;
+const StyledTimeRow = Styled(StyledTimeHeader)`
+    position: relative;
+    width: 100%;
     background-color: beige;
     padding: 0px;
-    opacity: ${props => props.opacity};
-    background-color: green;
+    /* opacity: ${props => props.opacity}; */
+    background-color: beige;
+`;
+
+const StyledTimeSpan = Styled.span`
+    position: absolute;
+    left: calc(4% + 4%);
+    right: calc(4% + 4%);
+    top: 0;
+    bottom: 0;
+    background: green;
 `;
 
 class Helper {
@@ -53,10 +101,10 @@ class Helper {
     static startDateTime = '2018-01-01T00:00:00.000';
     static minutes = 15;
 
-    static offsetToTimeCloseTo(x, element, baseMoment, roundToNearestMinutes) {
+    static offsetToTime(x, element, baseMoment, roundToNearestMinutes) {
         const clientRect = element.getBoundingClientRect();
         const percentage = (x - clientRect.x) / clientRect.width;
-        let offsetInMins = percentage * 60;
+        let offsetInMins = percentage * 24 * 60;
 
         if (roundToNearestMinutes) {
             offsetInMins = Math.round(offsetInMins / roundToNearestMinutes) * roundToNearestMinutes;
@@ -129,7 +177,7 @@ class HeaderRow extends React.PureComponent {
         const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
 
         return (
-            <thead>
+            <div>
                 <StyledDayRow key='header'>
                     <StyledDayHeader key='header'/>
                     {
@@ -138,13 +186,13 @@ class HeaderRow extends React.PureComponent {
                                 const hourMoment = moment.utc(startMoment).add(hour, 'hours');
 
                                 return (
-                                    <StyledTimeHeader key={hourMoment.format('HH')} colSpan={60 / Helper.minutes}>{hourMoment.format('HH:mm')}</StyledTimeHeader>
+                                    <StyledTimeHeader key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeHeader>
                                 );
                             }
                         )
                     }
                 </StyledDayRow>
-            </thead>
+            </div>
         );
     }
 }
@@ -170,26 +218,16 @@ class DayRow extends React.PureComponent {
 
         return (
             <StyledDayRow>
-                <StyledDayLabel
+                {/* <StyledDayLabel
                     key='header'
                     onMouseEnter={handleMouseLeave}>{startMoment.format('ddd')}
-                </StyledDayLabel>
-                {
-                    _.range((24 * 60) / Helper.minutes).map(
-                        index => {
-                            const valueMoment = moment.utc(startMoment).add(index * Helper.minutes, 'minutes');
-
-                            return (
-                                <StyledTimeCell
-                                    key={index}
-                                    onClick={event => handleClick(event, valueMoment)}
-                                    onMouseMove={event => handleMouseMove(event, valueMoment)}
-                                    opacity={_.get(values, valueMoment.format('HH:mm'), 0)}
-                                />
-                            );
-                        }
-                    )
-                }
+                </StyledDayLabel> */}
+                <StyledTimeRow
+                    colSpan={24}
+                    onClick={event => handleClick(event, startMoment)}
+                    onMouseMove={event => handleMouseMove(event, startMoment)}>
+                    <StyledTimeSpan />
+                </StyledTimeRow>
             </StyledDayRow>
         );
     }
@@ -216,7 +254,14 @@ export default class WeekPlanner extends React.PureComponent {
     };
 
     handleMouseMove = (event, startMoment) => {
-        this.props.hoverTimeHandler(startMoment);
+        const hoverMoment = Helper.offsetToTime(
+            event.clientX,
+            event.target,
+            startMoment,
+            Helper.minutes
+        );
+
+        this.props.hoverTimeHandler(hoverMoment);
     }
 
     handleMouseLeave = () => {
@@ -224,44 +269,124 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     handleClick = (event, startMoment) => {
-        const stateChanges = Helper.setValueAndRange(this.state, startMoment);
+        const clickMoment = Helper.offsetToTime(
+            event.clientX,
+            event.target,
+            startMoment,
+            Helper.minutes
+        );
+
+        const stateChanges = Helper.setValueAndRange(this.state, clickMoment);
         this.setState(state => {
             console.log(`state: ${JSON.stringify(state, null, 0)}`);
             console.log(`stateChanges: ${JSON.stringify(stateChanges, null, 0)}`);
             return stateChanges
         });
 
-        this.props.selectTimeHandler(startMoment);
+        this.props.selectTimeHandler(clickMoment);
+    }
+
+    // componentDidUpdate(prevProps, prevState) {
+    //     Object.entries(this.props).forEach(([key, val]) =>
+    //       prevProps[key] !== val && console.log(`Prop '${key}' changed`)
+    //     );
+    //     Object.entries(this.state).forEach(([key, val]) =>
+    //       prevState[key] !== val && console.log(`State '${key}' changed`)
+    //     );
+    // }
+    renderHeaderRow(startMoment) {
+        return (
+            <StyledTableHeader>
+                <StyledTableLabel></StyledTableLabel>
+                {
+                    _.range(24).map(
+                        hour => {
+                            const hourMoment = moment.utc(startMoment).add(hour, 'hours');
+
+                            return (
+                                <StyledTimeLabel key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeLabel>
+                            );
+                        }
+                    )
+                }
+            </StyledTableHeader>
+        );
     }
 
     render() {
         const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
 
         return (
-            <StyledContainer>
-                <HeaderRow />
-
-                <tbody onMouseLeave={this.handleMouseLeave}>
+            <div class="gantt">
+                <div class="gantt__row gantt__row--months">
+                    <div class="gantt__row-first"></div>
                     {
-                        _.range(7).map(
-                            day => {
-                                const dayMoment = moment.utc(startMoment).add(day, 'days');
-
-                                return (
-                                    <DayRow
-                                        key={day}
-                                        values={this.state[dayMoment.format('ddd')]}
-                                        startDateTime={dayMoment.toISOString()}
-                                        handleClick={this.handleClick}
-                                        handleMouseMove={this.handleMouseMove}
-                                        handleMouseLeave={this.handleMouseLeave}
-                                    />
-                                );
-                            }
+                        _.range(24).map(hour =>
+                            <span key={hour}>
+                                {moment.utc(startMoment).add(hour, 'hours').format('HH:mm')}
+                            </span>
                         )
                     }
-                </tbody>
-            </StyledContainer>
+                </div>
+                <div class="gantt__row gantt__row--lines" data-month="5">
+                    {/* Day label */}
+                    <span />
+                    {
+                        _.range(4 * 24).map(segment => {
+                            const marked = segment >= 0 && segment < 4;
+
+                            return <span key={segment} className={marked && 'marker'}/>;
+                        })
+                    }
+                </div>
+                <div class="gantt__row">
+                    <div class="gantt__row-first">
+                        Mon
+                    </div>
+                    <ul class="gantt__row-bars">
+                        <li style={{gridColumn: '18/19', backgroundColor: '#2ecaac'}}>Even longer project</li>
+                    </ul>
+                </div>
+                <div class="gantt__row">
+                    <div class="gantt__row-first">
+                        Tue
+                    </div>
+                    <ul class="gantt__row-bars">
+                    </ul>
+                </div>
+            </div>
+            // <StyledContainer>
+            //     { this.renderHeaderRow(startMoment) }
+            //     {/* <StyledDayLabels>
+            //         <div>Mon</div>
+            //         <div>Tue</div>
+            //         <div>Wed</div>
+            //         <div>Thu</div>
+            //         <div>Fri</div>
+            //         <div>Sat</div>
+            //         <div>Sun</div>
+            //     </StyledDayLabels>
+            //     <div onMouseLeave={this.handleMouseLeave} style={{float:'right'}}>
+            //         {
+            //             _.range(7).map(
+            //                 day => {
+            //                     const dayMoment = moment.utc(startMoment).add(day, 'days');
+
+            //                     return (
+            //                         <DayRow
+            //                             key={day}
+            //                             values={this.state[dayMoment.format('ddd')]}
+            //                             startDateTime={dayMoment.toISOString()}
+            //                             handleClick={this.handleClick}
+            //                             handleMouseMove={this.handleMouseMove}
+            //                             handleMouseLeave={this.handleMouseLeave}
+            //                         />
+            //                     );
+            //                 }
+            //             )
+            //         }
+            //     </div> */}
+            // </StyledContainer>
         );
     }
 }
