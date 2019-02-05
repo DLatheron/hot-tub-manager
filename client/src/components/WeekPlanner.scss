@@ -26,6 +26,7 @@ html {
 	box-shadow: 0 75px 125px -57px #7e8f94;
 
 	&__row {
+        pointer-events: none;
 		display: grid;
 		grid-template-columns: $initial-column-width 1fr;
 		background-color: #fff;
@@ -49,8 +50,9 @@ html {
 			.week-planner__row-first {
 				border-width: 1px 1px 0 0;
 			}
-		}
+        }
 		&--lines {
+            // pointer-events: none;
 			position: absolute;
 			height: 100%;
 			width: 100%;
@@ -73,6 +75,15 @@ html {
 				z-index: 2;
 				height: 100%;
 			}
+		}
+		&--selection {
+            cursor: pointer;
+			position: absolute;
+			height: 100%;
+			width: 100%;
+            margin-top: 59px;
+            margin-left: 80px;
+            background-color: transparent;
 		}
 		&--hours {
 			color: #fff;
@@ -105,16 +116,19 @@ html {
 			font-size: 13px;
 			font-weight: bold;
 			text-align: center;
-		}
+        }
 		&-bars {
-			list-style: none;
-			display: grid;
-			padding: 9px 0;
-			margin: 0;
-			grid-template-columns: repeat($number-of-columns, 1fr);
-			grid-gap: 8px 0;
-			border-top: 1px solid rgba(221, 221, 221, 0.8);
+		    list-style: none;
+            position: relative;
+		    display: grid;
+		    padding: 9px 0;
+            margin: 0;
+            // grid-template-rows: 7;
+            grid-template-columns: repeat($number-of-columns, 1fr);
+            grid-gap: 8px 0;
+            border-top: 1px solid rgba(221, 221, 221, 0.8);
 			li {
+                pointer-events: none;
 				font-weight: 500;
 				text-align: center;
 				font-size: 14px;
@@ -127,31 +141,37 @@ html {
 				cursor: pointer;
                 border-radius: 20px;
 
-				&.stripes {
-					background-image: repeating-linear-gradient(
-						45deg,
-						transparent,
-						transparent 5px,
-						rgba(255, 255, 255, 0.1) 5px,
-						rgba(255, 255, 255, 0.1) 12px
-					);
-				}
+                &.selection {
+                    opacity: 0.75;
+                    z-index: 1;
+                    // margin-top: -35px;
+                }
 
-				&:before,
-				&:after {
-					content: "";
-					height: 100%;
-					top: 0;
-					z-index: 4;
-					position: absolute;
-					background-color: rgba(0, 0, 0, 0.3);
-				}
-				&:before {
-					left: 0;
-				}
-				&:after {
-					right: 0;
-				}
+				// &.stripes {
+				// 	background-image: repeating-linear-gradient(
+				// 		45deg,
+				// 		transparent,
+				// 		transparent 5px,
+				// 		rgba(255, 255, 255, 0.1) 5px,
+				// 		rgba(255, 255, 255, 0.1) 12px
+				// 	);
+				// }
+
+				// &:before,
+				// &:after {
+				// 	content: "";
+				// 	height: 100%;
+				// 	top: 0;
+				// 	z-index: 4;
+				// 	position: absolute;
+				// 	background-color: rgba(0, 0, 0, 0.3);
+				// }
+				// &:before {
+				// 	left: 0;
+				// }
+				// &:after {
+				// 	right: 0;
+				// }
 			}
 		}
 	}

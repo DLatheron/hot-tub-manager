@@ -172,67 +172,6 @@ class Helper {
     }
 }
 
-class HeaderRow extends React.PureComponent {
-    render() {
-        const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
-
-        return (
-            <div>
-                <StyledDayRow key='header'>
-                    <StyledDayHeader key='header'/>
-                    {
-                        _.range(24).map(
-                            hour => {
-                                const hourMoment = moment.utc(startMoment).add(hour, 'hours');
-
-                                return (
-                                    <StyledTimeHeader key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeHeader>
-                                );
-                            }
-                        )
-                    }
-                </StyledDayRow>
-            </div>
-        );
-    }
-}
-
-class DayRow extends React.PureComponent {
-    static propTypes = {
-        startDateTime: PropTypes.string.isRequired,
-        values: PropTypes.object,
-        handleClick: PropTypes.func,
-        handleMouseMove: PropTypes.func,
-        handleMouseLeave: PropTypes.func,
-    };
-
-    static defaultProps = {
-        handleClick: () => {},
-        handleMouseMove: () => {},
-        handleMouseLeave: () => {}
-    };
-
-    render() {
-        const { startDateTime, values, handleClick, handleMouseMove, handleMouseLeave } = this.props;
-        const startMoment = moment.utc(startDateTime, moment.ISO_8601);
-
-        return (
-            <StyledDayRow>
-                {/* <StyledDayLabel
-                    key='header'
-                    onMouseEnter={handleMouseLeave}>{startMoment.format('ddd')}
-                </StyledDayLabel> */}
-                <StyledTimeRow
-                    colSpan={24}
-                    onClick={event => handleClick(event, startMoment)}
-                    onMouseMove={event => handleMouseMove(event, startMoment)}>
-                    <StyledTimeSpan />
-                </StyledTimeRow>
-            </StyledDayRow>
-        );
-    }
-}
-
 export default class WeekPlanner extends React.PureComponent {
     static propTypes = {
         roundToNearestMinutes: PropTypes.number,
@@ -255,35 +194,83 @@ export default class WeekPlanner extends React.PureComponent {
         ]
     };
 
-    handleMouseMove = (event, startMoment) => {
-        const hoverMoment = Helper.offsetToTime(
-            event.clientX,
-            event.target,
-            startMoment,
-            Helper.minutes
-        );
+    static calcTimeAt(clientX, clientY) {
+        const constants = {
+            originX: 80,
+            originY: 59,
+            rowHeight: 48,
+            columnWidth: 65.703
+        };
+
+        // Translate to origin.
+        const x = clientX - constants.originX;
+        const y = clientY - constants.originY;
+
+        const row = Math.floor(y / constants.rowHeight);
+        const col = Math.floor((x / (constants.columnWidth / 4)) + .5);
+
+        const day = row + 1;
+        const mins = Math.round(col * 15);
+
+        return moment
+            .utc(Helper.startDateTime, moment.ISO_8601)
+            .day(day)
+            .minutes(mins);
+    }
+
+    handleMouseDown = (event) => {
+        // TODO: Only left button down!
+
+        const dragStart = WeekPlanner.calcTimeAt(event.clientX, event.clientY);
+
+        this.setState({
+            dragging: true,
+            dragStart,
+            dragEnd: null
+        });
+    }
+
+    handleMouseUp = (event) => {
+        // TODO: Only left button down!
+
+        const dragStart = this.state.dragStart;
+        const dragEnd = WeekPlanner.calcTimeAt(event.clientX, event.clientY);
+
+        console.log(`Drag start: ${dragStart.format('ddd HH:mm')} to ${dragEnd.format('ddd HH:mm')}`)
+
+        if (Math.abs(dragStart.diff(dragEnd, 'minutes')) >= 15) {
+            console.log('Some sort of valid drag happened...');
+        } else {
+            console.log('Invalid drag - too short');
+        }
+
+        this.setState({
+            dragging: false
+        });
+    }
+
+    handleMouseMove = (event) => {
+        const hoverMoment = WeekPlanner.calcTimeAt(event.clientX, event.clientY);
+
+        if (this.state.dragging) {
+            this.setState({
+                dragEnd: hoverMoment
+            });
+        }
 
         this.props.hoverTimeHandler(hoverMoment);
     }
 
     handleMouseLeave = () => {
+        // this.setState({
+        //     dragging: false
+        // });
+
         this.props.hoverTimeHandler();
     }
 
-    handleClick = (event, startMoment) => {
-        const clickMoment = Helper.offsetToTime(
-            event.clientX,
-            event.target,
-            startMoment,
-            Helper.minutes
-        );
-
-        const stateChanges = Helper.setValueAndRange(this.state, clickMoment);
-        this.setState(state => {
-            console.log(`state: ${JSON.stringify(state, null, 0)}`);
-            console.log(`stateChanges: ${JSON.stringify(stateChanges, null, 0)}`);
-            return stateChanges
-        });
+    handleClick = (event) => {
+        const clickMoment = WeekPlanner.calcTimeAt(event.clientX, event.clientY);
 
         this.props.selectTimeHandler(clickMoment);
     }
@@ -297,32 +284,28 @@ export default class WeekPlanner extends React.PureComponent {
     //     );
     // }
 
-    // renderHeaderRow(startMoment) {
-    //     return (
-    //         <StyledTableHeader>
-    //             <StyledTableLabel></StyledTableLabel>
-    //             {
-    //                 _.range(24).map(
-    //                     hour => {
-    //                         const hourMoment = moment.utc(startMoment).add(hour, 'hours');
+    static calcGridColumn(timeAsString) {
+        const timeMoment = moment.utc(timeAsString, 'HH:mm');
+        const timeOffsetInMinutes = timeMoment.hour() * 60 + timeMoment.minute();
+        const column = Math.round(timeOffsetInMinutes / 15 + 1);
 
-    //                         return (
-    //                             <StyledTimeLabel key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeLabel>
-    //                         );
-    //                     }
-    //                 )
-    //             }
-    //         </StyledTableHeader>
-    //     );
-    // }
+        return column;
+    }
+
+    static calcGridColumns(startTimeAsString, endTimeAsString) {
+        const startColumn = WeekPlanner.calcGridColumn(startTimeAsString);
+        const endColumn = WeekPlanner.calcGridColumn(endTimeAsString);
+
+        return `${startColumn}/${endColumn}`;
+    }
 
     render() {
         const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
 
         return (
-            <div class="week-planner">
-                <div class="week-planner__row week-planner__row--hours">
-                    <div class="week-planner__row-first"></div>
+            <div className="week-planner">
+                <div className="week-planner__row week-planner__row--hours">
+                    <div className="week-planner__row-first"></div>
                     {
                         _.range(24).map(hour =>
                             <span key={hour}>
@@ -331,97 +314,69 @@ export default class WeekPlanner extends React.PureComponent {
                         )
                     }
                 </div>
-                <div class="week-planner__row week-planner__row--lines">
+                <div className="week-planner__row week-planner__row--lines">
                     {/* Day label */}
                     <span />
                     {
                         _.range(4 * 24).map(index => {
                             const marked = index >= 0 && index < 4;
 
-                            return <span key={index} className={marked ? 'marker' : ''}/>;
+                            return <span key={index} className={marked ? 'marker' : ''} />;
                         })
                     }
                 </div>
+                <div
+                    className="week-planner__row--selection"
+                    onClick={this.handleClick}
+                    onMouseMove={this.handleMouseMove}
+                    onMouseLeave={this.handleMouseLeave}
+                    onMouseDown={this.handleMouseDown}
+                    onMouseUp={this.handleMouseUp}
+                />
                 {
                     _.range(7).map(index => {
                         const dayMoment = moment.utc(startMoment).add(index, 'days');
                         const day = dayMoment.format('ddd');
                         const dayTimes = this.state.times.filter(entry => entry.day === day);
+                        let selection = null;
+
+                        if (this.state.dragStart && this.state.dragEnd) {
+                            const dragStartDay = Math.min(this.state.dragStart.day(), this.state.dragEnd.day());
+                            const dragEndDay = Math.max(this.state.dragStart.day(), this.state.dragEnd.day());
+
+                            console.log(`dragStartDay: ${dragStartDay}, dragEndDay: ${dragEndDay}`);
+
+                            if (index + 1 >= dragStartDay && index + 1 <= dragEndDay) {
+                                const dragStartTime = this.state.dragStart.format('HH:mm');
+                                const dragEndTime = this.state.dragEnd.format('HH:mm');
+                                const gridColumn = WeekPlanner.calcGridColumns(dragStartTime, dragEndTime);
+
+                                selection = <li className='selection' style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}} />
+                            }
+                        }
 
                         return (
-                            <div class="week-planner__row">
-                                <div class="week-planner__row-first">
+                            <div className="week-planner__row">
+                                <div className="week-planner__row-first">
                                     {day}
                                 </div>
-                                <ul class="week-planner__row-bars">
+                                <ul className="week-planner__row-bars">
                                     {
                                         dayTimes.map(dayTime => {
-                                            const start = moment.utc(dayTime.start, 'HH:mm');
-                                            const end = moment.utc(dayTime.end, 'HH:mm');
-                                            const startOffsetInMinutes = start.hour() * 60 + start.minute();
-                                            const endOffsetInMinutes = end.hour() * 60 + end.minute();
-                                            const startColumn = Math.round(startOffsetInMinutes / 15 + 1);
-                                            const endColumn = Math.round(endOffsetInMinutes / 15 + 1);
-                                            const gridColumn = `${startColumn}/${endColumn}`;
+                                            const gridColumn = WeekPlanner.calcGridColumns(dayTime.start, dayTime.end);
 
                                             return (
-                                                <li style={{gridColumn, backgroundColor: dayTime.color || '#2ecaac'}} />
+                                                <li style={{gridColumn, gridRow: 1, backgroundColor: dayTime.color || '#2ecaac'}} />
                                             );
                                         })
                                     }
+                                    { selection }
                                 </ul>
                             </div>
                         )
                     })
                 }
-                {/* <div class="week-planner__row">
-                    <div class="week-planner__row-first">
-                        Mon
-                    </div>
-                    <ul class="week-planner__row-bars">
-                        <li style={{gridColumn: '18/22', backgroundColor: '#2ecaac'}}>Blob</li>
-                    </ul>
-                </div>
-                <div class="week-planner__row">
-                    <div class="week-planner__row-first">
-                        Tue
-                    </div>
-                    <ul class="week-planner__row-bars">
-                    </ul>
-                </div> */}
             </div>
-            // <StyledContainer>
-            //     { this.renderHeaderRow(startMoment) }
-            //     {/* <StyledDayLabels>
-            //         <div>Mon</div>
-            //         <div>Tue</div>
-            //         <div>Wed</div>
-            //         <div>Thu</div>
-            //         <div>Fri</div>
-            //         <div>Sat</div>
-            //         <div>Sun</div>
-            //     </StyledDayLabels>
-            //     <div onMouseLeave={this.handleMouseLeave} style={{float:'right'}}>
-            //         {
-            //             _.range(7).map(
-            //                 day => {
-            //                     const dayMoment = moment.utc(startMoment).add(day, 'days');
-
-            //                     return (
-            //                         <DayRow
-            //                             key={day}
-            //                             values={this.state[dayMoment.format('ddd')]}
-            //                             startDateTime={dayMoment.toISOString()}
-            //                             handleClick={this.handleClick}
-            //                             handleMouseMove={this.handleMouseMove}
-            //                             handleMouseLeave={this.handleMouseLeave}
-            //                         />
-            //                     );
-            //                 }
-            //             )
-            //         }
-            //     </div> */}
-            // </StyledContainer>
         );
     }
 }
