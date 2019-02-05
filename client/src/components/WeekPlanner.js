@@ -247,10 +247,12 @@ export default class WeekPlanner extends React.PureComponent {
     };
 
     state = {
-        Mon: {
-            '09:15': 1.0,
-            '09:30': 0.75
-        }
+        times: [
+            { day: 'Mon', start: '09:00', end: '10:00', color: 'red' },
+            { day: 'Thu', start: '15:00', end: '16:00', color: 'blue' },
+            { day: 'Fri', start: '01:15', end: '02:45', color: 'green' },
+            { day: 'Sun', start: '00:00', end: '23:59', color: 'green' }
+        ]
     };
 
     handleMouseMove = (event, startMoment) => {
@@ -294,32 +296,33 @@ export default class WeekPlanner extends React.PureComponent {
     //       prevState[key] !== val && console.log(`State '${key}' changed`)
     //     );
     // }
-    renderHeaderRow(startMoment) {
-        return (
-            <StyledTableHeader>
-                <StyledTableLabel></StyledTableLabel>
-                {
-                    _.range(24).map(
-                        hour => {
-                            const hourMoment = moment.utc(startMoment).add(hour, 'hours');
 
-                            return (
-                                <StyledTimeLabel key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeLabel>
-                            );
-                        }
-                    )
-                }
-            </StyledTableHeader>
-        );
-    }
+    // renderHeaderRow(startMoment) {
+    //     return (
+    //         <StyledTableHeader>
+    //             <StyledTableLabel></StyledTableLabel>
+    //             {
+    //                 _.range(24).map(
+    //                     hour => {
+    //                         const hourMoment = moment.utc(startMoment).add(hour, 'hours');
+
+    //                         return (
+    //                             <StyledTimeLabel key={hourMoment.format('HH')}>{hourMoment.format('HH:mm')}</StyledTimeLabel>
+    //                         );
+    //                     }
+    //                 )
+    //             }
+    //         </StyledTableHeader>
+    //     );
+    // }
 
     render() {
         const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
 
         return (
-            <div class="gantt">
-                <div class="gantt__row gantt__row--months">
-                    <div class="gantt__row-first"></div>
+            <div class="week-planner">
+                <div class="week-planner__row week-planner__row--hours">
+                    <div class="week-planner__row-first"></div>
                     {
                         _.range(24).map(hour =>
                             <span key={hour}>
@@ -328,32 +331,64 @@ export default class WeekPlanner extends React.PureComponent {
                         )
                     }
                 </div>
-                <div class="gantt__row gantt__row--lines" data-month="5">
+                <div class="week-planner__row week-planner__row--lines">
                     {/* Day label */}
                     <span />
                     {
-                        _.range(4 * 24).map(segment => {
-                            const marked = segment >= 0 && segment < 4;
+                        _.range(4 * 24).map(index => {
+                            const marked = index >= 0 && index < 4;
 
-                            return <span key={segment} className={marked && 'marker'}/>;
+                            return <span key={index} className={marked ? 'marker' : ''}/>;
                         })
                     }
                 </div>
-                <div class="gantt__row">
-                    <div class="gantt__row-first">
+                {
+                    _.range(7).map(index => {
+                        const dayMoment = moment.utc(startMoment).add(index, 'days');
+                        const day = dayMoment.format('ddd');
+                        const dayTimes = this.state.times.filter(entry => entry.day === day);
+
+                        return (
+                            <div class="week-planner__row">
+                                <div class="week-planner__row-first">
+                                    {day}
+                                </div>
+                                <ul class="week-planner__row-bars">
+                                    {
+                                        dayTimes.map(dayTime => {
+                                            const start = moment.utc(dayTime.start, 'HH:mm');
+                                            const end = moment.utc(dayTime.end, 'HH:mm');
+                                            const startOffsetInMinutes = start.hour() * 60 + start.minute();
+                                            const endOffsetInMinutes = end.hour() * 60 + end.minute();
+                                            const startColumn = Math.round(startOffsetInMinutes / 15 + 1);
+                                            const endColumn = Math.round(endOffsetInMinutes / 15 + 1);
+                                            const gridColumn = `${startColumn}/${endColumn}`;
+
+                                            return (
+                                                <li style={{gridColumn, backgroundColor: dayTime.color || '#2ecaac'}} />
+                                            );
+                                        })
+                                    }
+                                </ul>
+                            </div>
+                        )
+                    })
+                }
+                {/* <div class="week-planner__row">
+                    <div class="week-planner__row-first">
                         Mon
                     </div>
-                    <ul class="gantt__row-bars">
-                        <li style={{gridColumn: '18/19', backgroundColor: '#2ecaac'}}>Even longer project</li>
+                    <ul class="week-planner__row-bars">
+                        <li style={{gridColumn: '18/22', backgroundColor: '#2ecaac'}}>Blob</li>
                     </ul>
                 </div>
-                <div class="gantt__row">
-                    <div class="gantt__row-first">
+                <div class="week-planner__row">
+                    <div class="week-planner__row-first">
                         Tue
                     </div>
-                    <ul class="gantt__row-bars">
+                    <ul class="week-planner__row-bars">
                     </ul>
-                </div>
+                </div> */}
             </div>
             // <StyledContainer>
             //     { this.renderHeaderRow(startMoment) }
