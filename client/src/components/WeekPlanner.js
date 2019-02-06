@@ -1,176 +1,11 @@
 import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import Styled from 'styled-components';
 import _ from 'lodash';
 
 import './WeekPlanner.scss';
 
-const StyledContainer = Styled.div`
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    border-collapse: collapse;
-    box-sizing: border-box;
-    display: grid;
-    position: relative;
-    border: 0;
-    border-radius: 12px;
-    overflow: hidden;
-`;
-
-const StyledTableHeader = Styled.div`
-    color: #fff;
-    background-color: #0a3444;
-    grid-template-columns: 150px repeat(24, 1fr);
-`
-
-const StyledTableLabel = Styled.div`
-    padding: 20px 2px 20px 2px;
-`;
-
-const StyledTimeLabel = Styled.span`
-    color: #fff;
-    background-color: #0a3444;
-    padding: 2px;
-    font-size: 0.75em;
-    text-align: left;
-`;
-
-
-
-
-const StyledDayRow = Styled.div`
-    display: block;
-    background-color: beige;
-    vertical-align: middle;
-    margin: 0;
-    padding: 0;
-`;
-
-const StyledDayLabels = Styled.div`
-    float: left;
-    background: pink;
-    width: 50px;
-    text-align: right;
-`
-
-const StyledDayHeader = Styled.span`
-    display: inline-block;
-    width: 4%;
-    vertical-align: middle;
-    border: 1px solid black;
-    background-color: red;
-`;
-
-const StyledDayLabel = Styled(StyledDayHeader)`
-    text-align: right;
-    padding-right: 4px;
-    background-color: red;
-`;
-
-const StyledTimeHeader = Styled.th`
-    padding: 2px;
-    width: 4%;
-    font-size: 0.75em;
-    text-align: left;
-    background-color: red;
-    border: 1px solid black;
-`;
-
-const StyledTimeRow = Styled(StyledTimeHeader)`
-    position: relative;
-    width: 100%;
-    background-color: beige;
-    padding: 0px;
-    /* opacity: ${props => props.opacity}; */
-    background-color: beige;
-`;
-
-const StyledTimeSpan = Styled.span`
-    position: absolute;
-    left: calc(4% + 4%);
-    right: calc(4% + 4%);
-    top: 0;
-    bottom: 0;
-    background: green;
-`;
-
-class Helper {
-    // Nicely chosen start time date with January 1st as a Monday.
-    static startDateTime = '2018-01-01T00:00:00.000';
-    static minutes = 15;
-
-    static offsetToTime(x, element, baseMoment, roundToNearestMinutes) {
-        const clientRect = element.getBoundingClientRect();
-        const percentage = (x - clientRect.x) / clientRect.width;
-        let offsetInMins = percentage * 24 * 60;
-
-        if (roundToNearestMinutes) {
-            offsetInMins = Math.round(offsetInMins / roundToNearestMinutes) * roundToNearestMinutes;
-        }
-
-        return moment.utc(baseMoment).add(offsetInMins, 'minutes');
-    }
-
-    static getValue(values, startMoment) {
-        const day = startMoment.format('ddd');
-        const hour = startMoment.format('HH');
-        const minute = startMoment.format('mm');
-        const key = `${day}_${hour}_${minute}`;
-
-        return _.get(values, key, 0);
-    }
-
-    static setValue(existingValues, startMoment, value = 1.0) {
-        const day = startMoment.format('ddd');
-        const hour = startMoment.format('HH');
-        const minute = startMoment.format('mm');
-        const key = `${day}_${hour}_${minute}'`;
-
-        value = Math.max(value, _.get(existingValues, key, 0));
-        value = Math.max(Math.min(value, 1.0), 0.0);
-
-        return { [key]: value };
-    }
-
-    static setValueAndRange(existingValues, valueMoment, minutesBefore = 60, minutesAfter = 60) {
-        const points = [];
-
-        for (let i = -minutesBefore; i <= minutesAfter; i += Helper.minutes) {
-            let value = (i / minutesBefore);
-            points.push(value);
-        }
-
-        let newValues = {};
-
-        points.forEach(point => {
-            let atTime = moment.utc(valueMoment);
-            if (point < 0) {
-                atTime.add(point * minutesBefore, 'minutes');
-            } else if (point > 0) {
-                atTime.add(point * minutesAfter, 'minutes');
-            }
-            const value = 1.0 - Math.abs(point);
-            if (value > 0) {
-                const day = atTime.format('ddd');
-                const key = atTime.format('HH:mm');
-
-                if (!newValues[day]) {
-                    newValues[day] = { ...existingValues[day] || {} };
-                }
-
-                const existingValue = newValues[day][key] || 0;
-
-                newValues[day][key] = Math.max(value, existingValue);
-            }
-        });
-
-        console.log(`newValues: ${JSON.stringify(newValues, null, 4)}`);
-
-        return newValues;
-    }
-}
+const baseMoment = moment.utc('2017-01-01T00:00:00.000', moment.ISO_8601);
 
 export default class WeekPlanner extends React.PureComponent {
     static propTypes = {
@@ -187,10 +22,15 @@ export default class WeekPlanner extends React.PureComponent {
 
     state = {
         times: [
-            { day: 'Mon', start: '09:00', end: '10:00', color: 'red' },
-            { day: 'Thu', start: '15:00', end: '16:00', color: 'blue' },
-            { day: 'Fri', start: '01:15', end: '02:45', color: 'green' },
-            { day: 'Sun', start: '00:00', end: '23:59', color: 'green' }
+            // { start: moment.utc('2017-01-02T00:00:00.000'), end: moment.utc('2017-01-02T00:15:00.000'), color: 'red' },
+            // { start: moment.utc('2017-01-03T00:00:00.000'), end: moment.utc('2017-01-03T00:30:00.000'), color: 'green' },
+            // { start: moment.utc('2017-01-04T00:00:00.000'), end: moment.utc('2017-01-04T00:45:00.000'), color: 'blue' },
+            // { start: moment.utc('2017-01-05T00:00:00.000'), end: moment.utc('2017-01-05T01:00:00.000'), color: 'yellow' },
+            // { start: moment.utc('2017-01-06T23:00:00.000'), end: moment.utc('2017-01-07T01:00:00.000'), color: 'pink' },
+            { start: moment.utc('2017-01-04T09:00:00.000'), end: moment.utc('2017-01-04T10:00:00.000'), color: 'pink' },
+            // { day: 'Thu', start: '15:00', end: '16:00', color: 'blue' },
+            // { day: 'Fri', start: '01:15', end: '02:45', color: 'green' },
+            // { day: 'Sun', start: '00:00', end: '23:59', color: 'green' }
         ]
     };
 
@@ -206,14 +46,14 @@ export default class WeekPlanner extends React.PureComponent {
         const x = clientX - constants.originX;
         const y = clientY - constants.originY;
 
-        const row = Math.floor(y / constants.rowHeight);
-        const col = Math.floor((x / (constants.columnWidth / 4)) + .5);
+        const row = Math.min(Math.floor(y / constants.rowHeight), 6);
+        const col = Math.floor(x / (constants.columnWidth / 4));
 
-        const day = row + 1;
-        const mins = Math.round(col * 15);
+        const day = row;
+        const mins = Math.floor(col * 15);
 
         return moment
-            .utc(Helper.startDateTime, moment.ISO_8601)
+            .utc(baseMoment)
             .day(day)
             .minutes(mins);
     }
@@ -237,12 +77,6 @@ export default class WeekPlanner extends React.PureComponent {
         const dragEnd = WeekPlanner.calcTimeAt(event.clientX, event.clientY);
 
         console.log(`Drag start: ${dragStart.format('ddd HH:mm')} to ${dragEnd.format('ddd HH:mm')}`)
-
-        if (Math.abs(dragStart.diff(dragEnd, 'minutes')) >= 15) {
-            console.log('Some sort of valid drag happened...');
-        } else {
-            console.log('Invalid drag - too short');
-        }
 
         this.setState({
             dragging: false
@@ -284,23 +118,63 @@ export default class WeekPlanner extends React.PureComponent {
     //     );
     // }
 
-    static calcGridColumn(timeAsString) {
-        const timeMoment = moment.utc(timeAsString, 'HH:mm');
-        const timeOffsetInMinutes = timeMoment.hour() * 60 + timeMoment.minute();
+    static calcGridColumn(baseMoment, timeMoment) {
+        const timeOffsetInMinutes = timeMoment.diff(baseMoment, 'minutes');
         const column = Math.round(timeOffsetInMinutes / 15 + 1);
 
         return column;
     }
 
-    static calcGridColumns(startTimeAsString, endTimeAsString) {
-        const startColumn = WeekPlanner.calcGridColumn(startTimeAsString);
-        const endColumn = WeekPlanner.calcGridColumn(endTimeAsString);
+    static calcGridColumns(baseMoment, startMoment, endMoment) {
+        const minColumn = 1;
+        const maxColumn = 96 + 1;
 
-        return `${startColumn}/${endColumn}`;
+        const startColumn = WeekPlanner.calcGridColumn(baseMoment, startMoment);
+        const endColumn = WeekPlanner.calcGridColumn(baseMoment, endMoment);
+
+
+        return {
+            caps: {
+                start: startColumn >= minColumn,
+                end: endColumn <= maxColumn
+            },
+            gridColumn: `${Math.max(startColumn, minColumn)}/${ Math.min(endColumn, maxColumn)}`,
+        };
+    }
+
+    static dateRangesOverlap(range0, range1) {
+        return range0.start.isSameOrBefore(range1.end) && range0.end.isSameOrAfter(range1.start);
+    }
+
+    static clipDateRange(toClip, range) {
+        return {
+            clippedStartTime: toClip.start.isSameOrAfter(range.start) ? toClip.start : range.start,
+            clippedEndTime: toClip.end.isSameOrBefore(range.end) ? toClip.end : range.end
+        };
+    }
+
+    getDragStart() {
+        return (
+            this.state.dragStart.isSameOrBefore(this.state.dragEnd)
+                ? this.state.dragStart
+                : this.state.dragEnd
+        );
+    }
+
+    getDragEnd() {
+        return moment.utc(
+            this.state.dragStart.isSameOrBefore(this.state.dragEnd)
+                ? this.state.dragEnd
+                : this.state.dragStart
+        ).add(15, 'minutes');
+    }
+
+    hasDragStarted() {
+        return this.state.dragStart && this.state.dragEnd;
     }
 
     render() {
-        const startMoment = moment.utc(Helper.startDateTime, moment.ISO_8601);
+        const startMoment = moment.utc(baseMoment);
 
         return (
             <div className="week-planner">
@@ -336,22 +210,37 @@ export default class WeekPlanner extends React.PureComponent {
                 {
                     _.range(7).map(index => {
                         const dayMoment = moment.utc(startMoment).add(index, 'days');
+                        const endOfDayMoment = moment.utc(dayMoment).endOf('day');
+                        const dayTimes = this.state.times.filter(entry => WeekPlanner.dateRangesOverlap(
+                            entry,
+                            { start: dayMoment, end: endOfDayMoment }
+                        ));
+                        // console.log(`dayTimes: ${JSON.stringify(dayTimes, null, 4)}`);
+
                         const day = dayMoment.format('ddd');
-                        const dayTimes = this.state.times.filter(entry => entry.day === day);
                         let selection = null;
 
-                        if (this.state.dragStart && this.state.dragEnd) {
-                            const dragStartDay = Math.min(this.state.dragStart.day(), this.state.dragEnd.day());
-                            const dragEndDay = Math.max(this.state.dragStart.day(), this.state.dragEnd.day());
+                        if (this.hasDragStarted()) {
+                            const dragStart = this.getDragStart();
+                            const dragEnd = this.getDragEnd();
+                            // const dayIndex = dayMoment.day();
 
-                            console.log(`dragStartDay: ${dragStartDay}, dragEndDay: ${dragEndDay}`);
+                            if (WeekPlanner.dateRangesOverlap(
+                                { start: dragStart, end: dragEnd },
+                                { start: dayMoment, end: endOfDayMoment }
+                            )) {
+                                const { clippedStartTime: dragStartTime, clippedEndTime: dragEndTime } =
+                                    WeekPlanner.clipDateRange(
+                                        { start: dragStart, end: dragEnd },
+                                        { start: dayMoment, end: endOfDayMoment }
+                                    );
 
-                            if (index + 1 >= dragStartDay && index + 1 <= dragEndDay) {
-                                const dragStartTime = this.state.dragStart.format('HH:mm');
-                                const dragEndTime = this.state.dragEnd.format('HH:mm');
-                                const gridColumn = WeekPlanner.calcGridColumns(dragStartTime, dragEndTime);
+                                const { gridColumn } = WeekPlanner.calcGridColumns(dayMoment, dragStartTime, dragEndTime);
 
-                                selection = <li className='selection' style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}} />
+                                console.log(`dragStartTime: ${dragStartTime}, dragEndTime: ${dragEndTime}`);
+                                console.log(`gridColumn: ${JSON.stringify(gridColumn, null, 4)}`);
+
+                                selection = <li className='selection startCap endCap' style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}>+</li>
                             }
                         }
 
@@ -363,10 +252,12 @@ export default class WeekPlanner extends React.PureComponent {
                                 <ul className="week-planner__row-bars">
                                     {
                                         dayTimes.map(dayTime => {
-                                            const gridColumn = WeekPlanner.calcGridColumns(dayTime.start, dayTime.end);
+                                            const { gridColumn, caps } = WeekPlanner.calcGridColumns(dayMoment, dayTime.start, dayTime.end);
+                                            const capsClasses = `${caps.start ? 'startCap' : ''} ${caps.end ? 'endCap' : ''}`;
+                                            console.log(`gridColumn: ${JSON.stringify(gridColumn, null, 4)}`);
 
                                             return (
-                                                <li style={{gridColumn, gridRow: 1, backgroundColor: dayTime.color || '#2ecaac'}} />
+                                                <li className={capsClasses} style={{gridColumn, gridRow: 1, backgroundColor: dayTime.color || '#2ecaac'}} />
                                             );
                                         })
                                     }
