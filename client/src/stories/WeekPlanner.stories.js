@@ -14,7 +14,7 @@ storiesOf('WeekPlanner', module)
             store.set({ hoverDateTime: startDateTime });
         };
         const selectTimeHandler = startDateTime => {
-            console.log(`Called ${startDateTime.format('ddd HH:mm')}`);
+            console.log(`Click at: ${startDateTime.format('ddd HH:mm')}`);
         };
 
         return (
