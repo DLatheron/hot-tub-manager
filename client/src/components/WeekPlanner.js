@@ -8,6 +8,104 @@ import './WeekPlanner.scss';
 const baseMoment = moment.utc('2017-01-01T00:00:00.000', moment.ISO_8601);
 const minutesInADay = 24 * 60;
 
+export class Range {
+    /** Constructs a range class
+     * @param {moment} start - Optional start of the time range.
+     * @param {moment} end - Optional end of the time range.
+     * @param {string} color - Optional colour associated with this range.
+     */
+    constructor(start, end, color) {
+        this.start = start;
+        this.end = end;
+
+        if (color !== undefined) {
+            this.color = color;
+        }
+    }
+
+    /** Returns the unix timestamp for the start of the range to assist sorting.
+     * @param {moment} range - The range to process.
+     * @returns {number} The valueOf the 'range's start time as a unix timestamp.
+     */
+    static sortByStartTime(range) {
+        return range.start.valueOf();
+    }
+
+    /** Clips the range (assuming that the ranges are overlapping in the first place).
+     * @param {Range} clippingRange - The clipping range.
+     * @returns {Range} The clipped range.
+     */
+    clipDateRange(clippingRange) {
+        return new Range(
+            this.start.isSameOrAfter(clippingRange.start)
+                ? this.start
+                : clippingRange.start,
+            this.end.isSameOrBefore(clippingRange.end)
+                ? this.end
+                : clippingRange.end,
+            this.color
+        );
+    }
+
+    /** Determines if the two date ranges overlap.
+     * @param {Range} other - The other range.
+     * @returns {boolean} True if the ranges overlap, otherwise false.
+     */
+    overlaps(other) {
+        return this.start.isBefore(other.end) && this.end.isAfter(other.start);
+    }
+
+    /** Calculates the duration of the range (in minutes) and then optionally modulos the number.
+     * @param {number} modulo - Optional parameter to limit the range (to say a day).
+     * @returns {number} The duration of the range (in minutes).
+     */
+    durationInMinutes(modulo = minutesInADay + 1) {
+        let durationInMinutes = moment.utc(this.end).diff(this.start, 'minutes');
+        if (modulo) {
+            durationInMinutes = durationInMinutes % (minutesInADay + 1);
+        }
+        return durationInMinutes;
+    }
+
+    /** Creates a new range that encompases the original and all of the ranges passed (it is assumed that these
+     * ranges are known to overlap).
+     * @param {Array} ranges - Array of zero or more ranges to be merged.
+     * @returns {Range} New range that contains results of the merge.
+     * */
+    mergeOverlappingRanges(ranges) {
+        ranges = [this, ...ranges];
+
+        function getMinStartMomentAsUnixTimestamp() {
+            return ranges.reduce((min, p) => Math.min(min, p.start.valueOf()), ranges[0].start.valueOf());
+        }
+        function getMaxEndMomentAsUnixTimestamp() {
+            return ranges.reduce((min, p) => Math.max(min, p.end.valueOf()), ranges[0].end.valueOf());
+        }
+
+        return new Range(
+            moment.utc(getMinStartMomentAsUnixTimestamp()),
+            moment.utc(getMaxEndMomentAsUnixTimestamp()),
+            this.color
+        );
+    }
+
+    /** Determines how the range is clipped by the provided range.
+     * @param {Range} clipRange - Range that is to be removed.
+     * @returns {object} An object containing two boolean properties ('startOutside' and 'endOutside') that indicate
+     * if the start and end are outside of the 'clipRange'.
+     */
+    determineOverlaps(clipRange) {
+        return {
+            startOutside: this.start.isBefore(clipRange.start),
+            endOutside: this.end.isAfter(clipRange.end)
+        };
+    }
+
+    toString() {
+        return `${this.start.toISOString()} - ${this.end.toISOString()} (${this.color})`;
+    }
+}
+
 export class Helper {
     /** Calculates the time at the cursor position.
      * @param {number} clientX - x co-ordinate in client-space pixels (assuming 0 is extreme left).
@@ -16,6 +114,7 @@ export class Helper {
      */
     static calcTimeAt(clientX, clientY) {
         const constants = {
+            // TODO: Can we generate these programmatically?
             originX: 80,
             originY: 59,
             rowHeight: 48,
@@ -40,12 +139,11 @@ export class Helper {
 
     /** Calculates the CSS grid start and end columns for this row.
      * @param {moment} startOfRowMoment - The date and time at the start of the row.
-     * @param {moment} startMoment - The date and time at the start of the region.
-     * @param {moment} endMoment - The date and time at the end of the region.
+     * @param {Range} range - The range to be displayed.
      * @returns {object} Containing the calculated 'gridColumn' and the 'caps' object which
-     * determines if the start and end of the region should be capped.
+     * determines if the 'start' and 'end' of the region should be capped.
      */
-    static calcGridColumns(startOfRowMoment, startMoment, endMoment) {
+    static calcGridColumns(startOfRowMoment, range) {
         function calcGridColumn(timeMoment) {
             const timeOffsetInMinutes = timeMoment.diff(startOfRowMoment, 'minutes');
             return Math.round(timeOffsetInMinutes / 15 + 1);
@@ -54,8 +152,8 @@ export class Helper {
         const minColumn = 1;
         const maxColumn = 96 + 1;
 
-        const startColumn = calcGridColumn(startMoment);
-        const endColumn = calcGridColumn(endMoment);
+        const startColumn = calcGridColumn(range.start);
+        const endColumn = calcGridColumn(range.end);
 
         return {
             caps: {
@@ -63,27 +161,6 @@ export class Helper {
                 end: endColumn <= maxColumn
             },
             gridColumn: `${Math.max(startColumn, minColumn)}/${Math.min(endColumn, maxColumn)}`,
-        };
-    }
-
-    /** Determines if the two date ranges overlap.
-     * @param {object} range0 - An object with 'start' and 'end' {moment} properties defining the first range.
-     * @param {object} range1 - An object with 'start' and 'end' {moment} properties defining the second range.
-     * @returns {boolean} True if the ranges overlap, otherwise false.
-     */
-    static dateRangesOverlap(range0, range1) {
-        return range0.start.isBefore(range1.end) && range0.end.isAfter(range1.start);
-    }
-
-    /** Clips a date range into another range (assuming that the ranges are overlapping in the first place).
-     * @param {object} toClip - An object with 'start' and 'end' {moment} properties defining the range to clip.
-     * @param {object} range - An object with 'start' and 'end' {moment} properties defining the clipping range.
-     * @returns {object} The resulting clipped range with 'start' and 'end' {moment} properties.
-     */
-    static clipDateRange(toClip, range) {
-        return {
-            start: toClip.start.isSameOrAfter(range.start) ? toClip.start : range.start,
-            end: toClip.end.isSameOrBefore(range.end) ? toClip.end : range.end
         };
     }
 
@@ -103,62 +180,61 @@ export class Helper {
         return classes.join(' ');
     }
 
-    /** Returns the start and end moments for a selection, ensuring that 'dragStart' comes before 'dragEnd'
+    /** Returns the start and end moments for a selection, ensuring that 'drag.start' comes before 'drag.end'
      * and that the 'gridMode' is respected. NOTE: Dates ranges must overlap by an amount, it is not sufficient
      * that they 'touch'.
-     * @param {moment} dragStart - The moment where the drag operation began.
-     * @param {moment} dragEnd - The moment where the drag operation ends.
+     * @param {object} drag - Object with 'start' and 'end' {moment}s that represent the extents of the current drag operation.
      * @param {boolean} gridMode - Whether grid mode is on or off.
      * @returns {object} An object containing 'start' and 'end' {moment} properties that represent the selection such
      * that 'start' is chronologically before 'end'.
      */
-    static getDragMoments(dragStart, dragEnd, gridMode) {
+    static getDragMoments(drag, gridMode) {
         if (gridMode) {
-            const startDay = moment.utc(dragStart).startOf('day');
-            const endDay = moment.utc(dragEnd).startOf('day');
-            const startOffsetInMins = dragStart.diff(startDay, 'minutes');
-            const endOffsetInMins = dragEnd.diff(endDay, 'minutes');
+            const startDay = moment.utc(drag.start).startOf('day');
+            const endDay = moment.utc(drag.end).startOf('day');
+            const startOffsetInMins = drag.start.diff(startDay, 'minutes');
+            const endOffsetInMins = drag.end.diff(endDay, 'minutes');
 
             const minDay = startDay <= endDay ? startDay : endDay;
             const minOffsetInMins = startOffsetInMins <= endOffsetInMins ? startOffsetInMins : endOffsetInMins;
             const maxDay = startDay <= endDay ? endDay : startDay;
             const maxOffsetInMins = startOffsetInMins <= endOffsetInMins ? endOffsetInMins : startOffsetInMins;
 
-            return {
-                start: minDay.add(minOffsetInMins, 'minutes'),
-                end: maxDay.add(maxOffsetInMins, 'minutes').add(15, 'minutes')
-            };
+            return new Range(
+                minDay.add(minOffsetInMins, 'minutes'),
+                maxDay.add(maxOffsetInMins, 'minutes').add(15, 'minutes')
+            );
         } else {
-            return {
-                start: dragStart.isSameOrBefore(dragEnd)
-                    ? dragStart
-                    : dragEnd,
-                end: moment.utc(
-                    dragStart.isSameOrBefore(dragEnd)
-                        ? dragEnd
-                        : dragStart
+            return new Range(
+                drag.start.isSameOrBefore(drag.end)
+                    ? drag.start
+                    : drag.end,
+                moment.utc(
+                    drag.start.isSameOrBefore(drag.end)
+                        ? drag.end
+                        : drag.start
                 ).add(15, 'minutes')
-            };
+            );
         }
     }
 
     /** Determine the impact of the selection on the day's row.
      * @param {object} dayMomentRange - Object with 'start' and 'end' {moment}s that represent the extents of the current
      * day's row.
-     * @param {moment} dragStart - The moment where the drag operation began.
-     * @param {moment} dragEnd - The moment where the drag operation ends.
+     * @param {object} drag - Optional object with 'start' and 'end' {moment}s that represent the extents of the current drag operation.
      * @param {boolean} gridMode - Whether grid mode is on or off.
+     * @param {string} modeIndicator - String drawn on the selection.
      * @returns {component|undefined} An optional react component representing the selection's impact on the day's row.
      */
-    static determineSelection(dayMomentRange, dragStart, dragEnd, gridMode) {
-        if (!dragStart || !dragEnd) {
+    static determineSelection(dayMomentRange, drag, gridMode, modeIndicator) {
+        if (!drag) {
             return;
         }
 
-        const dragMoments = Helper.getDragMoments(dragStart, dragEnd, gridMode);
+        const dragMoments = Helper.getDragMoments(drag, gridMode);
         const selectionFn = (gridMode) ? Helper.determineGridModeSelection : Helper.determineContinuousSelection;
 
-        return selectionFn(dayMomentRange, dragMoments);
+        return selectionFn(dayMomentRange, dragMoments, modeIndicator);
     }
 
     /** Determines the impact of the selection on the day's row when gridMode is off.
@@ -166,61 +242,132 @@ export class Helper {
      * day's row.
      * @param {object} dragMoment - Object with 'start' and 'end' {moment}s that represent the start and end of the
      * selection, with 'start' guaranteed to be before 'end'
+     * @param {string} modeIndicator - String drawn on the selection.
      * @returns {component|undefined} An optional react component representing the selection's impact on the day's row.
      */
-    static determineContinuousSelection(dayMomentRange, dragMoments) {
-        if (Helper.dateRangesOverlap(dragMoments, dayMomentRange)) {
-            const clippedMoments = Helper.clipDateRange(dragMoments, dayMomentRange);
-            const { gridColumn, caps } = Helper.calcGridColumns(dayMomentRange.start, clippedMoments.start, clippedMoments.end);
+    static determineContinuousSelection(dayMomentRange, dragMoments, modeIndicator) {
+        if (dragMoments.overlaps(dayMomentRange)) {
+            const clippedMoments = dragMoments.clipDateRange(dayMomentRange);
+            const { gridColumn, caps } = Helper.calcGridColumns(dayMomentRange.start, clippedMoments);
 
             return (
                 <li
                     className={Helper.calcCapsClasses(caps.start, caps.end, 'selection')}
                     style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
                 >
-                    +
+                    {modeIndicator}
                 </li>
             );
         }
     }
 
     /** Determines the impact of the selection on the day's row when gridMode is on.
-     * @param {object} dayMomentRange - Object with 'start' and 'end' {moment}s that represent the extents of the current
+     * @param {object} dayRange - Object with 'start' and 'end' {moment}s that represent the extents of the current
      * day's row.
      * @param {object} dragMoment - Object with 'start' and 'end' {moment}s that represent the start and end of the
      * selection, with 'start' guaranteed to be before 'end'
+     * @param {string} modeIndicator - String drawn on the selection.
      * @returns {component|undefined} An optional react component representing the selection's impact on the day's row.
      */
-    static determineGridModeSelection(dayMomentRange, dragMoments) {
-        const selectionDayRange = {
-            start: moment.utc(dragMoments.start).startOf('day'),
-            end: moment.utc(dragMoments.end).subtract(1, 'minute').endOf('day')
-        };
+    static determineGridModeSelection(dayRange, dragRange, modeIndicator) {
+        const selectionDayRange = new Range(
+            moment.utc(dragRange.start).startOf('day'),
+            moment.utc(dragRange.end).subtract(1, 'minute').endOf('day')
+        );
 
-        if (Helper.dateRangesOverlap(selectionDayRange, dayMomentRange)) {
-            const dragStartTime = moment.utc(dayMomentRange.start).hour(dragMoments.start.hour()).minute(dragMoments.start.minute());
-            const difference = Helper.calcDifferenceInMinutesClamped(dragMoments);
-            const dragEndTime = moment.utc(dragStartTime).add(difference, 'minutes');
-            const { gridColumn } = Helper.calcGridColumns(dayMomentRange.start, dragStartTime, dragEndTime);
+        if (selectionDayRange.overlaps(dayRange)) {
+            const dragStart = moment.utc(dayRange.start).hour(dragRange.start.hour()).minute(dragRange.start.minute());
+            const difference = dragRange.durationInMinutes();
+            const dragEnd = moment.utc(dragStart).add(difference, 'minutes');
+            const { gridColumn } = Helper.calcGridColumns(dayRange.start, new Range(dragStart, dragEnd));
 
             return (
                 <li
                     className={Helper.calcCapsClasses(true, true, 'selection')}
                     style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
                 >
-                    +
+                    {modeIndicator}
                 </li>
             );
         }
     }
 
-    /** Calculates the number of minutes between 'start' and 'end' {moment}s and limits it to a maximum of one day
-     * (+1 second). The +1 second is required because a section can extend from 00:00 today to 00:00 tomorrow.
-     * @param {object} momentRange - Object with 'start' and 'end' {moment}s representing the (potentially multi-day) time range.
-     * @returns {number} The number of minutes between them
+    /** Calculates an updated set of ranges based on the drag selection that has taken place.
+     * @param {Array} existingRanges - Array of the existing ranges.
+     * @param {Range} drag - The range describing the drag operation.
+     * @param {boolean} gridMode - Whether the drag operation is in grid mode or not.
+     * @param {String} mode - The operation to perform.
+     * @param {String} color - The colour for any new ranges.
+     * @returns {Array} An updated array of ranges.
      */
-    static calcDifferenceInMinutesClamped(momentRange) {
-        return moment.utc(momentRange.end).diff(momentRange.start, 'minutes') % (minutesInADay + 1);
+    static updateRangesFromDragSelection(existingRanges, drag, gridMode, mode, color = 'magenta') {
+        const operationFn = mode === 'add' ? Helper.updateRangesByAddition : Helper.updateRangesBySubtraction;
+        const dragRange = Helper.getDragMoments(drag, gridMode);
+
+        if (gridMode) {
+            _.range(7).forEach(dayIndex => {
+                const dayMoment = moment.utc(baseMoment).add(dayIndex, 'days');
+                const dayRange = new Range(dayMoment, moment.utc(dayMoment).endOf('day'));
+
+                if (dragRange.overlaps(dayRange)) {
+                    const dragStartTime = moment.utc(dayMoment).hour(dragRange.start.hour()).minute(dragRange.start.minute());
+                    const difference = dragRange.durationInMinutes(dragRange);
+                    const dragEndTime = moment.utc(dragStartTime).add(difference, 'minutes');
+
+                    existingRanges = operationFn(existingRanges, new Range(dragStartTime, dragEndTime, color))
+                }
+            })
+        } else {
+            existingRanges = operationFn(existingRanges, { ...dragRange, color })
+        }
+
+        return existingRanges;
+    }
+
+    /** Generates a new ranges array by merging in the new range. Assumes that the existing ranges are sorted and do
+     * not overlap.
+     * @param {array} existingRanges - Array of objects with 'start' and 'end' {moment}s sorted by their 'start' {moment}.
+     * @param {Range} rangeToInsert - Range to insert.
+     * @returns {array} Ordered array of 'Range's. Any ranges that are coalesed by the addition of the new range take
+     * on the colour of the new range.
+     */
+    static updateRangesByAddition(existingRanges, rangeToInsert) {
+        const ranges = [...existingRanges];
+
+        const affectedRanges = _.remove(ranges, range => range.overlaps(rangeToInsert));
+        ranges.push(rangeToInsert.mergeOverlappingRanges(affectedRanges));
+
+        const sortedTimes = _.sortBy(ranges, Range.sortByStartTime);
+
+        return sortedTimes;
+    }
+
+    /** Generates a new ranges array by merging in the new range. Assumes that the existing ranges are sorted and do
+     * not overlap.
+     * @param {array} existingRanges - Array of objects with 'start' and 'end' {moment}s sorted by their 'start' {moment}.
+     * @param {Range} rangeToRemove - Range to remove.
+     * @returns {array} Ordered array of 'Range's. Any ranges that are split with retain their original colour.
+     */
+    static updateRangesBySubtraction(existingRanges, rangeToRemove) {
+        const ranges = [...existingRanges];
+
+        const affectedRanges = _.remove(ranges, range => range.overlaps(rangeToRemove));
+
+        affectedRanges.forEach(affectedRange => {
+            const overlaps = affectedRange.determineOverlaps(rangeToRemove);
+            const { color } = affectedRange
+
+            if (overlaps.startOutside) {
+                ranges.push(new Range(affectedRange.start, rangeToRemove.start, color));
+            }
+            if (overlaps.endOutside) {
+                ranges.push(new Range(rangeToRemove.end, affectedRange.end, color));
+            }
+        });
+
+        const sortedTimes = _.sortBy(ranges, Range.sortByStartTime);
+
+        return sortedTimes;
     }
 };
 
@@ -239,38 +386,32 @@ export default class WeekPlanner extends React.PureComponent {
 
     state = {
         times: [
-            { start: moment.utc('2017-01-02T00:00:00.000'), end: moment.utc('2017-01-02T00:15:00.000'), color: 'red' },
-            { start: moment.utc('2017-01-03T00:00:00.000'), end: moment.utc('2017-01-03T00:30:00.000'), color: 'green' },
-            { start: moment.utc('2017-01-04T00:00:00.000'), end: moment.utc('2017-01-04T00:45:00.000'), color: 'blue' },
-            { start: moment.utc('2017-01-05T00:00:00.000'), end: moment.utc('2017-01-05T01:00:00.000'), color: 'yellow' },
-            { start: moment.utc('2017-01-06T23:00:00.000'), end: moment.utc('2017-01-07T01:00:00.000'), color: 'pink' },
-            { start: moment.utc('2017-01-04T09:00:00.000'), end: moment.utc('2017-01-04T10:00:00.000'), color: 'pink' },
+            new Range(moment.utc('2017-01-02T00:00:00.000'), moment.utc('2017-01-02T22:15:00.000'), 'red' ),
+            new Range(moment.utc('2017-01-03T00:00:00.000'), moment.utc('2017-01-03T22:30:00.000'), 'green' ),
+            new Range(moment.utc('2017-01-04T00:00:00.000'), moment.utc('2017-01-04T22:45:00.000'), 'blue' ),
+            new Range(moment.utc('2017-01-05T00:00:00.000'), moment.utc('2017-01-05T23:00:00.000'), 'yellow' ),
+            new Range(moment.utc('2017-01-06T02:00:00.000'), moment.utc('2017-01-07T23:00:00.000'), 'pink' )
         ],
-        dragStart: null,
-        dragEnd: null,
-        gridMode: false
+        drag: null,
+        gridMode: true,
+        mode: 'add'
     };
 
     handleMouseDown = (event) => {
         if (event.button === 0) {
-            const dragStart = Helper.calcTimeAt(event.clientX, event.clientY);
+            const start = Helper.calcTimeAt(event.clientX, event.clientY);
 
-            this.setState({
-                dragStart,
-                dragEnd: null
-            });
+            this.setState({ drag: new Range(start, start) });
         }
     }
 
     handleMouseUp = (event) => {
         if (event.button === 0) {
-            const { dragStart, dragEnd, gridMode } = this.state;
-
-            // TODO: Do something with the selection...
-            console.log(`Dragging completed: dragStart: ${dragStart}, dragEnd: ${dragEnd}, gridMode: ${gridMode}`);
+            const { times, drag, gridMode, mode } = this.state;
 
             this.setState({
-                dragStart: null
+                times: Helper.updateRangesFromDragSelection(times, drag, gridMode, mode, 'magenta'),
+                drag: null
             });
         }
     }
@@ -278,10 +419,8 @@ export default class WeekPlanner extends React.PureComponent {
     handleMouseMove = (event) => {
         const hoverMoment = Helper.calcTimeAt(event.clientX, event.clientY);
 
-        if (this.state.dragStart !== null) {
-            this.setState({
-                dragEnd: hoverMoment
-            });
+        if (this.state.drag !== null) {
+            this.setState({ drag: new Range(this.state.drag.start, hoverMoment) });
         }
 
         this.props.hoverTimeHandler(hoverMoment);
@@ -313,17 +452,14 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     renderDayRow = (dayRow) => {
-        const { dragStart, dragEnd, gridMode, times } = this.state;
+        const { drag, gridMode, mode, times } = this.state;
 
         const dayMoment = moment.utc(baseMoment).add(dayRow, 'days');
-        const dayMomentRange = {
-            start: dayMoment,
-            end: moment.utc(dayMoment).endOf('day')
-        };
+        const dayMomentRange = new Range(dayMoment, moment.utc(dayMoment).endOf('day'));
 
-        const selection = Helper.determineSelection(dayMomentRange, dragStart, dragEnd, gridMode);
+        const selection = Helper.determineSelection(dayMomentRange, drag, gridMode, mode === 'add' ? '+' : '-');
 
-        const dayTimes = times.filter(entry => Helper.dateRangesOverlap(entry, dayMomentRange));
+        const dayTimes = times.filter(entry => entry.overlaps(dayMomentRange));
         const formattedDay = dayMoment.format('ddd');
 
         return (
@@ -332,10 +468,11 @@ export default class WeekPlanner extends React.PureComponent {
                 <ul className="week-planner__row-bars">
                     {
                         dayTimes.map(dayTime => {
-                            const { gridColumn, caps } = Helper.calcGridColumns(dayMoment, dayTime.start, dayTime.end);
+                            const { gridColumn, caps } = Helper.calcGridColumns(dayMoment, dayTime);
 
                             return (
                                 <li
+                                    key={gridColumn}
                                     className={Helper.calcCapsClasses(caps.start, caps.end)}
                                     style={{gridColumn, gridRow: 1, backgroundColor: dayTime.color || '#2ecaac'}}
                                 />
