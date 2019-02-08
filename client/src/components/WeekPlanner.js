@@ -329,7 +329,7 @@ export class Helper {
      * @param {String} color - The colour for any new ranges.
      * @returns {Array} An updated array of ranges.
      */
-    static updateRangesFromDragSelection(existingRanges, dragRange, gridMode, mode, color = 'magenta') {
+    static updateRangesFromDragSelection(existingRanges, dragRange, gridMode, mode, color) {
         const operationFn = mode === modes.add ? Helper.updateRangesByAddition : Helper.updateRangesBySubtraction;
         const correctedDragRange = Helper.getModeDependentDragRange(dragRange, gridMode);
 
@@ -444,6 +444,7 @@ export default class WeekPlanner extends React.PureComponent {
             totalSpacing: PropTypes.number
         }),
         markers: PropTypes.object,
+        selectionColor: PropTypes.string,
         roundToNearestMinutes: PropTypes.number,
         hoverTimeHandler: PropTypes.func,
         selectTimeHandler: PropTypes.func
@@ -453,6 +454,7 @@ export default class WeekPlanner extends React.PureComponent {
         initialRanges: [],
         segmentSpacing: Helper.calcSegmentSpacing(_.times(segmentsPerDay, _.constant(1))),
         markers: {},
+        selectionColor: 'magenta',
         roundToNearestMinutes: null,
         hoverTimeHandler: () => {},
         selectTimeHandler: () => {}
@@ -469,12 +471,28 @@ export default class WeekPlanner extends React.PureComponent {
         };
     }
 
+    determineMode({ altHeld, shiftHeld }) {
+        const selectionState = {};
+
+        if (altHeld !== undefined) {
+            selectionState.gridMode = altHeld;
+        }
+        if (shiftHeld !== undefined) {
+            selectionState.mode = shiftHeld ? modes.sub : modes.add;
+        }
+
+        return selectionState;
+    }
+
     handleMouseDown = (event) => {
+        // TODO: Check shift and alt state and handle like the key was pressed.
         if (event.button === 0) {
             // TODO: event.clientX/clientY needs converting into a different space.
             const start = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
 
-            this.setState({ drag: new Range(start, start) });
+            this.setState({
+                ...this.determineMode({ altHeld: event.altKey, shiftHeld: event.shiftKey }),
+                drag: new Range(start, start) });
         }
     }
 
@@ -483,7 +501,7 @@ export default class WeekPlanner extends React.PureComponent {
             const { ranges, drag, gridMode, mode } = this.state;
 
             this.setState({
-                ranges: Helper.updateRangesFromDragSelection(ranges, drag, gridMode, mode, 'magenta'),
+                ranges: Helper.updateRangesFromDragSelection(ranges, drag, gridMode, mode, this.props.selectionColor),
                 drag: null
             });
         }
@@ -492,11 +510,11 @@ export default class WeekPlanner extends React.PureComponent {
     handleKeyDown = (event) => {
         switch (event.key) {
             case 'Alt':
-                this.setState({ gridMode: true });
+                this.setState(this.determineMode({ altHeld: true }));
                 break;
 
             case 'Shift':
-                this.setState({ mode: modes.sub });
+                this.setState(this.determineMode({ shiftHeld: true }));
                 break;
 
             default:
@@ -507,15 +525,15 @@ export default class WeekPlanner extends React.PureComponent {
     handleKeyUp = (event) => {
         switch (event.key) {
             case 'Alt':
-                this.setState({ gridMode: false });
+                this.setState(this.determineMode({ altHeld: false }));
+                break;
+
+            case 'Shift':
+                this.setState(this.determineMode({ shiftHeld: false }));
                 break;
 
             case 'Escape':
                 this.setState({ drag: null });
-                break;
-
-            case 'Shift':
-                this.setState({ mode: modes.add });
                 break;
 
             default:
