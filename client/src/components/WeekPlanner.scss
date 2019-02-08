@@ -2,6 +2,12 @@ $number-of-columns: 24 * 4;
 $initial-column-width: 80px;
 $blob-radius: 20px;
 $red: #ff6252;
+$column-header-array: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr 2fr 2fr 1fr;
+$column-width-array: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr 2fr 1fr 1fr 1fr 1fr;
+
+:export {
+    initialColumnWidth: $initial-column-width
+}
 
 body,
 html {
@@ -58,7 +64,7 @@ html {
 			height: 100%;
 			width: 100%;
 			background-color: transparent;
-			grid-template-columns: $initial-column-width repeat($number-of-columns, 1fr);
+            grid-template-columns: $initial-column-width $column-width-array;
 			span {
 				display: block;
 				&.marker {
@@ -80,7 +86,7 @@ html {
 		&--selection {
             cursor: pointer;
 			position: absolute;
-			height: 100%;
+			height: calc(100% - 59px);
 			width: 100%;
             margin-top: 59px;
             margin-left: 80px;
@@ -90,7 +96,7 @@ html {
 			color: #fff;
 			background-color: #0a3444 !important;
 			border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-			grid-template-columns: $initial-column-width repeat(24, 1fr);
+			grid-template-columns: $initial-column-width $column-header-array;
 			.week-planner__row-first {
 				border-top: 0 !important;
 				background-color: #0a3444 !important;
@@ -124,8 +130,7 @@ html {
 		    display: grid;
 		    padding: 9px 0;
             margin: 0;
-            // grid-template-rows: 7;
-            grid-template-columns: repeat($number-of-columns, 1fr);
+            grid-template-columns: $column-width-array;
             grid-gap: 8px 0;
             border-top: 1px solid rgba(221, 221, 221, 0.8);
 			li {
@@ -140,7 +145,8 @@ html {
 				color: #fff;
 				overflow: hidden;
 				position: relative;
-				cursor: pointer;
+                cursor: pointer;
+                // border: 1px solid black;
 
                 &.selection {
                     opacity: 0.75;

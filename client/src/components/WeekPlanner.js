@@ -3,10 +3,14 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 
-import './WeekPlanner.scss';
+import Styles from './WeekPlanner.scss';
 
 const baseMoment = moment.utc('2017-01-01T00:00:00.000', moment.ISO_8601);
 const minutesInADay = 24 * 60;
+
+const controlStyles = {
+    initialColumnWidth: parseInt(Styles.initialColumnWidth)
+};
 
 export class Range {
     /** Constructs a range class
@@ -119,13 +123,27 @@ export class Helper {
      * @param {number} clientY - y co-ordinate in client-space pixels (assuming 0 is extreme top).
      * @returns {moment} Describing the date and time relative to baseMoment.
      */
-    static calcTimeAt(clientX, clientY) {
+    static calcTimeAt(target, clientX, clientY) {
+        const bounds = target.getBoundingClientRect()
+
+        // PRE-CALC START
+        // TODO: Need to programmatically generate this... and associated SCSS...
+        const columnWidths = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1];
+        let total = 0;
+        const accColumnWidths = columnWidths.map(value => total += value);
+
+        const columnDetails = {
+            widths: accColumnWidths,
+            accumulatedWidth: total
+        };
+        // PRE-CALC END
+
         const constants = {
             // TODO: Can we generate these programmatically?
-            originX: 80,
-            originY: 59,
-            rowHeight: 48,
-            columnWidth: 65.703
+            originX: bounds.x,
+            originY: bounds.y,
+            rowHeight: bounds.height / 7,   // TODO: Days shown.
+            columnWidth: (bounds.width - controlStyles.initialColumnWidth) / columnDetails.accumulatedWidth   // TODO: Width of first column.
         };
 
         // Translate to origin.
@@ -133,7 +151,9 @@ export class Helper {
         const y = clientY - constants.originY;
 
         const row = Math.min(Math.floor(y / constants.rowHeight), 6);
-        const col = Math.floor(x / (constants.columnWidth / 4));
+        const col = columnDetails.widths.findIndex((_, index) =>
+            (x >= (columnDetails.widths[index - 1] || 0) * constants.columnWidth) && (x < columnDetails.widths[index] * constants.columnWidth)
+        );
 
         const day = row;
         const mins = Math.floor(col * 15);
@@ -157,7 +177,7 @@ export class Helper {
         }
 
         const minColumn = 1;
-        const maxColumn = 96 + 1;
+        const maxColumn = (4 * 24) + 1;
 
         const startColumn = calcGridColumn(range.start);
         const endColumn = calcGridColumn(range.end);
@@ -405,7 +425,7 @@ export default class WeekPlanner extends React.PureComponent {
     handleMouseDown = (event) => {
         if (event.button === 0) {
             // TODO: event.clientX/clientY needs converting into a different space.
-            const start = Helper.calcTimeAt(event.clientX, event.clientY);
+            const start = Helper.calcTimeAt(event.target, event.clientX, event.clientY);
 
             this.setState({ drag: new Range(start, start) });
         }
@@ -423,8 +443,6 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     handleKeyDown = (event) => {
-        console.log(`Key: ${event.key}`);
-
         switch (event.key) {
             case 'Alt':
                 this.setState({ gridMode: true });
@@ -460,7 +478,7 @@ export default class WeekPlanner extends React.PureComponent {
 
     handleMouseMove = (event) => {
         // TODO: event.clientX/clientY needs converting into a different space.
-        const hoverMoment = Helper.calcTimeAt(event.clientX, event.clientY);
+        const hoverMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY);
 
         if (this.state.drag !== null) {
             this.setState({ drag: new Range(this.state.drag.start, hoverMoment) });
@@ -475,7 +493,7 @@ export default class WeekPlanner extends React.PureComponent {
 
     handleClick = (event) => {
         // TODO: event.clientX/clientY needs converting into a different space.
-        const clickMoment = Helper.calcTimeAt(event.clientX, event.clientY);
+        const clickMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY);
 
         this.props.selectTimeHandler(clickMoment);
     }
