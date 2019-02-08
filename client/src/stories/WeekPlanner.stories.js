@@ -1,9 +1,9 @@
 import React from 'react';
 import { State, Store } from '@sambego/storybook-state';
 import { storiesOf } from "@storybook/react";
-import moment from 'moment';
+import _ from 'lodash';
 
-import WeekPlanner, { Range } from '../components/WeekPlanner';
+import WeekPlanner, { Range, Helper } from '../components/WeekPlanner';
 
 storiesOf('WeekPlanner', module)
     .add('default', () => {
@@ -33,6 +33,11 @@ storiesOf('WeekPlanner', module)
                                     new Range('2017-01-05T04:00:00.000', '2017-01-05T23:00:00.000', 'yellow' ),
                                     new Range('2017-01-06T20:00:00.000', '2017-01-07T23:00:00.000', 'pink' )
                                 ]}
+                                segmentSpacing={Helper.calcSegmentSpacing([
+                                    ..._.times(80, _.constant(1)),
+                                    ..._.times(12, _.constant(2)),
+                                    ..._.times( 4, _.constant(1))
+                                ])}
                                 markers={{
                                     '20:00': '#2e082e46',
                                     '20:15': '#2e082e46',

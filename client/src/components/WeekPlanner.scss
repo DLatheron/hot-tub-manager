@@ -64,7 +64,7 @@ html {
 			height: 100%;
 			width: 100%;
 			background-color: transparent;
-            grid-template-columns: $initial-column-width $column-width-array;
+            // grid-template-columns: $initial-column-width $column-width-array;
 			span {
 				display: block;
 				&.marker {
@@ -96,7 +96,7 @@ html {
 			color: #fff;
 			background-color: #0a3444 !important;
 			border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-			grid-template-columns: $initial-column-width $column-header-array;
+			// grid-template-columns: $initial-column-width $column-header-array;
 			.week-planner__row-first {
 				border-top: 0 !important;
 				background-color: #0a3444 !important;
@@ -130,7 +130,7 @@ html {
 		    display: grid;
 		    padding: 9px 0;
             margin: 0;
-            grid-template-columns: $column-width-array;
+            // grid-template-columns: $column-width-array;
             grid-gap: 8px 0;
             border-top: 1px solid rgba(221, 221, 221, 0.8);
 			li {

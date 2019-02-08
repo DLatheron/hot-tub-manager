@@ -2,6 +2,7 @@ import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
+import assert from 'assert';
 
 import Styles from './WeekPlanner.scss';
 
@@ -123,36 +124,22 @@ export class Helper {
      * @param {number} clientY - y co-ordinate in client-space pixels (assuming 0 is extreme top).
      * @returns {moment} Describing the date and time relative to baseMoment.
      */
-    static calcTimeAt(target, clientX, clientY) {
+    static calcTimeAt(target, clientX, clientY, segmentSpacing) {
         const bounds = target.getBoundingClientRect()
-
-        // PRE-CALC START
-        // TODO: Need to programmatically generate this... and associated SCSS...
-        const columnWidths = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1];
-        let total = 0;
-        const accColumnWidths = columnWidths.map(value => total += value);
-
-        const columnDetails = {
-            widths: accColumnWidths,
-            accumulatedWidth: total
-        };
-        // PRE-CALC END
-
         const constants = {
             // TODO: Can we generate these programmatically?
             originX: bounds.x,
             originY: bounds.y,
             rowHeight: bounds.height / 7,   // TODO: Days shown.
-            columnWidth: (bounds.width - controlStyles.initialColumnWidth) / columnDetails.accumulatedWidth   // TODO: Width of first column.
+            columnWidth: (bounds.width - controlStyles.initialColumnWidth) / segmentSpacing.totalSpacing   // TODO: Width of first column.
         };
 
-        // Translate to origin.
         const x = clientX - constants.originX;
         const y = clientY - constants.originY;
 
         const row = Math.min(Math.floor(y / constants.rowHeight), 6);
-        const col = columnDetails.widths.findIndex((_, index) =>
-            (x >= (columnDetails.widths[index - 1] || 0) * constants.columnWidth) && (x < columnDetails.widths[index] * constants.columnWidth)
+        const col = segmentSpacing.accumulatedSpacings.findIndex((_, index) =>
+            (x >= (segmentSpacing.accumulatedSpacings[index - 1] || 0) * constants.columnWidth) && (x < segmentSpacing.accumulatedSpacings[index] * constants.columnWidth)
         );
 
         const day = row;
@@ -392,11 +379,51 @@ export class Helper {
 
         return sortedTimes;
     }
+
+    static calcSegmentSpacing(segmentSpacing) {
+        assert.strictEqual(segmentSpacing.length, 96);
+
+        let totalSpacing = 0;
+        let hourSpace = 0;
+        let accumulatedSpacings = [];
+        let gridTemplateColumns = [];
+        let gridTemplateHeaderSpacings = [];
+
+        for (let i = 0; i < segmentSpacing.length; ++i) {
+            if (i % 4 === 0) {
+                hourSpace = 0;
+            }
+
+            const space = segmentSpacing[i];
+
+            hourSpace += space;
+            totalSpacing += space;
+            accumulatedSpacings.push(totalSpacing);
+
+            gridTemplateColumns.push(`${space}fr`);
+            if (i % 4 === 3) {
+                gridTemplateHeaderSpacings.push(`${hourSpace}fr`);
+            }
+        }
+
+        return {
+            gridTemplateColumns: gridTemplateColumns.join(' '),
+            gridTemplateHeaderColumns: gridTemplateHeaderSpacings.join(' '),
+            accumulatedSpacings,
+            totalSpacing
+        };
+    }
 };
 
 export default class WeekPlanner extends React.PureComponent {
     static propTypes = {
         initialRanges: PropTypes.arrayOf(PropTypes.instanceOf(Range)),
+        segmentSpacing: PropTypes.shape({
+            gridTemplateColumns: PropTypes.string,
+            gridTemplateHeaderColumns: PropTypes.string,
+            accumulatedSpacings: PropTypes.arrayOf(PropTypes.number),
+            totalSpacing: PropTypes.number
+        }),
         markers: PropTypes.object,
         roundToNearestMinutes: PropTypes.number,
         hoverTimeHandler: PropTypes.func,
@@ -405,6 +432,7 @@ export default class WeekPlanner extends React.PureComponent {
 
     static defaultProps = {
         initialRanges: [],
+        segmentSpacing: Helper.calcSegmentSpacing(_.times(96, _.constant(1))),
         markers: {},
         roundToNearestMinutes: null,
         hoverTimeHandler: () => {},
@@ -425,7 +453,7 @@ export default class WeekPlanner extends React.PureComponent {
     handleMouseDown = (event) => {
         if (event.button === 0) {
             // TODO: event.clientX/clientY needs converting into a different space.
-            const start = Helper.calcTimeAt(event.target, event.clientX, event.clientY);
+            const start = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
 
             this.setState({ drag: new Range(start, start) });
         }
@@ -478,7 +506,7 @@ export default class WeekPlanner extends React.PureComponent {
 
     handleMouseMove = (event) => {
         // TODO: event.clientX/clientY needs converting into a different space.
-        const hoverMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY);
+        const hoverMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
 
         if (this.state.drag !== null) {
             this.setState({ drag: new Range(this.state.drag.start, hoverMoment) });
@@ -493,7 +521,7 @@ export default class WeekPlanner extends React.PureComponent {
 
     handleClick = (event) => {
         // TODO: event.clientX/clientY needs converting into a different space.
-        const clickMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY);
+        const clickMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
 
         this.props.selectTimeHandler(clickMoment);
     }
@@ -530,7 +558,10 @@ export default class WeekPlanner extends React.PureComponent {
                 className="week-planner__row"
             >
                 <div className="week-planner__row-first">{formattedDay}</div>
-                <ul className="week-planner__row-bars">
+                <ul
+                    className="week-planner__row-bars"
+                    style={{ gridTemplateColumns: this.props.segmentSpacing.gridTemplateColumns }}
+                >
                     {
                         dayRanges.map(dayRange => {
                             const { gridColumn, caps } = Helper.calcGridColumns(dayMoment, dayRange);
@@ -554,12 +585,18 @@ export default class WeekPlanner extends React.PureComponent {
         return (
             <div className="week-planner">
                 {/* Table header */}
-                <div className="week-planner__row week-planner__row--hours">
+                <div
+                    className="week-planner__row week-planner__row--hours"
+                    style={{ gridTemplateColumns: `80px ${this.props.segmentSpacing.gridTemplateHeaderColumns}` }}
+                >
                     <div className="week-planner__row-first"></div>
                     {_.range(24).map(this.renderHours)}
                 </div>
                 {/* Column separators and vertical markers */}
-                <div className="week-planner__row week-planner__row--lines">
+                <div
+                    className="week-planner__row week-planner__row--lines"
+                    style={{ gridTemplateColumns: `80px ${this.props.segmentSpacing.gridTemplateColumns}` }}
+                >
                     {/* Make the days markers more configurable. */}
                     {/* Day label */}
                     <span />
