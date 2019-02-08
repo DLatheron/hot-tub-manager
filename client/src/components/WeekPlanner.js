@@ -7,11 +7,20 @@ import assert from 'assert';
 import Styles from './WeekPlanner.scss';
 
 const baseMoment = moment.utc('2017-01-01T00:00:00.000', moment.ISO_8601);
-const minutesInADay = 24 * 60;
-
+const daysInAWeek = 7;
+const hoursInADay = 24;
+const segmentsPerHour = 4;
+const segmentsPerDay = hoursInADay * segmentsPerHour;
+const segmentSizeInMinutes = 60 / segmentsPerHour;
+const minutesInADay = hoursInADay * 60;
+const modes = {
+    add: 'add',
+    sub: 'sub'
+};
 const controlStyles = {
     initialColumnWidth: parseInt(Styles.initialColumnWidth)
 };
+const selectionClasses = ['selection', 'stripes'];
 
 export class Range {
     /** Constructs a range class
@@ -30,6 +39,16 @@ export class Range {
         if (color !== undefined) {
             this.color = color;
         }
+    }
+
+    /** Determine if ranges are the same.
+     * @param {Range} other - Range to compare.
+     * @returns {Boolean} Whether the ranges are the same.
+     */
+    isSame(other) {
+        return this.start.valueOf() === other.start.valueOf()
+            && this.end.valueOf() === other.end.valueOf()
+            && this.color === other.color;
     }
 
     /** Returns the unix timestamp for the start of the range to assist sorting.
@@ -130,20 +149,20 @@ export class Helper {
             // TODO: Can we generate these programmatically?
             originX: bounds.x,
             originY: bounds.y,
-            rowHeight: bounds.height / 7,   // TODO: Days shown.
+            rowHeight: bounds.height / daysInAWeek,
             columnWidth: (bounds.width - controlStyles.initialColumnWidth) / segmentSpacing.totalSpacing   // TODO: Width of first column.
         };
 
         const x = clientX - constants.originX;
         const y = clientY - constants.originY;
 
-        const row = Math.min(Math.floor(y / constants.rowHeight), 6);
+        const row = Math.min(Math.floor(y / constants.rowHeight), daysInAWeek - 1);
         const col = segmentSpacing.accumulatedSpacings.findIndex((_, index) =>
             (x >= (segmentSpacing.accumulatedSpacings[index - 1] || 0) * constants.columnWidth) && (x < segmentSpacing.accumulatedSpacings[index] * constants.columnWidth)
         );
 
         const day = row;
-        const mins = Math.floor(col * 15);
+        const mins = Math.floor(col * segmentSizeInMinutes);
 
         return moment
             .utc(baseMoment)
@@ -160,11 +179,11 @@ export class Helper {
     static calcGridColumns(startOfRowMoment, range) {
         function calcGridColumn(timeMoment) {
             const timeOffsetInMinutes = timeMoment.diff(startOfRowMoment, 'minutes');
-            return Math.round(timeOffsetInMinutes / 15 + 1);
+            return Math.round(timeOffsetInMinutes / segmentSizeInMinutes + 1);
         }
 
         const minColumn = 1;
-        const maxColumn = (4 * 24) + 1;
+        const maxColumn = segmentsPerDay + 1;
 
         const startColumn = calcGridColumn(range.start);
         const endColumn = calcGridColumn(range.end);
@@ -189,13 +208,13 @@ export class Helper {
 
         if (startCap)     { classes.push('startCap'); }
         if (endCap)       { classes.push('endCap'); }
-        if (otherClasses) { classes.push(otherClasses); }
+        if (otherClasses) { classes.push(...otherClasses); }
 
         return classes.join(' ');
     }
 
-    /** Returns an new drag range respecting the setting of grid mode and ensuring that
-     * the start is chronologically before the end of the range.
+    /** Returns an new drag range respecting the setting of grid mode and
+     * ensuring that the start is chronologically before the end of the range.
      * @param {Range} dragRange - Range of the drag operation.
      * @param {Boolean} gridMode - Whether grid mode is on or off.
      * @returns {Range} The range updated to ensure that start is chronologially before
@@ -215,7 +234,7 @@ export class Helper {
 
             return new Range(
                 minDay.add(minOffsetInMins, 'minutes'),
-                maxDay.add(maxOffsetInMins, 'minutes').add(15, 'minutes')
+                maxDay.add(maxOffsetInMins, 'minutes').add(segmentSizeInMinutes, 'minutes')
             );
         } else {
             return new Range(
@@ -226,7 +245,7 @@ export class Helper {
                     dragRange.start.isSameOrBefore(dragRange.end)
                         ? dragRange.end
                         : dragRange.start
-                ).add(15, 'minutes')
+                ).add(segmentSizeInMinutes, 'minutes')
             );
         }
     }
@@ -263,7 +282,7 @@ export class Helper {
             return (
                 <li
                     key='selection'
-                    className={Helper.calcCapsClasses(caps.start, caps.end, 'selection')}
+                    className={Helper.calcCapsClasses(caps.start, caps.end, selectionClasses)}
                     style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
                 >
                     {modeIndicator}
@@ -293,7 +312,7 @@ export class Helper {
             return (
                 <li
                     key='selection'
-                    className={Helper.calcCapsClasses(true, true, 'selection')}
+                    className={Helper.calcCapsClasses(true, true, selectionClasses)}
                     style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
                 >
                     {modeIndicator}
@@ -311,11 +330,11 @@ export class Helper {
      * @returns {Array} An updated array of ranges.
      */
     static updateRangesFromDragSelection(existingRanges, dragRange, gridMode, mode, color = 'magenta') {
-        const operationFn = mode === 'add' ? Helper.updateRangesByAddition : Helper.updateRangesBySubtraction;
+        const operationFn = mode === modes.add ? Helper.updateRangesByAddition : Helper.updateRangesBySubtraction;
         const correctedDragRange = Helper.getModeDependentDragRange(dragRange, gridMode);
 
         if (gridMode) {
-            _.range(7).forEach(dayIndex => {
+            _.range(daysInAWeek).forEach(dayIndex => {
                 const dayMoment = moment.utc(baseMoment).add(dayIndex, 'days');
                 const dayRange = new Range(dayMoment, moment.utc(dayMoment).endOf('day'));
 
@@ -381,7 +400,7 @@ export class Helper {
     }
 
     static calcSegmentSpacing(segmentSpacing) {
-        assert.strictEqual(segmentSpacing.length, 96);
+        assert.strictEqual(segmentSpacing.length, segmentsPerDay);
 
         let totalSpacing = 0;
         let hourSpace = 0;
@@ -390,7 +409,7 @@ export class Helper {
         let gridTemplateHeaderSpacings = [];
 
         for (let i = 0; i < segmentSpacing.length; ++i) {
-            if (i % 4 === 0) {
+            if (i % segmentsPerHour === 0) {
                 hourSpace = 0;
             }
 
@@ -401,7 +420,7 @@ export class Helper {
             accumulatedSpacings.push(totalSpacing);
 
             gridTemplateColumns.push(`${space}fr`);
-            if (i % 4 === 3) {
+            if (i % segmentsPerHour === segmentsPerHour - 1) {
                 gridTemplateHeaderSpacings.push(`${hourSpace}fr`);
             }
         }
@@ -432,7 +451,7 @@ export default class WeekPlanner extends React.PureComponent {
 
     static defaultProps = {
         initialRanges: [],
-        segmentSpacing: Helper.calcSegmentSpacing(_.times(96, _.constant(1))),
+        segmentSpacing: Helper.calcSegmentSpacing(_.times(segmentsPerDay, _.constant(1))),
         markers: {},
         roundToNearestMinutes: null,
         hoverTimeHandler: () => {},
@@ -446,7 +465,7 @@ export default class WeekPlanner extends React.PureComponent {
             ranges: props.initialRanges,
             drag: null,
             gridMode: false,
-            mode: 'add'
+            mode: modes.add
         };
     }
 
@@ -477,7 +496,7 @@ export default class WeekPlanner extends React.PureComponent {
                 break;
 
             case 'Shift':
-                this.setState({ mode: 'sub' });
+                this.setState({ mode: modes.sub });
                 break;
 
             default:
@@ -496,7 +515,7 @@ export default class WeekPlanner extends React.PureComponent {
                 break;
 
             case 'Shift':
-                this.setState({ mode: 'add' });
+                this.setState({ mode: modes.add });
                 break;
 
             default:
@@ -509,7 +528,10 @@ export default class WeekPlanner extends React.PureComponent {
         const hoverMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
 
         if (this.state.drag !== null) {
-            this.setState({ drag: new Range(this.state.drag.start, hoverMoment) });
+            const drag = new Range(this.state.drag.start, hoverMoment);
+            if (!this.state.drag.isSame(drag)) {
+                this.setState({ drag });
+            }
         }
 
         this.props.hoverTimeHandler(hoverMoment);
@@ -547,7 +569,7 @@ export default class WeekPlanner extends React.PureComponent {
         const dayMoment = moment.utc(baseMoment).add(dayRow, 'days');
         const dayMomentRange = new Range(dayMoment, moment.utc(dayMoment).endOf('day'));
 
-        const selection = Helper.determineSelection(dayMomentRange, drag, gridMode, mode === 'add' ? '+' : '-');
+        const selection = Helper.determineSelection(dayMomentRange, drag, gridMode, mode === modes.add ? '+' : '-');
 
         const dayRanges = ranges.filter(entry => entry.overlaps(dayMomentRange));
         const formattedDay = dayMoment.format('ddd');
@@ -590,7 +612,7 @@ export default class WeekPlanner extends React.PureComponent {
                     style={{ gridTemplateColumns: `80px ${this.props.segmentSpacing.gridTemplateHeaderColumns}` }}
                 >
                     <div className="week-planner__row-first"></div>
-                    {_.range(24).map(this.renderHours)}
+                    {_.range(hoursInADay).map(this.renderHours)}
                 </div>
                 {/* Column separators and vertical markers */}
                 <div
@@ -601,9 +623,9 @@ export default class WeekPlanner extends React.PureComponent {
                     {/* Day label */}
                     <span />
                     {
-                        _.range(4 * 24).map(index => {
-                            const hours = Math.floor(index / 4);
-                            const mins = (index % 4) * 15;
+                        _.range(segmentsPerDay).map(index => {
+                            const hours = Math.floor(index / segmentsPerHour);
+                            const mins = (index % segmentsPerHour) * segmentSizeInMinutes;
                             const formattedTime = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
                             const markedColor = this.props.markers[formattedTime];
 
@@ -630,7 +652,7 @@ export default class WeekPlanner extends React.PureComponent {
                     onKeyUp={this.handleKeyUp}
                 />
                 {/* Rendering the contents of each day */}
-                {_.range(7).map(this.renderDayRow)}
+                {_.range(daysInAWeek).map(this.renderDayRow)}
             </div>
         );
     }
