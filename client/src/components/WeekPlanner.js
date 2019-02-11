@@ -17,9 +17,6 @@ const modes = {
     add: 'add',
     sub: 'sub'
 };
-const controlStyles = {
-    initialColumnWidth: parseInt(Styles.initialColumnWidth)
-};
 const selectionClasses = ['selection', 'stripes'];
 
 export class Range {
@@ -146,11 +143,10 @@ export class Helper {
     static calcTimeAt(target, clientX, clientY, segmentSpacing) {
         const bounds = target.getBoundingClientRect()
         const constants = {
-            // TODO: Can we generate these programmatically?
             originX: bounds.x,
             originY: bounds.y,
             rowHeight: bounds.height / daysInAWeek,
-            columnWidth: (bounds.width - controlStyles.initialColumnWidth) / segmentSpacing.totalSpacing   // TODO: Width of first column.
+            columnWidth: (bounds.width - segmentSpacing.initialColumnWidthInPixels) / segmentSpacing.totalSpacing
         };
 
         const x = clientX - constants.originX;
@@ -254,10 +250,10 @@ export class Helper {
      * @param {Range} dayRange - Range of the day's row.
      * @param {Range|undefined} dragRange - Optional range for how the drag interacts with this row.
      * @param {Boolean} gridMode - Whether grid mode is on or off.
-     * @param {String} modeIndicator - String drawn on the selection.
+     * @param {Object} modeDef - Definition of the mode.
      * @returns {Component|undefined} An optional react component representing the selection's impact on the day's row.
      */
-    static determineSelection(dayRange, dragRange, gridMode, modeIndicator) {
+    static determineSelection(dayRange, dragRange, gridMode, modeDef) {
         if (!dragRange) {
             return;
         }
@@ -265,16 +261,16 @@ export class Helper {
         const correctedDragRange = Helper.getModeDependentDragRange(dragRange, gridMode);
         const selectionFn = (gridMode) ? Helper.determineGridModeSelection : Helper.determineContinuousSelection;
 
-        return selectionFn(dayRange, correctedDragRange, modeIndicator);
+        return selectionFn(dayRange, correctedDragRange, modeDef);
     }
 
     /** Determines the impact of the selection on the day's row when gridMode is off.
      * @param {Range} dayRange - Range of teh day's row..
      * @param {Range} dragRange - Range of the drag operation.
-     * @param {String} modeIndicator - String drawn on the selection.
+     * @param {Object} modeDef - Definition of the mode.
      * @returns {Component|undefined} An optional react component representing the selection's impact on the day's row.
      */
-    static determineContinuousSelection(dayRange, dragRange, modeIndicator) {
+    static determineContinuousSelection(dayRange, dragRange, modeDef) {
         if (dragRange.overlaps(dayRange)) {
             const clippedMoments = dragRange.clipDateRange(dayRange);
             const { gridColumn, caps } = Helper.calcGridColumns(dayRange.start, clippedMoments);
@@ -282,10 +278,10 @@ export class Helper {
             return (
                 <li
                     key='selection'
-                    className={Helper.calcCapsClasses(caps.start, caps.end, selectionClasses)}
+                    className={Helper.calcCapsClasses(caps.start, caps.end, modeDef.classNames)}
                     style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
                 >
-                    {modeIndicator}
+                    {modeDef.indicator}
                 </li>
             );
         }
@@ -294,10 +290,10 @@ export class Helper {
     /** Determines the impact of the selection on the day's row when gridMode is on.
      * @param {Range} dayRange - Range of teh day's row..
      * @param {Range} dragRange - Range of the drag operation.
-     * @param {String} modeIndicator - String drawn on the selection.
+     * @param {Object} modeDef - Definition of the mode.
      * @returns {Component|undefined} An optional react component representing the selection's impact on the day's row.
      */
-    static determineGridModeSelection(dayRange, dragRange, modeIndicator) {
+    static determineGridModeSelection(dayRange, dragRange, modeDef) {
         const selectedDayRange = new Range(
             moment.utc(dragRange.start).startOf('day'),
             moment.utc(dragRange.end).subtract(1, 'minute').endOf('day')
@@ -312,10 +308,10 @@ export class Helper {
             return (
                 <li
                     key='selection'
-                    className={Helper.calcCapsClasses(true, true, selectionClasses)}
+                    className={Helper.calcCapsClasses(true, true, modeDef.classNames)}
                     style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
                 >
-                    {modeIndicator}
+                    {modeDef.indicator}
                 </li>
             );
         }
@@ -399,7 +395,7 @@ export class Helper {
         return sortedTimes;
     }
 
-    static calcSegmentSpacing(segmentSpacing) {
+    static calcSegmentSpacing(initialColumnWidthInPixels, segmentSpacing) {
         assert.strictEqual(segmentSpacing.length, segmentsPerDay);
 
         let totalSpacing = 0;
@@ -426,6 +422,7 @@ export class Helper {
         }
 
         return {
+            initialColumnWidthInPixels: initialColumnWidthInPixels,
             gridTemplateColumns: gridTemplateColumns.join(' '),
             gridTemplateHeaderColumns: gridTemplateHeaderSpacings.join(' '),
             accumulatedSpacings,
@@ -438,24 +435,34 @@ export default class WeekPlanner extends React.PureComponent {
     static propTypes = {
         initialRanges: PropTypes.arrayOf(PropTypes.instanceOf(Range)),
         segmentSpacing: PropTypes.shape({
+            initialColumnWidthInPixels: PropTypes.number,
             gridTemplateColumns: PropTypes.string,
             gridTemplateHeaderColumns: PropTypes.string,
             accumulatedSpacings: PropTypes.arrayOf(PropTypes.number),
             totalSpacing: PropTypes.number
         }),
         markers: PropTypes.object,
-        selectionColor: PropTypes.string,
-        roundToNearestMinutes: PropTypes.number,
+        modeDefs: PropTypes.object,
+        defaultSegmentColor: PropTypes.string,
         hoverTimeHandler: PropTypes.func,
         selectTimeHandler: PropTypes.func
     };
 
     static defaultProps = {
         initialRanges: [],
-        segmentSpacing: Helper.calcSegmentSpacing(_.times(segmentsPerDay, _.constant(1))),
+        segmentSpacing: Helper.calcSegmentSpacing(80, _.times(segmentsPerDay, _.constant(1))),
         markers: {},
-        selectionColor: 'magenta',
-        roundToNearestMinutes: null,
+        modeDefs: {
+            add: {
+                indicator: '+',
+                classNames: ['selection', 'add-stripes']
+            },
+            sub: {
+                indicator: '-',
+                classNames: ['selection', 'sub-stripes']
+            }
+        },
+        defaultSegmentColor: 'magenta',
         hoverTimeHandler: () => {},
         selectTimeHandler: () => {}
     };
@@ -488,7 +495,12 @@ export default class WeekPlanner extends React.PureComponent {
         // TODO: Check shift and alt state and handle like the key was pressed.
         if (event.button === 0) {
             // TODO: event.clientX/clientY needs converting into a different space.
-            const start = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
+            const start = Helper.calcTimeAt(
+                event.target,
+                event.clientX,
+                event.clientY,
+                this.props.segmentSpacing
+            );
 
             this.setState({
                 ...this.determineMode({ altHeld: event.altKey, shiftHeld: event.shiftKey }),
@@ -500,10 +512,12 @@ export default class WeekPlanner extends React.PureComponent {
         if (event.button === 0) {
             const { ranges, drag, gridMode, mode } = this.state;
 
-            this.setState({
-                ranges: Helper.updateRangesFromDragSelection(ranges, drag, gridMode, mode, this.props.selectionColor),
-                drag: null
-            });
+            if (drag) {
+                this.setState({
+                    ranges: Helper.updateRangesFromDragSelection(ranges, drag, gridMode, mode, this.props.defaultSegmentColor),
+                    drag: null
+                });
+            }
         }
     }
 
@@ -515,6 +529,10 @@ export default class WeekPlanner extends React.PureComponent {
 
             case 'Shift':
                 this.setState(this.determineMode({ shiftHeld: true }));
+                break;
+
+            case 'Escape':
+                this.setState({ drag: null });
                 break;
 
             default:
@@ -532,10 +550,6 @@ export default class WeekPlanner extends React.PureComponent {
                 this.setState(this.determineMode({ shiftHeld: false }));
                 break;
 
-            case 'Escape':
-                this.setState({ drag: null });
-                break;
-
             default:
                 break;
         }
@@ -543,7 +557,12 @@ export default class WeekPlanner extends React.PureComponent {
 
     handleMouseMove = (event) => {
         // TODO: event.clientX/clientY needs converting into a different space.
-        const hoverMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
+        const hoverMoment = Helper.calcTimeAt(
+            event.target,
+            event.clientX,
+            event.clientY,
+            this.props.segmentSpacing
+        );
 
         if (this.state.drag !== null) {
             const drag = new Range(this.state.drag.start, hoverMoment);
@@ -561,7 +580,12 @@ export default class WeekPlanner extends React.PureComponent {
 
     handleClick = (event) => {
         // TODO: event.clientX/clientY needs converting into a different space.
-        const clickMoment = Helper.calcTimeAt(event.target, event.clientX, event.clientY, this.props.segmentSpacing);
+        const clickMoment = Helper.calcTimeAt(
+            event.target,
+            event.clientX,
+            event.clientY,
+            this.props.segmentSpacing
+        );
 
         this.props.selectTimeHandler(clickMoment);
     }
@@ -587,7 +611,14 @@ export default class WeekPlanner extends React.PureComponent {
         const dayMoment = moment.utc(baseMoment).add(dayRow, 'days');
         const dayMomentRange = new Range(dayMoment, moment.utc(dayMoment).endOf('day'));
 
-        const selection = Helper.determineSelection(dayMomentRange, drag, gridMode, mode === modes.add ? '+' : '-');
+        const selection = Helper.determineSelection(
+            dayMomentRange,
+            drag,
+            gridMode,
+            mode === 'add'
+                ? this.props.modeDefs.add
+                : this.props.modeDefs.sub
+        );
 
         const dayRanges = ranges.filter(entry => entry.overlaps(dayMomentRange));
         const formattedDay = dayMoment.format('ddd');
@@ -596,6 +627,7 @@ export default class WeekPlanner extends React.PureComponent {
             <div
                 key={formattedDay}
                 className="week-planner__row"
+                style={{ gridTemplateColumns: `${this.props.segmentSpacing.initialColumnWidthInPixels}px 1fr` }}
             >
                 <div className="week-planner__row-first">{formattedDay}</div>
                 <ul

@@ -1,25 +1,6 @@
-$initial-column-width: 80px;
 $blob-radius: 20px;
 $red: #ff6252;
 
-:export {
-    initialColumnWidth: $initial-column-width
-}
-
-body,
-html {
-    background-color: #cddade;
-    height: 100%;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.wrapper {
-    max-width: 1200px;
-    min-width: 700px;
-    margin: 0 auto;
-    padding: 40px;
-}
 .week-planner {
     display: grid;
     border: 0;
@@ -27,11 +8,11 @@ html {
     position: relative;
     overflow: hidden;
     box-sizing: border-box;
+    min-width: 1100px;
 
     &__row {
         pointer-events: none;
         display: grid;
-        grid-template-columns: $initial-column-width 1fr;
         background-color: #fff;
         &:nth-child(odd) {
             background-color: #f5f5f5;
@@ -152,7 +133,7 @@ html {
                     border-bottom-right-radius: $blob-radius;
                 }
 
-                &.stripes {
+                &.add-stripes,&.sub-stripes {
                     background-image: repeating-linear-gradient(
                         45deg,
                         transparent,

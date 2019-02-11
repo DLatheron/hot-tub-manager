@@ -33,7 +33,7 @@ storiesOf('WeekPlanner', module)
                                     new Range('2017-01-05T04:00:00.000', '2017-01-05T23:00:00.000', 'yellow' ),
                                     new Range('2017-01-06T20:00:00.000', '2017-01-07T23:00:00.000', 'pink' )
                                 ]}
-                                segmentSpacing={Helper.calcSegmentSpacing([
+                                segmentSpacing={Helper.calcSegmentSpacing(80, [
                                     ..._.times(80, _.constant(1)),
                                     ..._.times(12, _.constant(2)),
                                     ..._.times( 4, _.constant(1))
