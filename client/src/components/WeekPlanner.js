@@ -5,8 +5,6 @@ import _ from 'lodash';
 import assert from 'assert';
 import Popover, { ArrowContainer } from 'react-tiny-popover'
 
-import './WeekPlanner.scss';
-
 const baseMoment = moment.utc('2018-01-01T00:00:00.000', moment.ISO_8601);
 const daysInAWeek = 7;
 const hoursInADay = 24;

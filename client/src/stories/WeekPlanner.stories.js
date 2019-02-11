@@ -4,6 +4,7 @@ import { storiesOf } from "@storybook/react";
 import _ from 'lodash';
 
 import WeekPlanner, { Range, Helper } from '../components/WeekPlanner';
+import '../components/WeekPlanner.scss';
 
 storiesOf('WeekPlanner', module)
     .add('default', () => {
