@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import assert from 'assert';
 
-import Styles from './WeekPlanner.scss';
+import './WeekPlanner.scss';
 
 const baseMoment = moment.utc('2017-01-01T00:00:00.000', moment.ISO_8601);
 const daysInAWeek = 7;
@@ -17,7 +17,6 @@ const modes = {
     add: 'add',
     sub: 'sub'
 };
-const selectionClasses = ['selection', 'stripes'];
 
 export class Range {
     /** Constructs a range class
