@@ -1,6 +1,17 @@
 $blob-radius: 20px;
 $red: #ff6252;
 
+.popover {
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 4px;
+    z-index: 1000;
+    padding: 10px;
+    color: black;
+    pointer-events: none;
+    user-select: none;
+}
+
 .week-planner {
     display: grid;
     border: 0;
@@ -26,6 +37,7 @@ $red: #ff6252;
             }
             .week-planner__row-first {
                 border-top: 0;
+                user-select: none;
             }
         }
         &--empty {
@@ -33,6 +45,7 @@ $red: #ff6252;
             z-index: 1;
             .week-planner__row-first {
                 border-width: 1px 1px 0 0;
+                user-select: none;
             }
         }
         &--lines {
@@ -72,6 +85,7 @@ $red: #ff6252;
             color: #fff;
             background-color: #0a3444 !important;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            user-select: none;
             .week-planner__row-first {
                 border-top: 0 !important;
                 background-color: #0a3444 !important;
@@ -94,6 +108,7 @@ $red: #ff6252;
             font-size: 13px;
             font-weight: bold;
             text-align: center;
+            user-select: none;
         }
         &-bars {
             list-style: none;

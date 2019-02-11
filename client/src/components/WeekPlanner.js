@@ -3,10 +3,11 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import assert from 'assert';
+import Popover, { ArrowContainer } from 'react-tiny-popover'
 
 import './WeekPlanner.scss';
 
-const baseMoment = moment.utc('2017-01-01T00:00:00.000', moment.ISO_8601);
+const baseMoment = moment.utc('2018-01-01T00:00:00.000', moment.ISO_8601);
 const daysInAWeek = 7;
 const hoursInADay = 24;
 const segmentsPerHour = 4;
@@ -55,28 +56,20 @@ export class Range {
         return range.start.valueOf();
     }
 
-    /** Clips the range (assuming that the ranges are overlapping in the first place).
-     * @param {Range} clippingRange - The clipping range.
-     * @returns {Range} The clipped range.
-     */
-    clipDateRange(clippingRange) {
-        return new Range(
-            this.start.isSameOrAfter(clippingRange.start)
-                ? this.start
-                : clippingRange.start,
-            this.end.isSameOrBefore(clippingRange.end)
-                ? this.end
-                : clippingRange.end,
-            this.color
-        );
-    }
-
     /** Determines if the two date ranges overlap.
      * @param {Range} other - The other range.
      * @returns {boolean} True if the ranges overlap, otherwise false.
      */
     overlaps(other) {
         return this.start.isBefore(other.end) && this.end.isAfter(other.start);
+    }
+
+    /** Determines if the two date ranges overlap or touch.
+     * @param {Range} other - The other range.
+     * @returns {boolean} True if the ranges overlap (or touch), otherwise false.
+     */
+    overlapsOrTouches(other) {
+        return this.start.isSameOrBefore(other.end) && this.end.isSameOrAfter(other.start);
     }
 
     /** Calculates the duration of the range (in minutes) and then optionally modulos the number.
@@ -245,6 +238,47 @@ export class Helper {
         }
     }
 
+    /** Generates a duration from a range.
+     * @param {Range} range - The range to convert.
+     * @returns {String} The duration of the range as a string.
+     */
+    static generateDuration(range) {
+        const { start, end } = range;
+        const days = end.diff(start, 'days').toString();
+        const hours = (end.diff(start, 'hours') % 24).toString();
+        const mins = (end.diff(start, 'minutes') % 60).toString();
+        if (days >= 1) {
+            return `${days}d ${hours.padStart(2, '0')}h ${mins.padStart(2, '0')}m`;
+        } else if (hours >= 1) {
+            return `${hours}h ${mins.padStart(2, '0')}m`;
+        } else {
+            return `${mins}m`;
+        }
+    }
+
+    /** Generate the text describing the selected range.
+     * @param {Range} correctedDragRange - The current drag range (corrected so that start is before end).
+     * @param {Boolean} gridMode - Whether grid selection mode is active.
+     * @returns {String} A textual description of the range.
+     */
+    static generateSelectionText(correctedDragRange, gridMode) {
+        const { start, end } = correctedDragRange;
+
+        if (gridMode) {
+            const duration = Helper.generateDuration({
+                start: moment.utc(correctedDragRange.start).day(0),
+                end: moment.utc(correctedDragRange.end).day(0)
+            });
+
+            return `${start.format('HH:mm')} to ${end.format('HH:mm')} (${duration}), ${start.format('ddd')} to ${end.format('ddd')}`;
+
+        } else {
+            const duration = Helper.generateDuration(correctedDragRange);
+
+            return `${start.format('ddd HH:mm')} to ${end.format('ddd HH:mm')} (${duration})`;
+        }
+    }
+
     /** Determine the impact of the selection on the day's row.
      * @param {Range} dayRange - Range of the day's row.
      * @param {Range|undefined} dragRange - Optional range for how the drag interacts with this row.
@@ -260,7 +294,42 @@ export class Helper {
         const correctedDragRange = Helper.getModeDependentDragRange(dragRange, gridMode);
         const selectionFn = (gridMode) ? Helper.determineGridModeSelection : Helper.determineContinuousSelection;
 
-        return selectionFn(dayRange, correctedDragRange, modeDef);
+        const selection = selectionFn(dayRange, correctedDragRange, modeDef);
+        if (!selection) {
+            return null;
+        }
+
+        const firstDay = dayRange.start.day() === correctedDragRange.start.day();
+        if (firstDay) {
+            return (
+                <Popover
+                    key={gridMode}  // Ensures that if the gridMode changes then this element is recreated.
+                    className='popover'
+                    isOpen={true}
+                    position={['top', 'bottom']}
+                    transitionDuration={0.2}
+                    containerStyle={{ pointerEvents: 'none' }}
+                    content={({ position, targetRect, popoverRect }) => (
+                        <ArrowContainer
+                            position={position}
+                            targetRect={targetRect}
+                            popoverRect={popoverRect}
+                            arrowColor={'#444'}
+                            arrowSize={12}
+                            arrowStyle={{ opacity: 0.7, pointerEvents: 'none' }}
+                            style={{ pointerEvents: 'none' }}
+                        >
+                            <div className='popover'>
+                                {Helper.generateSelectionText(correctedDragRange, gridMode)}
+                            </div>
+                        </ArrowContainer>
+                    )}
+                >
+                    {selection}
+                </Popover>
+            );
+        }
+        return selection;
     }
 
     /** Determines the impact of the selection on the day's row when gridMode is off.
@@ -271,8 +340,7 @@ export class Helper {
      */
     static determineContinuousSelection(dayRange, dragRange, modeDef) {
         if (dragRange.overlaps(dayRange)) {
-            const clippedMoments = dragRange.clipDateRange(dayRange);
-            const { gridColumn, caps } = Helper.calcGridColumns(dayRange.start, clippedMoments);
+            const { gridColumn, caps } = Helper.calcGridColumns(dayRange.start, dragRange);
 
             return (
                 <li
@@ -305,6 +373,7 @@ export class Helper {
             const { gridColumn } = Helper.calcGridColumns(dayRange.start, new Range(dragStart, dragEnd));
 
             return (
+                <Popover>
                 <li
                     key='selection'
                     className={Helper.calcCapsClasses(true, true, modeDef.classNames)}
@@ -312,6 +381,7 @@ export class Helper {
                 >
                     {modeDef.indicator}
                 </li>
+                </Popover>
             );
         }
     }
@@ -358,7 +428,7 @@ export class Helper {
     static updateRangesByAddition(existingRanges, rangeToInsert) {
         const ranges = [...existingRanges];
 
-        const affectedRanges = _.remove(ranges, range => range.overlaps(rangeToInsert));
+        const affectedRanges = _.remove(ranges, range => range.overlapsOrTouches(rangeToInsert));
         ranges.push(rangeToInsert.mergeOverlappingRanges(affectedRanges));
 
         const sortedTimes = _.sortBy(ranges, Range.sortByStartTime);
@@ -375,7 +445,7 @@ export class Helper {
     static updateRangesBySubtraction(existingRanges, rangeToRemove) {
         const ranges = [...existingRanges];
 
-        const affectedRanges = _.remove(ranges, range => range.overlaps(rangeToRemove));
+        const affectedRanges = _.remove(ranges, range => range.overlapsOrTouches(rangeToRemove));
 
         affectedRanges.forEach(affectedRange => {
             const overlaps = affectedRange.determineOverlaps(rangeToRemove);
@@ -394,6 +464,11 @@ export class Helper {
         return sortedTimes;
     }
 
+    /** Calculates the segment spacing based on the initial column size and the relative spacing of each segment.
+     * @param {Number} initialColumnWidthInPixels - The width of the first (header) column in pixels.
+     * @param {Array} segmentSpacing - An array with a numeric value for the relative width of each column.
+     * @returns {Object} An object suitable for setting as the WeekPlanner's 'segmentSpacing' property.
+     */
     static calcSegmentSpacing(initialColumnWidthInPixels, segmentSpacing) {
         assert.strictEqual(segmentSpacing.length, segmentsPerDay);
 
@@ -432,7 +507,7 @@ export class Helper {
 
 export default class WeekPlanner extends React.PureComponent {
     static propTypes = {
-        initialRanges: PropTypes.arrayOf(PropTypes.instanceOf(Range)),
+        ranges: PropTypes.arrayOf(PropTypes.instanceOf(Range)),
         segmentSpacing: PropTypes.shape({
             initialColumnWidthInPixels: PropTypes.number,
             gridTemplateColumns: PropTypes.string,
@@ -444,11 +519,11 @@ export default class WeekPlanner extends React.PureComponent {
         modeDefs: PropTypes.object,
         defaultSegmentColor: PropTypes.string,
         hoverTimeHandler: PropTypes.func,
-        selectTimeHandler: PropTypes.func
+        rangesChangedHandler: PropTypes.func
     };
 
     static defaultProps = {
-        initialRanges: [],
+        ranges: [],
         segmentSpacing: Helper.calcSegmentSpacing(80, _.times(segmentsPerDay, _.constant(1))),
         markers: {},
         modeDefs: {
@@ -463,14 +538,13 @@ export default class WeekPlanner extends React.PureComponent {
         },
         defaultSegmentColor: 'magenta',
         hoverTimeHandler: () => {},
-        selectTimeHandler: () => {}
+        rangesChangedHandler: () => {}
     };
 
     constructor(props) {
         super(props);
 
         this.state = {
-            ranges: props.initialRanges,
             drag: null,
             gridMode: false,
             mode: modes.add
@@ -491,9 +565,7 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     handleMouseDown = (event) => {
-        // TODO: Check shift and alt state and handle like the key was pressed.
         if (event.button === 0) {
-            // TODO: event.clientX/clientY needs converting into a different space.
             const start = Helper.calcTimeAt(
                 event.target,
                 event.clientX,
@@ -509,11 +581,14 @@ export default class WeekPlanner extends React.PureComponent {
 
     handleMouseUp = (event) => {
         if (event.button === 0) {
-            const { ranges, drag, gridMode, mode } = this.state;
+            const { ranges } = this.props;
+            const { drag, gridMode, mode } = this.state;
 
             if (drag) {
+                const updatedRanges = Helper.updateRangesFromDragSelection(ranges, drag, gridMode, mode, this.props.defaultSegmentColor);
+
+                this.props.rangesChangedHandler(updatedRanges);
                 this.setState({
-                    ranges: Helper.updateRangesFromDragSelection(ranges, drag, gridMode, mode, this.props.defaultSegmentColor),
                     drag: null
                 });
             }
@@ -555,7 +630,6 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     handleMouseMove = (event) => {
-        // TODO: event.clientX/clientY needs converting into a different space.
         const hoverMoment = Helper.calcTimeAt(
             event.target,
             event.clientX,
@@ -577,18 +651,6 @@ export default class WeekPlanner extends React.PureComponent {
         this.props.hoverTimeHandler();
     }
 
-    handleClick = (event) => {
-        // TODO: event.clientX/clientY needs converting into a different space.
-        const clickMoment = Helper.calcTimeAt(
-            event.target,
-            event.clientX,
-            event.clientY,
-            this.props.segmentSpacing
-        );
-
-        this.props.selectTimeHandler(clickMoment);
-    }
-
     // componentDidUpdate(prevProps, prevState) {
     //     Object.entries(this.props).forEach(([key, val]) =>
     //         prevProps[key] !== val && console.log(`Prop '${key}' changed`)
@@ -605,7 +667,8 @@ export default class WeekPlanner extends React.PureComponent {
     }
 
     renderDayRow = (dayRow) => {
-        const { drag, gridMode, mode, ranges } = this.state;
+        const { ranges } = this.props;
+        const { drag, gridMode, mode } = this.state;
 
         const dayMoment = moment.utc(baseMoment).add(dayRow, 'days');
         const dayMomentRange = new Range(dayMoment, moment.utc(dayMoment).endOf('day'));
@@ -668,7 +731,6 @@ export default class WeekPlanner extends React.PureComponent {
                     className="week-planner__row week-planner__row--lines"
                     style={{ gridTemplateColumns: `80px ${this.props.segmentSpacing.gridTemplateColumns}` }}
                 >
-                    {/* Make the days markers more configurable. */}
                     {/* Day label */}
                     <span />
                     {
@@ -692,7 +754,6 @@ export default class WeekPlanner extends React.PureComponent {
                 <div
                     tabIndex='0'
                     className="week-planner__row--selection"
-                    onClick={this.handleClick}
                     onMouseMove={this.handleMouseMove}
                     onMouseLeave={this.handleMouseLeave}
                     onMouseDown={this.handleMouseDown}
