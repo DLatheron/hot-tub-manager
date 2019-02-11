@@ -344,7 +344,7 @@ export class Helper {
                 <li
                     key='selection'
                     className={Helper.calcCapsClasses(caps.start, caps.end, modeDef.classNames)}
-                    style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
+                    style={{ gridColumn, gridRow: 1 }}
                 >
                     {modeDef.indicator}
                 </li>
@@ -375,7 +375,7 @@ export class Helper {
                 <li
                     key='selection'
                     className={Helper.calcCapsClasses(true, true, modeDef.classNames)}
-                    style={{gridColumn, gridRow: 1, backgroundColor: '#2ecaac'}}
+                    style={{ gridColumn, gridRow: 1 }}
                 >
                     {modeDef.indicator}
                 </li>
@@ -702,7 +702,7 @@ export default class WeekPlanner extends React.PureComponent {
                                 <li
                                     key={gridColumn}
                                     className={Helper.calcCapsClasses(caps.start, caps.end)}
-                                    style={{gridColumn, gridRow: 1, backgroundColor: dayRange.color || '#2ecaac'}}
+                                    style={{ gridColumn, gridRow: 1, backgroundColor: dayRange.color || this.props.defaultSegmentColor }}
                                 />
                             );
                         })
@@ -719,7 +719,7 @@ export default class WeekPlanner extends React.PureComponent {
                 {/* Table header */}
                 <div
                     className="week-planner__row week-planner__row--hours"
-                    style={{ gridTemplateColumns: `80px ${this.props.segmentSpacing.gridTemplateHeaderColumns}` }}
+                    style={{ gridTemplateColumns: `${this.props.segmentSpacing.initialColumnWidthInPixels}px ${this.props.segmentSpacing.gridTemplateHeaderColumns}` }}
                 >
                     <div className="week-planner__row-first"></div>
                     {_.range(hoursInADay).map(this.renderHours)}
@@ -727,7 +727,7 @@ export default class WeekPlanner extends React.PureComponent {
                 {/* Column separators and vertical markers */}
                 <div
                     className="week-planner__row week-planner__row--lines"
-                    style={{ gridTemplateColumns: `80px ${this.props.segmentSpacing.gridTemplateColumns}` }}
+                    style={{ gridTemplateColumns: `${this.props.segmentSpacing.initialColumnWidthInPixels}px ${this.props.segmentSpacing.gridTemplateColumns}` }}
                 >
                     {/* Day label */}
                     <span />
