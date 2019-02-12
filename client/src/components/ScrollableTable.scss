@@ -3,14 +3,8 @@
     top: 0;
     z-index: 1;
 }
-.sticky-left {
+.sticky-left-right {
     position: sticky;
-    left: 0;
-    z-index: 1;
-}
-.sticky-right {
-    position: sticky;
-    right: 0;
     z-index: 1;
 }
 .sticky-left-last {
@@ -20,19 +14,13 @@
     border-left: 1px solid black;
 }
 
-.sticky-top.sticky-left {
+.sticky-top.sticky-left-right {
     z-index: 2;
     background-color: red !important;
 }
-.sticky-top.sticky-right {
+.sticky-top.sticky-left-right {
     z-index: 2;
     background-color: red !important;
-}
-
-.ellipsis {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .scrollable-table {
@@ -41,7 +29,7 @@
     display: grid;
     position: relative;
     // grid-template-rows: 1fr auto;
-    grid-template-columns: 100px 100px 200px 100px 100px 100px 200px 100px;
+    grid-template-columns: 1fr 1fr 200px 100px 100px 100px 200px 100px;
 
     // border: 0;
     // border-radius: 12px;

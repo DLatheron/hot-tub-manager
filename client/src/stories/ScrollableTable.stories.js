@@ -56,7 +56,12 @@ storiesOf('ScrollableTable', module)
             <State store={store}>
                 {
                     state => (
-                        <ScrollableTable rows={state.rows} columns={state.columns} />
+                        <ScrollableTable
+                            rows={state.rows}
+                            columns={state.columns}
+                            stickyColumnsLeft={1}
+                            stickyColumnsRight={7}
+                        />
                     )
                 }
             </State>
