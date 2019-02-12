@@ -539,15 +539,11 @@ export default class WeekPlanner extends React.PureComponent {
         rangesChangedHandler: () => {}
     };
 
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            drag: null,
-            gridMode: false,
-            mode: modes.add
-        };
-    }
+    state = {
+        drag: null,
+        gridMode: false,
+        mode: modes.add
+    };
 
     determineMode({ altHeld, shiftHeld }) {
         const selectionState = {};
