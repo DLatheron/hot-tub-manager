@@ -13,27 +13,42 @@
     right: 0;
     z-index: 1;
 }
+.sticky-left-last {
+    border-right: 1px solid black;
+}
+.sticky-right-last {
+    border-left: 1px solid black;
+}
 
 .sticky-top.sticky-left {
     z-index: 2;
+    background-color: red !important;
 }
 .sticky-top.sticky-right {
     z-index: 2;
+    background-color: red !important;
+}
+
+.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .scrollable-table {
     // display: grid;
     // grid-template-rows: 1fr auto;
     display: grid;
+    position: relative;
     // grid-template-rows: 1fr auto;
     grid-template-columns: 100px 100px 200px 100px 100px 100px 200px 100px;
 
     // border: 0;
     // border-radius: 12px;
     // position: relative;
-    overflow-y: auto;
+    overflow: auto;
     max-height: 100vh;//200px;
-    // box-sizing: border-box;
+    box-sizing: border-box;
 
     // &__body {
     //     grid-row: 2/3;
@@ -41,6 +56,9 @@
     // }
 
     &__row {
+        padding: 4px;
+        border-bottom: 1px solid grey;
+        background-color: beige;
         // display: grid;
         // grid-template-rows: 1fr auto;
         // grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
@@ -64,9 +82,11 @@
         // }
 
         &--headers {
-            padding: 5px;
-            background-color: red;
-                //     // grid-row: 1/2;
+            background-color: pink;
+            border-bottom: 1px solid black;
+            user-select: none;
+            cursor: pointer;
+            //     // grid-row: 1/2;
         //     // grid-column: 1/9;
         //     // position: sticky;
         //     // padding: 5px;
@@ -100,40 +120,39 @@
         left: 0;
         top: 0;
         font-weight: bold;
-        color: white;
-        background-color: red;
+        // color: white;
+        // background-color: red;
     }
     .columnB {
         text-align: center;
         left: 100px;
-        color: white;
-        background-color: blue;
-        box-shadow: inset -8px 0px 0px 0px rgba(0,0,0,0.17);
+        // color: white;
+        // background-color: blue;
     }
     .columnC {
-        color: white;
-        background-color: green;
+        // color: white;
+        // background-color: green;
     }
     .columnD {
         text-align: right;
-        background-color: pink;
+        // background-color: pink;
     }
     .columnE {
-        background-color: yellow;
+        // background-color: yellow;
     }
     .columnF {
         text-align: center;
-        background-color: cyan;
+        // background-color: cyan;
     }
     .columnG {
-        background-color: magenta;
+        // background-color: magenta;
     }
     .columnH {
         position: sticky;
         right: 0;
         top: 0;
         text-align: right;
-        background-color: beige;
-        box-shadow: inset 8px 0px 0px 0px rgba(0,0,0,0.17);
+        // background-color: beige;
+        // box-shadow: inset 8px 0px 0px 0px rgba(0,0,0,0.17);
     }
 }
