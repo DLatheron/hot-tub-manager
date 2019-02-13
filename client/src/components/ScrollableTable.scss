@@ -46,12 +46,12 @@
         //     }
         // }
 
-
         &--headers {
             background-color: pink;
             border-bottom: 1px solid black;
             user-select: none;
             cursor: pointer;
+
             //     // grid-row: 1/2;
         //     // grid-column: 1/9;
         //     // position: sticky;
@@ -79,6 +79,11 @@
                 padding: 8px;
             }
         }
+    }
+
+    .selected {
+        font-style: bold;
+        color: green;
     }
 
     .odd-column {
@@ -123,12 +128,8 @@
         background-color: red !important;
     }
 
-    .odd-column {
-
-    }
-
-    .odd-row {
-
+    .bold {
+        font-weight: bold;
     }
 
     .columnA {

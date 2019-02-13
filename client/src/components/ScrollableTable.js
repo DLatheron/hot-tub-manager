@@ -5,30 +5,67 @@ import { faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons'
 import _ from 'lodash';
 
 export default class ScrollableTable extends React.PureComponent {
-    static PropTypes = {
-        columns: PropTypes.arrayOf(PropTypes.object),
-        rows: PropTypes.arrayOf(PropTypes.object),
+    static propTypes = {
+        columns: PropTypes.arrayOf(PropTypes.shape({
+            id: PropTypes.string.required,
+            title: PropTypes.string,
+            sortable: PropTypes.boolean,
+            headerClassNames: PropTypes.arrayOf(PropTypes.string),
+            classNames: PropTypes.arrayOf(PropTypes.string),
+            headerStyle: PropTypes.object,
+            style: PropTypes.object,
+            template: PropTypes.oneOfType([
+                PropTypes.string,
+                PropTypes.func
+            ])
+        })),
+        sortDir: PropTypes.object,
+        selected: PropTypes.string,
+        rows: PropTypes.arrayOf(PropTypes.shape({
+            id: PropTypes.string.required
+        })),
         stickyHeaders: PropTypes.bool,
         stickyColumnsLeft: PropTypes.number,
         stickyColumnsRight: PropTypes.number,
+        onColumnSelected: PropTypes.func,
+        onColumnSortChanged: PropTypes.func
     };
 
     static defaultProps = {
         columns: [],
         rows: [],
+        sortDir: {},
+        selected: undefined,
         stickyHeaders: true,
         stickyColumnsLeft: undefined,
         stickyColumnsRight: undefined,
+        onColumnSelected: () => {},
+        onColumnSortChanged: () => {}
     };
 
     constructor(props) {
         super(props);
 
-        this.clearLayoutCache();
+        this.layout = {
+            tableRef: React.createRef(),
+            columnRefs: {},
+
+            totalWidth: 0,
+            cumulativeStickyLeftMargin: {},
+            cumulativeStickyRightMargin: {}
+        };
     }
 
-    handleColumnHeaderClick = (event, column) => {
-        console.log(`Column Header '${column.id}' clicked!`);
+    handleColumnHeaderClick = (columnData, event) => {
+        const { id } = columnData;
+
+        if (columnData.sortable) {
+            if (this.props.selected !== id) {
+                return this.props.onColumnSelected(columnData, event);
+            }
+
+            this.props.onColumnSortChanged(columnData, event);
+        }
     }
 
     isCompressed() {
@@ -39,22 +76,26 @@ export default class ScrollableTable extends React.PureComponent {
         const { width: actualWidth } = this.layout.tableRef.current.getBoundingClientRect();
         const { totalWidth: layoutWidth } = this.layout;
 
-        console.log(`layoutWidth: ${layoutWidth} > actualWidth: ${actualWidth} = ${layoutWidth > actualWidth}`);
-
         return layoutWidth > actualWidth;
     }
 
     componentDidMount() {
-        this.cacheLayout();
         window.addEventListener('resize', this.cacheLayout.bind(this));
+
+        // Explicitly force an update because the sizing might take more than one render to
+        // determine the correct widths of the columns (if things like selection might affect
+        // font size etc.).
+        this.forceUpdate();
     }
 
     componentWillUnmount() {
-        this.clearLayoutCache();
+        // this.clearLayoutCache();
         window.removeEventListener('resize', this.cacheLayout.bind(this));
     }
 
     cacheLayout() {
+        const oldLayoutWidth = this.layout.totalWidth;
+
         this.layout.totalWidth = _.reduce(
             this.layout.columnRefs,
             (acc, columnRef) => acc += columnRef.current.getBoundingClientRect().width,
@@ -71,66 +112,65 @@ export default class ScrollableTable extends React.PureComponent {
             this.layout.cumulativeStickyRightMargin[index] = stickyRightMargin;
         });
 
-        this.forceUpdate();
+        if (oldLayoutWidth !== this.layout.totalWidth) {
+            this.forceUpdate();
+        }
     }
 
-    clearLayoutCache() {
-        this.layout = {
-            tableRef: React.createRef(),
-            columnRefs: {},
-
-            totalWidth: 0,
-            cumulativeStickyLeftMargin: {},
-            cumulativeStickyRightMargin: {}
-        };
-    }
-
-    renderHeaders = (column, index) => {
-        if (!this.layout.columnRefs[index]) {
-            this.layout.columnRefs[index] = React.createRef();
+    renderHeaders = (columnData, columnIndex, isCompressed) => {
+        if (!this.layout.columnRefs[columnIndex]) {
+            this.layout.columnRefs[columnIndex] = React.createRef();
         }
 
-        const stickyLeft = (index <= this.props.stickyColumnsLeft);
-        const stickyRight = (index >= this.props.stickyColumnsRight);
+        const stickyLeft = columnIndex <= this.props.stickyColumnsLeft;
+        const stickyRight = columnIndex >= this.props.stickyColumnsRight;
+        const lastStickyLeft = isCompressed && (columnIndex === this.props.stickyColumnsLeft);
+        const lastStickyRight = isCompressed && (columnIndex === this.props.stickyColumnsRight);
+        const selected = this.props.selected === columnData.id;
 
         const classNames = [
             'scrollable-table__row',
             'scrollable-table__row--headers',
+            selected && 'selected',
             this.props.stickyHeaders && 'sticky-top',
             (stickyLeft || stickyRight) && 'sticky-sides',
+            lastStickyLeft && 'sticky-left-last',
+            lastStickyRight && 'sticky-right-last',
+            ...(columnData.headerClassNames || [])
         ].filter(Boolean);
 
         const style = {
-            ...column.style,
-            left: stickyLeft && this.layout.cumulativeStickyLeftMargin[index],
-            right: stickyRight && this.layout.cumulativeStickyRightMargin[index]
+            ...columnData.headerStyle,
+            left: stickyLeft && this.layout.cumulativeStickyLeftMargin[columnIndex],
+            right: stickyRight && this.layout.cumulativeStickyRightMargin[columnIndex]
         };
+
+        const sortDir = this.props.sortDir[columnData.id];
 
         return (
             <div
-                ref={this.layout.columnRefs[index]}
-                key={column.id}
+                ref={this.layout.columnRefs[columnIndex]}
+                key={columnData.id}
                 className={classNames.join(' ')}
                 style={style}
-                onClick={(event) => this.handleColumnHeaderClick(event, column)}
+                onClick={this.handleColumnHeaderClick.bind(this, columnData)}
             >
-                {column.name} <FontAwesomeIcon icon={column.sortDir === 1 ? faSortUp : faSortDown} />
+                {columnData.title} {columnData.sortable && <FontAwesomeIcon icon={sortDir === 1 ? faSortUp : faSortDown} />}
             </div>
         );
     }
 
-    renderRow = (rowData, rowIndex) => {
+    renderRow = (rowData, rowIndex, isCompressed) => {
         const { columns } = this.props;
         const oddRow = rowIndex % 2 === 0;
-        const isCompressed = this.isCompressed();
 
         return (
-            columns.map((columnData, colIndex) => {
-                const stickyLeft = (colIndex <= this.props.stickyColumnsLeft);
-                const stickyRight = (colIndex >= this.props.stickyColumnsRight);
-                const lastStickyLeft = isCompressed && (colIndex === this.props.stickyColumnsLeft);
-                const lastStickyRight = isCompressed && (colIndex === this.props.stickyColumnsRight);
-                const oddColumn = colIndex % 2 === 0;
+            columns.map((columnData, columnIndex) => {
+                const stickyLeft = (columnIndex <= this.props.stickyColumnsLeft);
+                const stickyRight = (columnIndex >= this.props.stickyColumnsRight);
+                const lastStickyLeft = isCompressed && (columnIndex === this.props.stickyColumnsLeft);
+                const lastStickyRight = isCompressed && (columnIndex === this.props.stickyColumnsRight);
+                const oddColumn = columnIndex % 2 === 0;
 
                 const classNames = [
                     columnData.id,
@@ -140,21 +180,27 @@ export default class ScrollableTable extends React.PureComponent {
                     lastStickyLeft && 'sticky-left-last',
                     lastStickyRight && 'sticky-right-last',
                     oddColumn ? 'odd-column' : 'even-column',
-                    oddRow ? 'odd-row' : 'even-row'
+                    oddRow ? 'odd-row' : 'even-row',
+                    ...(columnData.classNames || [])
                 ].filter(Boolean);
 
                 const style = {
                     ...columnData.style,
-                    left: stickyLeft && this.layout.cumulativeStickyLeftMargin[colIndex],
-                    right: stickyRight && this.layout.cumulativeStickyRightMargin[colIndex]
+                    left: stickyLeft && this.layout.cumulativeStickyLeftMargin[columnIndex],
+                    right: stickyRight && this.layout.cumulativeStickyRightMargin[columnIndex]
                 };
 
                 return (
                     <div
+                        key={`${rowData.id}_${columnData.id}`}
                         className={classNames.join(' ')}
                         style={style}
                     >
-                        { columnData.template(rowData) }
+                        {
+                            typeof(columnData.template) === 'function'
+                                ? columnData.template(rowData)
+                                : rowData[columnData.template]
+                        }
                     </div>
                 );
             })
@@ -162,9 +208,12 @@ export default class ScrollableTable extends React.PureComponent {
     }
 
     render() {
-        const { columns, rows } = this.props;
-
         console.log('Rendering');
+
+        this.cacheLayout();
+
+        const { columns, rows } = this.props;
+        const isCompressed = this.isCompressed();
 
         return (
             <div
@@ -173,11 +222,11 @@ export default class ScrollableTable extends React.PureComponent {
             >
                 {
                     // Header row
-                    columns.map(this.renderHeaders)
+                    columns.map((columnData, columnIndex) => this.renderHeaders(columnData, columnIndex, isCompressed))
                 }
                 {
                     // Data row(s)
-                    rows.map(this.renderRow)
+                    rows.map((rowData, rowIndex) => this.renderRow(rowData, rowIndex, isCompressed))
                 }
             </div>
         );
