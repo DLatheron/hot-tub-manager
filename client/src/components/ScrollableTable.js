@@ -24,44 +24,70 @@ export default class ScrollableTable extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.columnRefs = {};
-        this.cumulativeStickyLeftMargin = {};
-        this.cumulativeStickyRightMargin = {};
+        this.clearLayoutCache();
     }
 
     handleColumnHeaderClick = (event, column) => {
         console.log(`Column Header '${column.id}' clicked!`);
     }
 
+    isCompressed() {
+        if (!this.layout.tableRef.current) {
+            return false;
+        }
+
+        const { width: actualWidth } = this.layout.tableRef.current.getBoundingClientRect();
+        const { totalWidth: layoutWidth } = this.layout;
+
+        console.log(`layoutWidth: ${layoutWidth} > actualWidth: ${actualWidth} = ${layoutWidth > actualWidth}`);
+
+        return layoutWidth > actualWidth;
+    }
+
     componentDidMount() {
-        const totalWidth = _.reduce(
-            this.columnRefs,
+        this.cacheLayout();
+        window.addEventListener('resize', this.cacheLayout.bind(this));
+    }
+
+    componentWillUnmount() {
+        this.clearLayoutCache();
+        window.removeEventListener('resize', this.cacheLayout.bind(this));
+    }
+
+    cacheLayout() {
+        this.layout.totalWidth = _.reduce(
+            this.layout.columnRefs,
             (acc, columnRef) => acc += columnRef.current.getBoundingClientRect().width,
             0
         );
 
         let stickyLeftMargin = 0;
-        let stickyRightMargin = totalWidth;
+        let stickyRightMargin = this.layout.totalWidth;
 
-        _.forEach(this.columnRefs, (columnRef, index) => {
-            this.cumulativeStickyLeftMargin[index] = stickyLeftMargin;
+        _.forEach(this.layout.columnRefs, (columnRef, index) => {
+            this.layout.cumulativeStickyLeftMargin[index] = stickyLeftMargin;
             stickyLeftMargin += columnRef.current.getBoundingClientRect().width;
             stickyRightMargin -= columnRef.current.getBoundingClientRect().width;
-            this.cumulativeStickyRightMargin[index] = stickyRightMargin;
+            this.layout.cumulativeStickyRightMargin[index] = stickyRightMargin;
         });
 
         this.forceUpdate();
     }
 
-    componentWillUnmount() {
-        this.columnRefs = {};
-        this.cumulativeStickyLeftMargin = {};
-        this.cumulativeStickyRightMargin = {};
+    clearLayoutCache() {
+        this.layout = {
+            tableRef: React.createRef(),
+            columnRefs: {},
+
+            totalWidth: 0,
+            cumulativeStickyLeftMargin: {},
+            cumulativeStickyRightMargin: {}
+        };
     }
 
     renderHeaders = (column, index) => {
-        if (!this.columnRefs[index]) {
-            this.columnRefs[index] = React.createRef();
+        if (!this.layout.columnRefs[index]) {
+            this.layout.columnRefs[index] = React.createRef();
         }
 
         const stickyLeft = (index <= this.props.stickyColumnsLeft);
@@ -71,18 +97,18 @@ export default class ScrollableTable extends React.PureComponent {
             'scrollable-table__row',
             'scrollable-table__row--headers',
             this.props.stickyHeaders && 'sticky-top',
-            (stickyLeft || stickyRight) && 'sticky-left-right',
+            (stickyLeft || stickyRight) && 'sticky-sides',
         ].filter(Boolean);
 
         const style = {
             ...column.style,
-            left: stickyLeft && this.cumulativeStickyLeftMargin[index],
-            right: stickyRight && this.cumulativeStickyRightMargin[index]
+            left: stickyLeft && this.layout.cumulativeStickyLeftMargin[index],
+            right: stickyRight && this.layout.cumulativeStickyRightMargin[index]
         };
 
         return (
             <div
-                ref={this.columnRefs[index]}
+                ref={this.layout.columnRefs[index]}
                 key={column.id}
                 className={classNames.join(' ')}
                 style={style}
@@ -93,29 +119,34 @@ export default class ScrollableTable extends React.PureComponent {
         );
     }
 
-    renderRow = (rowData) => {
+    renderRow = (rowData, rowIndex) => {
         const { columns } = this.props;
+        const oddRow = rowIndex % 2 === 0;
+        const isCompressed = this.isCompressed();
 
         return (
-            columns.map((column, index) => {
-                const stickyLeft = (index <= this.props.stickyColumnsLeft);
-                const stickyRight = (index >= this.props.stickyColumnsRight);
-                const lastStickyLeft = (index === this.props.stickyColumnsLeft);
-                const lastStickyRight = (index === this.props.stickyColumnsRight);
+            columns.map((columnData, colIndex) => {
+                const stickyLeft = (colIndex <= this.props.stickyColumnsLeft);
+                const stickyRight = (colIndex >= this.props.stickyColumnsRight);
+                const lastStickyLeft = isCompressed && (colIndex === this.props.stickyColumnsLeft);
+                const lastStickyRight = isCompressed && (colIndex === this.props.stickyColumnsRight);
+                const oddColumn = colIndex % 2 === 0;
 
                 const classNames = [
-                    column.id,
+                    columnData.id,
                     'scrollable-table__row',
                     'scrollable-table__row--data',
-                    (stickyLeft || stickyRight) && 'sticky-left-right',
+                    (stickyLeft || stickyRight) && 'sticky-sides',
                     lastStickyLeft && 'sticky-left-last',
-                    lastStickyRight && 'sticky-right-last'
+                    lastStickyRight && 'sticky-right-last',
+                    oddColumn ? 'odd-column' : 'even-column',
+                    oddRow ? 'odd-row' : 'even-row'
                 ].filter(Boolean);
 
                 const style = {
-                    ...column.style,
-                    left: stickyLeft && this.cumulativeStickyLeftMargin[index],
-                    right: stickyRight && this.cumulativeStickyRightMargin[index]
+                    ...columnData.style,
+                    left: stickyLeft && this.layout.cumulativeStickyLeftMargin[colIndex],
+                    right: stickyRight && this.layout.cumulativeStickyRightMargin[colIndex]
                 };
 
                 return (
@@ -123,80 +154,23 @@ export default class ScrollableTable extends React.PureComponent {
                         className={classNames.join(' ')}
                         style={style}
                     >
-                        { column.template(rowData) }
+                        { columnData.template(rowData) }
                     </div>
                 );
             })
         );
-
-        // return (
-        //     <>
-        //         <div
-        //             className={`sticky-left scrollable-table__row scrollable-table__row--data ${columns[0].id}`}
-        //             style={{
-        //             }}
-        //         >
-        //             { columns[0].template(rowData) }
-        //         </div>
-        //         <div
-        //             className={`sticky-left-last sticky-right scrollable-table__row scrollable-table__row--data ${columns[1].id}`}
-        //             style={{
-        //                 left: '100px'
-        //             }}
-        //         >
-        //             { columns[1].template(rowData) }
-        //         </div>
-        //         <div
-        //             className={`scrollable-table__row scrollable-table__row--data ${columns[2].id}`}
-        //             style={{
-        //             }}
-        //         >
-        //             { columns[2].template(rowData) }
-        //         </div>
-        //         <div
-        //             className={`scrollable-table__row scrollable-table__row--data ${columns[3].id}`}
-        //             style={{
-        //             }}
-        //         >
-        //             { columns[3].template(rowData) }
-        //         </div>
-        //         <div
-        //             className={`scrollable-table__row scrollable-table__row--data ${columns[4].id}`}
-        //             style={{
-        //             }}
-        //         >
-        //             { columns[4].template(rowData) }
-        //         </div>
-        //         <div
-        //             className={`scrollable-table__row scrollable-table__row--data ${columns[5].id}`}
-        //             style={{
-        //             }}
-        //         >
-        //             { columns[5].template(rowData) }
-        //         </div>
-        //         <div
-        //             className={`last-non-sticky scrollable-table__row scrollable-table__row--data ${columns[6].id}`}
-        //             style={{
-        //             }}
-        //         >
-        //             { columns[6].template(rowData) }
-        //         </div>
-        //         <div
-        //             className={`sticky-right-last sticky-right scrollable-table__row scrollable-table__row--data ${columns[7].id}`}
-        //             style={{
-        //             }}
-        //         >
-        //             { columns[7].template(rowData) }
-        //         </div>
-        //     </>
-        // );
     }
 
     render() {
         const { columns, rows } = this.props;
 
+        console.log('Rendering');
+
         return (
-            <div className='scrollable-table'>
+            <div
+                ref={this.layout.tableRef}
+                className='scrollable-table'
+            >
                 {
                     // Header row
                     columns.map(this.renderHeaders)
