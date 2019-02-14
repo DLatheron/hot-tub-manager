@@ -4,6 +4,7 @@ import { storiesOf } from "@storybook/react";
 
 import ScrollableTable from '../components/ScrollableTable';
 import '../components/ScrollableTable.scss';
+import './ScrollableTableColumns.scss';
 
 storiesOf('ScrollableTable', module)
     .add('default', () => {
@@ -21,48 +22,55 @@ storiesOf('ScrollableTable', module)
                     headerStyle: {
                     },
                     style: {
-                        color: 'red'
+                        color: 'brown'
                     },
-                    template: 'name'
+                    template: 'name',
+                    width: '200px'
                 }, {
                     id: 'columnB',
                     title: 'Column B',
                     sortable: true,
                     selected: true,
+                    style: {},
                     template: 'number',
-                    style: {}
                 }, {
                     id: 'columnC',
                     title: 'Column C',
                     sortable: true,
                     classNames: [],
-                    template: 'name'
+                    template: 'name',
+                    width: '200px'
                 }, {
                     id: 'columnD',
                     title: 'Column D',
                     sortable: false,
                     classNames: [],
-                    template: rowData => rowData.number.toString().padStart(4, '0')
+                    template: rowData => rowData.number.toString().padStart(4, '0'),
+                    width: '100px'
                 }, {
                     id: 'columnE',
                     title: 'Column E',
                     classNames: [],
-                    template: 'undef'
+                    template: 'undef',
+                    width: '100px'
                 }, {
                     id: 'columnF',
                     title: 'Column F',
                     classNames: [],
-                    template: 'number'
+                    template: 'number',
+                    width: '100px'
                 }, {
                     id: 'columnG',
                     title: 'Column G',
                     classNames: [],
-                    template: 'name'
+                    template: 'name',
+                    width: '200px'
                 }, {
                     id: 'columnH',
                     title: 'Column H',
                     classNames: [],
-                    template: rowData => rowData.number.toString().padStart(4, '0')
+                    template: rowData => rowData.number.toString().padStart(4, '0'),
+                    width: '100px'
                 }
             ],
             sortDir: {
@@ -84,7 +92,9 @@ storiesOf('ScrollableTable', module)
                 { id: 'J', name: 'J', number:  9, undef: undefined },
                 { id: 'K', name: 'K', number: 10, undef: undefined },
                 { id: 'L', name: 'L', number: 11, undef: undefined }
-            ]
+            ],
+            classNames: [],
+            style: {}
         });
 
         const columnSelectedHandler = columnData => {
@@ -98,7 +108,7 @@ storiesOf('ScrollableTable', module)
             const { id } = columnData;
 
             const sortDir = { ...store.get('sortDir') };
-            sortDir[id] = 0 - sortDir[id];
+            sortDir[id] = 0 - (sortDir[id] || 1);
 
             store.set({ sortDir });
         };

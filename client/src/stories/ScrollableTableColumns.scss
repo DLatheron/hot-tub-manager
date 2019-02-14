@@ -1,0 +1,44 @@
+.scrollable-table {
+    .bold {
+        font-weight: bold;
+    }
+
+    .columnA {
+        font-weight: bold;
+        // color: white;
+        // background-color: red;
+    }
+    .columnB {
+        text-align: center;
+        // color: white;
+        // background-color: blue;
+    }
+    .columnC {
+        font-style: italic;
+        // color: white;
+        // background-color: green;
+    }
+    .columnD {
+        text-align: right;
+        // background-color: pink;
+    }
+    .columnE {
+        // background-color: yellow;
+    }
+    .columnF {
+        text-align: center;
+        // background-color: cyan;
+    }
+    .columnG {
+        // background-color: magenta;
+        font-weight: bold;
+    }
+    .columnH {
+        position: sticky;
+        right: 0;
+        top: 0;
+        text-align: right;
+        // background-color: beige;
+        // box-shadow: inset 8px 0px 0px 0px rgba(0,0,0,0.17);
+    }
+}
