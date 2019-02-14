@@ -106,7 +106,8 @@ export class Range {
 
     /** Determines how the range is clipped by the provided range.
      * @param {Range} clipRange - Range that is to be removed.
-     * @returns {object} An object containing two boolean properties ('startOutside' and 'endOutside') that indicate
+     * @returns {{startOutside: Boolean, endOutside: Boolean}} Properties indicate if the start
+     * and end are outside the range.
      * if the start and end are outside of the 'clipRange'.
      */
     determineOverlaps(clipRange) {
@@ -159,8 +160,9 @@ export class Helper {
     /** Calculates the CSS grid start and end columns for this row.
      * @param {moment} startOfRowMoment - The date and time at the start of the row.
      * @param {Range} range - The range to be displayed.
-     * @returns {object} Containing the calculated 'gridColumn' and the 'caps' object which
-     * determines if the 'start' and 'end' of the region should be capped.
+     * @returns {{ caps: {{ start: Boolean end: Boolean}} gridColumn: String }} Indicates if the
+     * caps should be rendered at the start/end of a segment and a string representing the
+     * extents of the segment.
      */
     static calcGridColumns(startOfRowMoment, range) {
         function calcGridColumn(timeMoment) {
