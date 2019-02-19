@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import _ from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -16,7 +17,7 @@ import {
 // x Support for single of multiple selections???
 // x Data from data structure...
 //   x Support for optgroup
-// - Highlight colour support (trick);
+// d Highlight colour support (trick);
 // x Move left;
 // x Move all left;
 // x Move right;
@@ -34,10 +35,10 @@ import {
 // x Search optional;
 // x Change handlers;
 // - Minimise redrawing...
-// - Customise ordering of the toolbar buttons;
-// - Customisable titles;
-// - Customisable buttons;
-// - Remove reliance on Select.
+// x Customise ordering of the toolbar buttons;
+// x Customisable titles;
+// x Customisable buttons;
+// x Remove reliance on Select.
 export class Helper {
     static iterateOptions(options, iterationFn) {
         let index = 0;
@@ -128,7 +129,8 @@ export default class TwoColumnList extends React.PureComponent {
         options: PropTypes.array,
         initiallyRight: PropTypes.object,
         onSelectedChanged: PropTypes.func,
-        buttonOrder: PropTypes.arrayOf(PropTypes.string)
+        buttonOrder: PropTypes.arrayOf(PropTypes.string),
+        renderButton: PropTypes.func
     };
 
     static defaultProps = {
@@ -144,7 +146,8 @@ export default class TwoColumnList extends React.PureComponent {
             'MoveRight',
             'MoveLeft',
             'MoveAllLeft'
-        ]
+        ],
+        renderButton: null
     };
 
     state = {
@@ -194,7 +197,20 @@ export default class TwoColumnList extends React.PureComponent {
         return newState;
     }
 
-    handleMoveRight = () => {
+    toggleHilightedState(existingHilighted, option) {
+        const hilighted = {...existingHilighted};
+        const key = option.value;
+
+        if (hilighted[key]) {
+            delete hilighted[key];
+        } else {
+            hilighted[key] = true;
+        }
+
+        return hilighted;
+    }
+
+    onMoveRight = () => {
         const leftSelected = Helper.removeSelected(this.state.leftSelected, this.state.leftHilighted);
         const rightSelected = {
             ...this.state.rightSelected,
@@ -211,7 +227,7 @@ export default class TwoColumnList extends React.PureComponent {
         });
     }
 
-    handleMoveLeft = () => {
+    onMoveLeft = () => {
         const leftSelected = {
             ...this.state.leftSelected,
             ...this.state.rightHilighted
@@ -228,7 +244,7 @@ export default class TwoColumnList extends React.PureComponent {
         });
     }
 
-    handleMoveAllRight = () => {
+    onMoveAllRight = () => {
         const leftSelected = Helper.removeSelected(this.state.leftSelected, this.state.leftFiltered);
         const rightSelected = {
             ...this.state.rightSelected,
@@ -245,7 +261,7 @@ export default class TwoColumnList extends React.PureComponent {
         });
     }
 
-    handleMoveAllLeft = (event) => {
+    onMoveAllLeft = (event) => {
         const leftSelected = {
             ...this.state.leftSelected,
             ...this.state.rightSelected
@@ -262,40 +278,27 @@ export default class TwoColumnList extends React.PureComponent {
         });
     }
 
-    toggleHilightedState(existingHilighted, option) {
-        const hilighted = {...existingHilighted};
-        const key = option.value;
-
-        if (hilighted[key]) {
-            delete hilighted[key];
-        } else {
-            hilighted[key] = true;
-        }
-
-        return hilighted;
-    }
-
-    handleLeftOptionHilightedToggle = (option) => {
+    onLeftOptionHilightedToggle = (option) => {
         this.setState({
             leftHilighted: this.toggleHilightedState(this.state.leftHilighted, option)
         });
     }
 
-    handleRightOptionHilightedToggle = (option) => {
+    onRightOptionHilightedToggle = (option) => {
         this.setState({
             rightHilighted: this.toggleHilightedState(this.state.rightHilighted, option)
         });
     }
 
-    handleHilightAllLeft = () => {
+    onHilightAllLeft = () => {
         this.setState({ leftHilighted: { ...this.state.leftFiltered } });
     }
 
-    handleHilightAllRight = () => {
+    onHilightAllRight = () => {
         this.setState({ rightHilighted: { ...this.state.rightFiltered } });
     }
 
-    handleHilightInvertLeft = () => {
+    onHilightInvertLeft = () => {
         const leftHilighted = {};
 
         Helper.iterateOptions(this.props.options, option => {
@@ -308,7 +311,7 @@ export default class TwoColumnList extends React.PureComponent {
         this.setState({ leftHilighted });
     }
 
-    handleHilightInvertRight = () => {
+    onHilightInvertRight = () => {
         const rightHilighted = {};
 
         Helper.iterateOptions(this.props.options, option => {
@@ -321,27 +324,27 @@ export default class TwoColumnList extends React.PureComponent {
         this.setState({ rightHilighted });
     }
 
-    handleHilightNoneLeft = () => {
+    onHilightNoneLeft = () => {
         this.setState({ leftHilighted: {} });
     }
 
-    handleHilightNoneRight = () => {
+    onHilightNoneRight = () => {
         this.setState({ rightHilighted: {} });
     }
 
-    handleSearchTermChangeLeft = (event) => {
+    onSearchTermChangeLeft = (event) => {
         this.setState({ leftSearchTerm: event.target.value });
     }
 
-    handleSearchTermChangeRight = (event) => {
+    onSearchTermChangeRight = (event) => {
         this.setState({ rightSearchTerm: event.target.value });
     }
 
-    handleSearchTermClearedLeft = () => {
+    onSearchTermClearedLeft = () => {
         this.setState({ leftSearchTerm: '' });
     }
 
-    handleSearchTermClearedRight = () => {
+    onSearchTermClearedRight = () => {
         this.setState({ rightSearchTerm: '' });
     }
 
@@ -349,14 +352,15 @@ export default class TwoColumnList extends React.PureComponent {
         if (option.values) {
             const subOptions = option.values.reduce((results, option) => {
                 const renderResult = this.renderOption(option, selected, hilighted, filtered, handleOptionHilightedToggle);
+
                 if (renderResult) {
                     results.push(renderResult);
                 }
+
                 return results;
             }, []);
 
             if (subOptions.length > 0) {
-                // Group.
                 return (
                     <div className='group' key={option.values[0].value}>
                         {option.text}
@@ -370,7 +374,7 @@ export default class TwoColumnList extends React.PureComponent {
             if (filtered[key]) {
                 return (
                     <div
-                        className={`option ${hilighted[key] ? 'hilighted' : ''}`}
+                        className={classNames('option', hilighted[key] && 'hilighted')}
                         key={key}
                         value={key}
                         onClick={() => handleOptionHilightedToggle(option)}
@@ -382,62 +386,56 @@ export default class TwoColumnList extends React.PureComponent {
         }
     }
 
-    renderButton = (buttonType, leftFiltered, rightFiltered, leftHilighted, rightHilighted) => {
-        switch (buttonType) {
-            case 'MoveAllRight':
-                return (
-                    <button
-                        key='moveAllRight'
-                        type='button'
-                        disabled={_.isEmpty(leftFiltered)}
-                        onClick={this.handleMoveAllRight}
-                    >
-                        <FontAwesomeIcon icon={faAngleDoubleRight} />
-                    </button>
-                );
+    renderButton(type, disabled, handler) {
+        if (this.props.renderButton) {
+            return this.props.renderButton(type, disabled, handler);
+        } else {
+            let icon;
 
-            case 'MoveAllLeft':
-                return (
-                    <button
-                        key='moveAllLeft'
-                        type='button'
-                        disabled={_.isEmpty(rightFiltered)}
-                        onClick={this.handleMoveAllLeft}
-                    >
-                        <FontAwesomeIcon icon={faAngleDoubleLeft} />
-                    </button>
-                );
+            switch (type) {
+                case 'MoveAllRight': icon = faAngleDoubleRight; break;
+                case 'MoveAllLeft': icon = faAngleDoubleLeft; break;
+                case 'MoveRight': icon = faArrowRight; break;
+                case 'MoveLeft': icon = faArrowLeft; break;
+                case 'SelectAll': icon = faCheckCircle; break;
+                case 'Invert': icon = faExchangeAlt; break;
+                case 'SelectNone': icon = faTimesCircle; break;
+                default: break;
+            }
 
-            case 'MoveRight':
-                return (
-                    <button
-                        key='moveRight'
-                        type='button'
-                        disabled={_.isEmpty(leftHilighted)}
-                        onClick={this.handleMoveRight}
-                    >
-                        <FontAwesomeIcon icon={faArrowRight} />
-                    </button>
-                );
-
-            case 'MoveLeft':
-                return (
-                    <button
-                        key='moveLeft'
-                        type='button'
-                        disabled={_.isEmpty(rightHilighted)}
-                        onClick={this.handleMoveLeft}
-                    >
-                        <FontAwesomeIcon icon={faArrowLeft} />
-                    </button>
-                );
-
-            default:
-                    throw new Error(`Unknown button type ${buttonType}`);
+            return (
+                <button
+                    key={type}
+                    type='button'
+                    disabled={disabled}
+                    onClick={handler}
+                >
+                    <FontAwesomeIcon className='icon' icon={icon} />
+                </button>
+            );
         }
     }
 
-    renderToolbar = (filtered, hilighted, handleHilightAll, handleHilightInvert, handleHilightNone) => {
+    renderVerticalToolbar = (buttonType, leftFiltered, rightFiltered, leftHilighted, rightHilighted) => {
+        switch (buttonType) {
+            case 'MoveAllRight':
+                return this.renderButton('MoveAllRight', _.isEmpty(leftFiltered), this.onMoveAllRight);
+
+            case 'MoveAllLeft':
+                return this.renderButton('MoveAllLeft', _.isEmpty(rightFiltered), this.onMoveAllLeft);
+
+            case 'MoveRight':
+                return this.renderButton('MoveRight', _.isEmpty(leftHilighted), this.onMoveRight);
+
+            case 'MoveLeft':
+                return this.renderButton('MoveLeft', _.isEmpty(rightHilighted), this.onMoveLeft);
+
+            default:
+                throw new Error(`Unknown button type ${buttonType}`);
+        }
+    }
+
+    renderListToolbar = (filtered, hilighted, handleHilightAll, handleHilightInvert, handleHilightNone) => {
         const numHighlighted = Object.keys(hilighted).length;
         const numFiltered = Object.keys(filtered).length;
         const allHilighted = numHighlighted < numFiltered;
@@ -445,26 +443,9 @@ export default class TwoColumnList extends React.PureComponent {
 
         return (
             <>
-                <button
-                    type='button'
-                    disabled={!allHilighted}
-                    onClick={handleHilightAll}
-                >
-                    <FontAwesomeIcon className='icon' icon={faCheckCircle} />
-                </button>
-                <button
-                    type='button'
-                    onClick={handleHilightInvert}
-                >
-                    <FontAwesomeIcon className='icon' icon={faExchangeAlt} />
-                </button>
-                <button
-                    type='button'
-                    disabled={!anyHighlighted}
-                    onClick={handleHilightNone}
-                >
-                    <FontAwesomeIcon className='icon' icon={faTimesCircle} />
-                </button>
+                { this.renderButton('SelectAll', !allHilighted, handleHilightAll) }
+                { this.renderButton('Invert', (numFiltered === 0), handleHilightInvert) }
+                { this.renderButton('SelectNone', !anyHighlighted, handleHilightNone) }
             </>
         );
     }
@@ -476,7 +457,7 @@ export default class TwoColumnList extends React.PureComponent {
                 this.state.leftSelected,
                 this.state.leftHilighted,
                 this.state.leftFiltered,
-                this.handleLeftOptionHilightedToggle
+                this.onLeftOptionHilightedToggle
             )
         );
         const rightOptions = this.props.options.map(option =>
@@ -485,7 +466,7 @@ export default class TwoColumnList extends React.PureComponent {
                 this.state.rightSelected,
                 this.state.rightHilighted,
                 this.state.rightFiltered,
-                this.handleRightOptionHilightedToggle
+                this.onRightOptionHilightedToggle
             )
         );
 
@@ -510,12 +491,12 @@ export default class TwoColumnList extends React.PureComponent {
                                 type='text'
                                 placeholder='Type filter term...'
                                 value={this.state.leftSearchTerm}
-                                onChange={this.handleSearchTermChangeLeft}
+                                onChange={this.onSearchTermChangeLeft}
                             />
                             <FontAwesomeIcon
-                                className={`clear + ${!this.state.leftSearchTerm ? 'hidden' : ''}`}
+                                className={classNames('clear', !this.state.leftSearchTerm && 'hidden')}
                                 icon={faTimesCircle}
-                                onClick={this.handleSearchTermClearedLeft}
+                                onClick={this.onSearchTermClearedLeft}
                             />
                         </div>
                 }
@@ -526,12 +507,12 @@ export default class TwoColumnList extends React.PureComponent {
                                 type='text'
                                 placeholder='Type filter term...'
                                 value={this.state.rightSearchTerm}
-                                onChange={this.handleSearchTermChangeRight}
+                                onChange={this.onSearchTermChangeRight}
                             />
                             <FontAwesomeIcon
-                                className={`clear + ${!this.state.rightSearchTerm ? 'hidden' : ''}`}
+                                className={classNames('clear', !this.state.rightSearchTerm && 'hidden')}
                                 icon={faTimesCircle}
-                                onClick={this.handleSearchTermClearedRight}
+                                onClick={this.onSearchTermClearedRight}
                             />
                         </div>
                 }
@@ -543,30 +524,30 @@ export default class TwoColumnList extends React.PureComponent {
                 </div>
                 <div className='toolbar left'>
                     {
-                        this.renderToolbar(
+                        this.renderListToolbar(
                             this.state.leftFiltered,
                             this.state.leftHilighted,
-                            this.handleHilightAllLeft,
-                            this.handleHilightInvertLeft,
-                            this.handleHilightNoneLeft
+                            this.onHilightAllLeft,
+                            this.onHilightInvertLeft,
+                            this.onHilightNoneLeft
                         )
                     }
                 </div>
                 <div className='toolbar right'>
                     {
-                        this.renderToolbar(
+                        this.renderListToolbar(
                             this.state.rightFiltered,
                             this.state.rightHilighted,
-                            this.handleHilightAllRight,
-                            this.handleHilightInvertRight,
-                            this.handleHilightNoneRight
+                            this.onHilightAllRight,
+                            this.onHilightInvertRight,
+                            this.onHilightNoneRight
                         )
                     }
                 </div>
                 <div className='vertical-toolbar middle'>
                     {
                         this.props.buttonOrder.map(buttonType =>
-                            this.renderButton(
+                            this.renderVerticalToolbar(
                                 buttonType,
                                 this.state.leftFiltered,
                                 this.state.rightFiltered,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { State, Store } from '@sambego/storybook-state';
-import { storiesOf } from "@storybook/react";
+import { storiesOf } from '@storybook/react';
 
 import TwoColumnList from '../components/TwoColumnList';
 import '../components/TwoColumnList.scss';
@@ -8,6 +8,8 @@ import '../components/TwoColumnList.scss';
 storiesOf('TwoColumnList', module)
     .add('default', () => {
         const store = new Store({
+            leftTitle: 'Left:',
+            rightTitle: 'Right:',
             options:
             // [
             //     { value: 'value1', text: 'Value 1' },
@@ -18,7 +20,7 @@ storiesOf('TwoColumnList', module)
             // ],
             [
                 {
-                    text: 'Values 1-5',
+                    text: 'Values 1-5:',
                     values: [
                         { value: 'value1', text: 'Value 1' },
                         { value: 'value2', text: 'Value 2' },
@@ -27,7 +29,7 @@ storiesOf('TwoColumnList', module)
                         { value: 'value5', text: 'Value 5' }
                     ]
                 }, {
-                    text: 'Values 6-10',
+                    text: 'Values 6-10:',
                     values: [
                         { value: 'value6', text: 'Value 6' },
                         { value: 'value7', text: 'Value 7' },
@@ -36,7 +38,7 @@ storiesOf('TwoColumnList', module)
                         { value: 'value10', text: 'Value 10' }
                     ]
                 }, {
-                    text: 'Values 11, 12 & 13',
+                    text: 'Values 11, 12 & 13:',
                     values: [
                         { value: 'value11', text: 'Value 11' },
                         { value: 'value12', text: 'Value 12' },
