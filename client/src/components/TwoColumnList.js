@@ -38,6 +38,87 @@ import {
 // - Customisable titles;
 // - Customisable buttons;
 // - Remove reliance on Select.
+export class Helper {
+    static iterateOptions(options, iterationFn) {
+        let index = 0;
+
+        options.forEach(option => {
+            if (option.values) {
+                option.values.forEach(subOption => {
+                    iterationFn(subOption, index++);
+                });
+            } else {
+                iterationFn(option, index++);
+            }
+        });
+    }
+
+    static removeSelected(existingSelected, selectedToChange) {
+        const updatedSelected = { ...existingSelected };
+
+        _.forEach(selectedToChange, (_, key) => {
+            delete updatedSelected[key];
+        });
+
+        return updatedSelected;
+    }
+
+    static filterOption(option, regExp) {
+        if (!regExp) {
+            return option;
+        }
+
+        if (option.text.match(regExp)) {
+            return option;
+        }
+
+        return false;
+    }
+
+    static filterList(options, selected, searchTermRegExp) {
+        const filtered = {
+        };
+
+        Helper.iterateOptions(options, option => {
+            const key = option.value;
+
+            if (selected[key] && Helper.filterOption(option, searchTermRegExp)) {
+                filtered[key] = true;
+            }
+        });
+
+        return filtered;
+    }
+
+    static filterOptions(options, leftSelected, rightSelected, leftSearchTerm, rightSearchTerm) {
+        const results = {};
+
+        if (leftSearchTerm) {
+            const leftRegExp = new RegExp(leftSearchTerm, 'i');
+            results.left = Helper.filterList(
+                options,
+                leftSelected,
+                leftRegExp
+            );
+        } else {
+            results.left = { ...leftSelected };
+        }
+
+        if (rightSearchTerm) {
+            const rightRegExp = new RegExp(rightSearchTerm, 'i');
+            results.right = Helper.filterList(
+                options,
+                rightSelected,
+                rightRegExp
+            );
+        } else {
+            results.right = { ...rightSelected };
+        }
+
+        return results;
+    }
+};
+
 export default class TwoColumnList extends React.PureComponent {
     static propTypes = {
         leftTitle: PropTypes.string,
@@ -69,57 +150,19 @@ export default class TwoColumnList extends React.PureComponent {
     state = {
         leftSearchTerm: '',
         rightSearchTerm: '',
+        leftOptions: {},
+        rightOptions: {},
         leftHilighted: {},
         rightHilighted: {},
         leftSelected: {},
         rightSelected: {}
     };
 
-    constructor(props) {
-        super(props);
-
-        this.leftSelectRef = React.createRef();
-        this.rightSelectRef = React.createRef();
-    }
-
-    getSelectedOption(selectElement) {
-        console.log(`selectElement: ${selectElement}`);
-        const { options } = selectElement;
-        console.log(`options: ${options}`);
-        const selectedOptions = {};
-
-        // Must use for loop as options are a HTMLOptionsCollection.
-        for (let i = 0; i < options.length; ++i) {
-            const option = options[i];
-            if (option.selected) {
-                selectedOptions[option.value] = true;
-            }
-        }
-
-        return selectedOptions;
-    }
-
-    static iterateOptions(options, iterationFn) {
-        let index = 0;
-
-        options.forEach(option => {
-            if (option.values) {
-                option.values.forEach(subOption => {
-                    iterationFn(subOption, index++);
-                });
-            } else {
-                iterationFn(option, index++);
-            }
-        });
-    }
-
     static getDerivedStateFromProps(props, oldState) {
-        console.log(`getDerivedStateFromProps(${JSON.stringify(props, null, 4)}, ${JSON.stringify(oldState, null, 4)})`);
-
         const leftSelected = {...oldState.leftSelected};
         const rightSelected = {...oldState.rightSelected};
 
-        TwoColumnList.iterateOptions(props.options, option => {
+        Helper.iterateOptions(props.options, option => {
             const key = option.value;
 
             if (oldState.leftSelected[key] === undefined && oldState.rightSelected[key] === undefined) {
@@ -132,11 +175,18 @@ export default class TwoColumnList extends React.PureComponent {
             }
         });
 
-        console.log(`leftSelected: ${JSON.stringify(leftSelected, null, 4)}`);
-        console.log(`rightSelected: ${JSON.stringify(rightSelected, null, 4)}`);
+        const { left: leftFiltered, right: rightFiltered } = Helper.filterOptions(
+            props.options,
+            leftSelected,
+            rightSelected,
+            oldState.leftSearchTerm,
+            oldState.rightSearchTerm
+        );
 
         const newState = {
             ...oldState,
+            leftFiltered,
+            rightFiltered,
             leftSelected,
             rightSelected
         };
@@ -144,28 +194,8 @@ export default class TwoColumnList extends React.PureComponent {
         return newState;
     }
 
-    static updateSelected(existingSelected, selectedToChange, changeToMake) {
-        const updatedSelected = {...existingSelected};
-
-        _.forEach(selectedToChange, (_, key) => {
-            updatedSelected[key] = changeToMake;
-        });
-
-        return updatedSelected;
-    }
-
-    static removeSelected(existingSelected, selectedToChange) {
-        const updatedSelected = {...existingSelected};
-
-        _.forEach(selectedToChange, (_, key) => {
-            delete updatedSelected[key];
-        });
-
-        return updatedSelected;
-    }
-
     handleMoveRight = () => {
-        const leftSelected = TwoColumnList.removeSelected(this.state.leftSelected, this.state.leftHilighted);
+        const leftSelected = Helper.removeSelected(this.state.leftSelected, this.state.leftHilighted);
         const rightSelected = {
             ...this.state.rightSelected,
             ...this.state.leftHilighted
@@ -186,7 +216,7 @@ export default class TwoColumnList extends React.PureComponent {
             ...this.state.leftSelected,
             ...this.state.rightHilighted
         };
-        const rightSelected = TwoColumnList.removeSelected(this.state.rightSelected, this.state.rightHilighted);
+        const rightSelected = Helper.removeSelected(this.state.rightSelected, this.state.rightHilighted);
 
         this.props.onSelectedChanged(leftSelected, rightSelected);
 
@@ -198,23 +228,11 @@ export default class TwoColumnList extends React.PureComponent {
         });
     }
 
-    static filterObject(obj, filterValue) {
-        const newObj = {};
-
-        _.forEach(obj, (value, key) => {
-            if (value === filterValue) {
-                newObj[key] = value;
-            }
-        })
-
-        return newObj;
-    }
-
     handleMoveAllRight = () => {
-        const leftSelected = {};
+        const leftSelected = Helper.removeSelected(this.state.leftSelected, this.state.leftFiltered);
         const rightSelected = {
-            ...this.state.leftSelected,
-            ...this.state.rightSelected
+            ...this.state.rightSelected,
+            ...this.state.leftFiltered
         };
 
         this.props.onSelectedChanged(leftSelected, rightSelected);
@@ -223,7 +241,7 @@ export default class TwoColumnList extends React.PureComponent {
             leftSelected,
             rightSelected,
             leftHilighted: {},
-            rightHilighted: this.state.leftHilighted
+            rightHilighted: this.state.leftFiltered
         });
     }
 
@@ -242,34 +260,6 @@ export default class TwoColumnList extends React.PureComponent {
             leftHilighted: this.state.rightHilighted,
             rightHilighted: {}
         });
-    }
-
-    static filterOption(option, regExp) {
-        if (!regExp) {
-            return option;
-        }
-
-        if (option.text.match(regExp)) {
-            return option;
-        }
-
-        return false;
-    }
-
-    canMoveAllToRight() {
-        return !_.isEmpty(this.state.leftSelected);
-    }
-
-    canMoveAllToLeft() {
-        return !_.isEmpty(this.state.rightSelected);
-    }
-
-    canMoveToRight() {
-        return !_.isEmpty(this.state.leftHilighted);
-    }
-
-    canMoveToLeft() {
-        return !_.isEmpty(this.state.rightHilighted);
     }
 
     toggleHilightedState(existingHilighted, option) {
@@ -295,6 +285,64 @@ export default class TwoColumnList extends React.PureComponent {
         this.setState({
             rightHilighted: this.toggleHilightedState(this.state.rightHilighted, option)
         });
+    }
+
+    handleHilightAllLeft = () => {
+        this.setState({ leftHilighted: { ...this.state.leftFiltered } });
+    }
+
+    handleHilightAllRight = () => {
+        this.setState({ rightHilighted: { ...this.state.rightFiltered } });
+    }
+
+    handleHilightInvertLeft = () => {
+        const leftHilighted = {};
+
+        Helper.iterateOptions(this.props.options, option => {
+            const key = option.value;
+            if (this.state.leftFiltered[key] && !this.state.leftHilighted[key]) {
+                leftHilighted[key] = true;
+            }
+        });
+
+        this.setState({ leftHilighted });
+    }
+
+    handleHilightInvertRight = () => {
+        const rightHilighted = {};
+
+        Helper.iterateOptions(this.props.options, option => {
+            const key = option.value;
+            if (this.state.rightFiltered[key] && !this.state.rightHilighted[key]) {
+               rightHilighted[key] = true;
+            }
+        });
+
+        this.setState({ rightHilighted });
+    }
+
+    handleHilightNoneLeft = () => {
+        this.setState({ leftHilighted: {} });
+    }
+
+    handleHilightNoneRight = () => {
+        this.setState({ rightHilighted: {} });
+    }
+
+    handleSearchTermChangeLeft = (event) => {
+        this.setState({ leftSearchTerm: event.target.value });
+    }
+
+    handleSearchTermChangeRight = (event) => {
+        this.setState({ rightSearchTerm: event.target.value });
+    }
+
+    handleSearchTermClearedLeft = () => {
+        this.setState({ leftSearchTerm: '' });
+    }
+
+    handleSearchTermClearedRight = () => {
+        this.setState({ rightSearchTerm: '' });
     }
 
     renderOption = (option, selected, hilighted, filtered, handleOptionHilightedToggle) => {
@@ -334,14 +382,14 @@ export default class TwoColumnList extends React.PureComponent {
         }
     }
 
-    renderButton = (buttonType) => {
+    renderButton = (buttonType, leftFiltered, rightFiltered, leftHilighted, rightHilighted) => {
         switch (buttonType) {
             case 'MoveAllRight':
                 return (
                     <button
                         key='moveAllRight'
                         type='button'
-                        disabled={!this.canMoveAllToRight()}
+                        disabled={_.isEmpty(leftFiltered)}
                         onClick={this.handleMoveAllRight}
                     >
                         <FontAwesomeIcon icon={faAngleDoubleRight} />
@@ -353,7 +401,7 @@ export default class TwoColumnList extends React.PureComponent {
                     <button
                         key='moveAllLeft'
                         type='button'
-                        disabled={!this.canMoveAllToLeft()}
+                        disabled={_.isEmpty(rightFiltered)}
                         onClick={this.handleMoveAllLeft}
                     >
                         <FontAwesomeIcon icon={faAngleDoubleLeft} />
@@ -365,7 +413,7 @@ export default class TwoColumnList extends React.PureComponent {
                     <button
                         key='moveRight'
                         type='button'
-                        disabled={!this.canMoveToRight()}
+                        disabled={_.isEmpty(leftHilighted)}
                         onClick={this.handleMoveRight}
                     >
                         <FontAwesomeIcon icon={faArrowRight} />
@@ -377,7 +425,7 @@ export default class TwoColumnList extends React.PureComponent {
                     <button
                         key='moveLeft'
                         type='button'
-                        disabled={!this.canMoveToLeft()}
+                        disabled={_.isEmpty(rightHilighted)}
                         onClick={this.handleMoveLeft}
                     >
                         <FontAwesomeIcon icon={faArrowLeft} />
@@ -387,49 +435,6 @@ export default class TwoColumnList extends React.PureComponent {
             default:
                     throw new Error(`Unknown button type ${buttonType}`);
         }
-    }
-
-    handleHilightAllLeft = (toSelect) => {
-        this.setState({ leftHilighted: { ...toSelect } });
-    }
-
-    handleHilightAllRight = (toSelect) => {
-        this.setState({ rightHilighted: { ...toSelect } });
-    }
-
-    handleHilightInvertLeft = (toSelect) => {
-        const leftHilighted = {};
-
-        TwoColumnList.iterateOptions(this.props.options, option => {
-            const key = option.value;
-            if (toSelect[key] && !this.state.leftHilighted[key]) {
-                leftHilighted[key] = true;
-            }
-        });
-
-        this.setState({ leftHilighted });
-    }
-
-    handleHilightInvertRight = (toSelect) => {
-        // TODO: Redo.
-        const rightHilighted = {};
-
-        TwoColumnList.iterateOptions(this.props.options, option => {
-            const key = option.value;
-            if (toSelect[key] && !this.state.rightHilighted[key]) {
-               rightHilighted[key] = true;
-            }
-        });
-
-        this.setState({ rightHilighted });
-    }
-
-    handleHilightNoneLeft = () => {
-        this.setState({ leftHilighted: {} });
-    }
-
-    handleHilightNoneRight = () => {
-        this.setState({ rightHilighted: {} });
     }
 
     renderToolbar = (filtered, hilighted, handleHilightAll, handleHilightInvert, handleHilightNone) => {
@@ -464,127 +469,13 @@ export default class TwoColumnList extends React.PureComponent {
         );
     }
 
-    // buildOptions(side, options, selected, hilighted, searchTermRegExp, handleOptionHilightedToggle) {
-    //     const result = {
-    //         render: []
-    //     };
-
-    //     options.forEach(option => {
-    //         const subOptions = option.values;
-    //         if (subOptions) {
-    //             const subResult = this.buildOptions(
-    //                 side,
-    //                 subOptions,
-    //                 selected,
-    //                 hilighted,
-    //                 searchTermRegExp,
-    //                 handleOptionHilightedToggle
-    //             );
-
-    //             if (subResult.render.length > 0) {
-    //                 result.render.push(
-    //                     <div
-    //                         className='group'
-    //                         key={subOptions[0].value}
-    //                         label={option.text}
-    //                     >
-    //                         { subResult.render.map(element => element) }
-    //                     </div>
-    //                 )
-    //             }
-    //         } else {
-    //             const key = option.value;
-
-    //             if (selected[key] === side &&
-    //                 TwoColumnList.filterOption(option, searchTermRegExp)) {
-    //                 result.render.push(
-    //                     <div
-    //                         className={`option ${hilighted[key] ? 'selected' : ''}`}
-    //                         key={key}
-    //                         value={key}
-    //                         onClick={() => handleOptionHilightedToggle(option)}
-    //                     >
-    //                         {option.text}
-    //                     </div>
-    //                 );
-    //             }
-    //         }
-    //     });
-
-    //     return result;
-    // }
-    static filterLists(options, leftSelected, rightSelected, leftRegExp, rightRegExp) {
-        const filters = {
-            left: {},
-            right: {}
-        };
-
-        TwoColumnList.iterateOptions(options, option => {
-            const key = option.value;
-
-            if (leftSelected[key] && TwoColumnList.filterOption(option, leftRegExp)) {
-                filters.left[key] = true;
-            }
-            if (rightSelected[key] && TwoColumnList.filterObject(option, rightRegExp)) {
-                filters.right[key] = true;
-            }
-        });
-
-        return filters;
-    }
-
-    static filterList(options, selected, searchTermRegExp) {
-        const filtered = {
-        };
-
-        TwoColumnList.iterateOptions(options, option => {
-            const key = option.value;
-
-            if (selected[key] && TwoColumnList.filterOption(option, searchTermRegExp)) {
-                filtered[key] = true;
-            }
-        });
-
-        return filtered;
-    }
-
-    filterOptions() {
-        const results = {};
-
-        if (this.state.leftSearchTerm) {
-            const leftRegExp = new RegExp(this.state.leftSearchTerm, 'i');
-            results.left = TwoColumnList.filterList(
-                this.props.options,
-                this.state.leftSelected,
-                leftRegExp
-            );
-        } else {
-            results.left = { ...this.state.leftSelected };
-        }
-
-        if (this.state.rightSearchTerm) {
-            const rightRegExp = new RegExp(this.state.rightSearchTerm, 'i');
-            results.right = TwoColumnList.filterList(
-                this.props.options,
-                this.state.rightSelected,
-                rightRegExp
-            );
-        } else {
-            results.right = { ...this.state.rightSelected };
-        }
-
-        return results;
-    }
-
     render() {
-        const filtered = this.filterOptions();
-
         const leftOptions = this.props.options.map(option =>
             this.renderOption(
                 option,
                 this.state.leftSelected,
                 this.state.leftHilighted,
-                filtered.left,
+                this.state.leftFiltered,
                 this.handleLeftOptionHilightedToggle
             )
         );
@@ -593,7 +484,7 @@ export default class TwoColumnList extends React.PureComponent {
                 option,
                 this.state.rightSelected,
                 this.state.rightHilighted,
-                filtered.right,
+                this.state.rightFiltered,
                 this.handleRightOptionHilightedToggle
             )
         );
@@ -603,13 +494,13 @@ export default class TwoColumnList extends React.PureComponent {
                 {
                     this.props.leftTitle &&
                         <div className='title left'>
-                            {this.props.leftTitle}
+                            { this.props.leftTitle }
                         </div>
                 }
                 {
                     this.props.rightTitle &&
                         <div className='title right'>
-                            {this.props.rightTitle}
+                            { this.props.rightTitle }
                         </div>
                 }
                 {
@@ -619,12 +510,12 @@ export default class TwoColumnList extends React.PureComponent {
                                 type='text'
                                 placeholder='Type filter term...'
                                 value={this.state.leftSearchTerm}
-                                onChange={ event => this.setState({ leftSearchTerm: event.target.value }) }
+                                onChange={this.handleSearchTermChangeLeft}
                             />
                             <FontAwesomeIcon
                                 className={`clear + ${!this.state.leftSearchTerm ? 'hidden' : ''}`}
                                 icon={faTimesCircle}
-                                onClick={ _ => this.setState({ leftSearchTerm: '' })}
+                                onClick={this.handleSearchTermClearedLeft}
                             />
                         </div>
                 }
@@ -635,57 +526,54 @@ export default class TwoColumnList extends React.PureComponent {
                                 type='text'
                                 placeholder='Type filter term...'
                                 value={this.state.rightSearchTerm}
-                                onChange={ event => this.setState({ rightSearchTerm: event.target.value }) }
+                                onChange={this.handleSearchTermChangeRight}
                             />
                             <FontAwesomeIcon
                                 className={`clear + ${!this.state.rightSearchTerm ? 'hidden' : ''}`}
                                 icon={faTimesCircle}
-                                onClick={ _ => this.setState({ rightSearchTerm: '' })}
+                                onClick={this.handleSearchTermClearedRight}
                             />
                         </div>
                 }
-                <div
-                    className='list left'
-                    ref={this.leftSelectRef}
-                >
-                    {leftOptions}
+                <div className='list left'>
+                    { leftOptions }
                 </div>
-                <div
-                    className='list right'
-                    ref={this.rightSelectRef}
-                >
-                    {rightOptions}
+                <div className='list right'>
+                    { rightOptions }
                 </div>
-                <div
-                    className='toolbar left'
-                >
+                <div className='toolbar left'>
                     {
                         this.renderToolbar(
-                            filtered.left,
+                            this.state.leftFiltered,
                             this.state.leftHilighted,
-                            this.handleHilightAllLeft.bind(this, filtered.left),
-                            this.handleHilightInvertLeft.bind(this, filtered.left),
+                            this.handleHilightAllLeft,
+                            this.handleHilightInvertLeft,
                             this.handleHilightNoneLeft
                         )
                     }
                 </div>
-                <div
-                    className='toolbar right'
-                >
+                <div className='toolbar right'>
                     {
                         this.renderToolbar(
-                            filtered.right,
+                            this.state.rightFiltered,
                             this.state.rightHilighted,
-                            this.handleHilightAllRight.bind(this, filtered.right),
-                            this.handleHilightInvertRight.bind(this, filtered.right),
+                            this.handleHilightAllRight,
+                            this.handleHilightInvertRight,
                             this.handleHilightNoneRight
                         )
                     }
                 </div>
-
                 <div className='vertical-toolbar middle'>
                     {
-                        this.props.buttonOrder.map(this.renderButton)
+                        this.props.buttonOrder.map(buttonType =>
+                            this.renderButton(
+                                buttonType,
+                                this.state.leftFiltered,
+                                this.state.rightFiltered,
+                                this.state.leftHilighted,
+                                this.state.rightHilighted
+                            )
+                        )
                     }
                 </div>
             </div>
