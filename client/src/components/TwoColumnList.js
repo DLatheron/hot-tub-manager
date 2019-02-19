@@ -13,32 +13,6 @@ import {
     faExchangeAlt
 } from '@fortawesome/free-solid-svg-icons'
 
-// TODO:
-// x Support for single of multiple selections???
-// x Data from data structure...
-//   x Support for optgroup
-// d Highlight colour support (trick);
-// x Move left;
-// x Move all left;
-// x Move right;
-// x Move all right;
-// d Move up;
-// d Move down;
-// x Autosort;
-// x Preserve order;
-// x Filter;
-// x Clear filtering;
-// x Vertical centering of middle toolbar;
-// d Bottom toolbar optional;
-// x Titles;
-// x Titles optional;
-// x Search optional;
-// x Change handlers;
-// - Minimise redrawing...
-// x Customise ordering of the toolbar buttons;
-// x Customisable titles;
-// x Customisable buttons;
-// x Remove reliance on Select.
 export class Helper {
     static iterateOptions(options, iterationFn) {
         let index = 0;
@@ -451,25 +425,6 @@ export default class TwoColumnList extends React.PureComponent {
     }
 
     render() {
-        const leftOptions = this.props.options.map(option =>
-            this.renderOption(
-                option,
-                this.state.leftSelected,
-                this.state.leftHilighted,
-                this.state.leftFiltered,
-                this.onLeftOptionHilightedToggle
-            )
-        );
-        const rightOptions = this.props.options.map(option =>
-            this.renderOption(
-                option,
-                this.state.rightSelected,
-                this.state.rightHilighted,
-                this.state.rightFiltered,
-                this.onRightOptionHilightedToggle
-            )
-        );
-
         return (
             <div className='two-column-list'>
                 {
@@ -517,10 +472,30 @@ export default class TwoColumnList extends React.PureComponent {
                         </div>
                 }
                 <div className='list left'>
-                    { leftOptions }
+                    {
+                        this.props.options.map(option =>
+                            this.renderOption(
+                                option,
+                                this.state.leftSelected,
+                                this.state.leftHilighted,
+                                this.state.leftFiltered,
+                                this.onLeftOptionHilightedToggle
+                            )
+                        )
+                    }
                 </div>
                 <div className='list right'>
-                    { rightOptions }
+                    {
+                        this.props.options.map(option =>
+                            this.renderOption(
+                                option,
+                                this.state.rightSelected,
+                                this.state.rightHilighted,
+                                this.state.rightFiltered,
+                                this.onRightOptionHilightedToggle
+                            )
+                        )
+                    }
                 </div>
                 <div className='toolbar left'>
                     {

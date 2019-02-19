@@ -10,15 +10,7 @@ storiesOf('TwoColumnList', module)
         const store = new Store({
             leftTitle: 'Left:',
             rightTitle: 'Right:',
-            options:
-            // [
-            //     { value: 'value1', text: 'Value 1' },
-            //     { value: 'value2', text: 'Value 2' },
-            //     { value: 'value3', text: 'Value 3' },
-            //     { value: 'value4', text: 'Value 4' },
-            //     { value: 'value5', text: 'Value 5' }
-            // ],
-            [
+            options: [
                 {
                     text: 'Values 1-5:',
                     values: [
