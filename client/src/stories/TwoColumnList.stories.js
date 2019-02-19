@@ -44,11 +44,13 @@ storiesOf('TwoColumnList', module)
                     ]
                 }
             ],
-            selected: {}
+            initiallySelected: {
+                'value3': true
+            }
         });
 
-        const onSelectedChanged = (selected) => {
-            store.set({ selected });
+        const onSelectedChanged = (leftSelection, rightSelection) => {
+            store.set({ initiallySelected: rightSelection });
         };
 
         return (
