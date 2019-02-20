@@ -118,7 +118,7 @@ storiesOf('ControlPane', module)
                                 },
                                 {
                                     type: 'separator',
-                                    control: <div style={{ height: 50 }} />
+                                    control: <div style={{ height: 30 }} />
                                 },
                                 {
                                     type: 'section',
