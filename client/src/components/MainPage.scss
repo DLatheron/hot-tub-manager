@@ -1,0 +1,138 @@
+$nielsen-blue: #01adee;
+
+.main-page {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: 65px 1fr 40px;
+    grid-template-areas:
+        'header header'
+        'side-bar body'
+        'footer footer';
+
+    .top-bar {
+        grid-area: header;
+        vertical-align: middle;
+        background-color: white;
+
+        img {
+            float: left;
+        }
+    }
+
+    .header-menu {
+        width: 100%;
+        height: 65px;
+        background-color: white;
+        text-align: left;
+
+        .item {
+            user-select: none;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 2em;
+            height: 65px;
+            line-height: 65px;
+            padding: 0 20px 0 20px;
+            color: $nielsen-blue;
+
+            &:hover {
+                background-color: darken($color: white, $amount: 10);
+            }
+        }
+
+        .active {
+            color: white;
+            background-color: $nielsen-blue;
+
+            &:hover {
+                background-color: lighten($color: $nielsen-blue, $amount: 5)
+            }
+        }
+    }
+
+    .side-menu {
+        grid-area: side-bar;
+        overflow: hidden;
+        background-color: white;
+        margin: 10px;
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+
+            ul {
+                margin-left: 14px;
+                font-size: 0.8rem;
+                padding-bottom: 6px;
+            }
+        }
+        li {
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .collapsible-element {
+            user-select: none;
+            cursor: pointer;
+            width: 100%;
+            outline: none;
+            text-align: left;
+            border: none;
+            font-size: 1rem;
+            padding: 0;
+            color: $nielsen-blue;
+
+            svg {
+                display: inline-block;
+                padding-left: 4px;
+                width: 10px;
+            }
+            .spacer {
+                padding-left: 14px;
+            }
+            .title {
+                margin-left: 6px;
+                padding-right: 10px;
+            }
+            .top-level {
+                &:hover {
+                    background-color: darken($color: white, $amount: 10);
+                }
+            }
+            .active {
+                color: white;
+                background-color: $nielsen-blue;
+
+                &:hover {
+                    background-color: lighten($color: $nielsen-blue, $amount: 5)
+                }
+            }
+            .collapsible-body {
+                overflow: hidden;
+                transition: max-height 0.4s;
+            }
+        }
+    }
+
+    .body {
+        grid-area: body;
+        height: calc(100vh - 65px - 40px);
+
+        // height: calc(100vh - 40px);
+        background-color: green;
+    }
+
+    .footer {
+        position: sticky;
+        background-color: orange;
+        bottom: 0;
+        grid-area: footer;
+
+        p {
+            line-height: 40px;
+            height: 40px;
+            text-align: center;
+        }
+    }
+}
