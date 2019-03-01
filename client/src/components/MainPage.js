@@ -4,9 +4,6 @@ import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 
-// TODO:
-// - Option to only have a single sub-menu (at a given level) open;
-// - Open sub-menu to the currently displayed page - when the main menu changes.
 export class Menu {
     constructor(id, title, options = null, defaultSelectionId) {
         this.id = id;
@@ -98,38 +95,29 @@ export class SideMenu extends React.PureComponent {
     static defaultProps = {
     };
 
-    // constructor(props) {
-    //     super(props);
+    renderMenuOptions = (menu) => {
+        const { openMenus, activeMenu, handleClick } = this.props;
 
-    //     const open = {};
-
-    //     props.menu.iterate((subMenu, parentTree) => {
-    //         if (subMenu.id === this.props.activeMenu[1]) {
-    //             parentTree.forEach(menu => {
-    //                 open[menu.id] = true
-    //             });
-    //         }
-    //     });
-
-    //     this.state.open = open;
-    //     console.log(`Open: ${JSON.stringify(open, null, 4)}`);
-    // }
-
-    // handleClick(subMenu) {
-    //     if (subMenu.options) {
-    //         const open = { ...this.open };
-
-    //         if (open[subMenu.id]) {
-    //             delete open[subMenu.id];
-    //         } else {
-    //             open[subMenu.id] = true;
-    //         }
-
-    //         this.setState({ open });
-    //     } else {
-    //         this.props.handleClick(subMenu);
-    //     }
-    // }
+        return (
+            menu.options &&
+                <ul>
+                    {
+                        menu.options.map(subMenu =>
+                            <>
+                                <SideMenuItem
+                                    key={subMenu.id}
+                                    {...subMenu}
+                                    open={openMenus[subMenu.id]}
+                                    active={subMenu.id === activeMenu[1]}
+                                    handleClick={handleClick.bind(this, subMenu)}
+                                />
+                                { this.renderMenuOptions(subMenu) }
+                            </>
+                        )
+                    }
+                </ul>
+        );
+    }
 
     render() {
         const { menu, openMenus, activeMenu, handleClick } = this.props;
@@ -206,7 +194,6 @@ export class SideMenuItem extends React.PureComponent {
 
     render() {
         const { children, active, title, open } = this.props;
-        // const { collapsed } = this.state;
         const icon = this.determineIcon();
 
         return (
