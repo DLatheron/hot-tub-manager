@@ -29,197 +29,145 @@ export class Menu {
     }
 }
 
-export class HeaderMenuItem extends React.PureComponent {
-    static propTypes = {
-        id: PropTypes.string.isRequired,
-        title: PropTypes.string.isRequired,
-        active: PropTypes.bool,
-        handleClick: PropTypes.func.isRequired
-    };
-    static defaultProps = {
-        active: false
-    };
+HeaderMenuItem.propTypes = {
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    active: PropTypes.bool,
+    handleClick: PropTypes.func.isRequired
+};
 
-    render() {
-        const { id, active, title, handleClick } = this.props;
-
-        return (
-            <div
-                id={id}
-                className={classNames('item', active && 'active')}
-                onClick={handleClick}
-            >
-                {title}
-            </div>
-        );
-    }
+export function HeaderMenuItem({ id, title, active = false, handleClick }) {
+    return (
+        <div
+            id={id}
+            className={classNames('item', active && 'active')}
+            onClick={handleClick}
+        >
+            {title}
+        </div>
+    );
 }
 
-export class HeaderMenu extends React.PureComponent {
-    static propTyoes = {
-        menu: PropTypes.instanceOf(Menu).isRequired,
-        activeMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
-        handleClick: PropTypes.func.isRequired,
-    };
-    static defaultProps = {
-        options: []
-    };
+HeaderMenu.propTyoes = {
+    menu: PropTypes.instanceOf(Menu).isRequired,
+    activeMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
+    handleClick: PropTypes.func.isRequired,
+};
 
-    render() {
-        const { menu, activeMenu, handleClick } = this.props;
+export function HeaderMenu({ menu, activeMenu, handleClick }) {
+    return (
+        <div className='header-menu'>
+            {
+                menu.options.map(subMenu =>
+                    <HeaderMenuItem
+                        key={subMenu.id}
+                        {...subMenu}
+                        active={subMenu.id === activeMenu[0]}
+                        handleClick={handleClick.bind(this, subMenu)}
+                    />
+                )
+            }
+        </div>
+    );
+}
 
-        return (
-            <div className='header-menu'>
+SideMenu.propTypes = {
+    menu: PropTypes.instanceOf(Menu).isRequired,
+    openMenus: PropTypes.object,
+    activeMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
+    handleClick: PropTypes.func.isRequired
+};
+
+export function SideMenu({ menu, openMenus, activeMenu, handleClick }) {
+    // TODO: Clean-up and allow full recursion of items.
+    return (
+        <div className='side-menu'>
+            <h3>{menu.title}</h3>
+            <ul>
                 {
-                    menu.options.map(subMenu =>
-                        <HeaderMenuItem
+                    menu.options && menu.options.map(subMenu =>
+                        <SideMenuItem
                             key={subMenu.id}
                             {...subMenu}
-                            active={subMenu.id === activeMenu[0]}
+                            open={openMenus[subMenu.id]}
+                            active={subMenu.id === activeMenu[1]}
                             handleClick={handleClick.bind(this, subMenu)}
-                        />
+                        >
+                            {
+                                subMenu.options &&
+                                    <ul>
+                                        {
+                                            subMenu.options.map(subSubMenu =>
+                                                <SideMenuItem
+                                                    key={subSubMenu.id}
+                                                    {...subSubMenu}
+                                                    open={openMenus[subSubMenu.id]}
+                                                    active={subSubMenu.id === activeMenu[1]}
+                                                    handleClick={handleClick.bind(this, subSubMenu)}
+                                                />
+                                            )
+                                        }
+                                    </ul>
+                            }
+                        </SideMenuItem>
                     )
                 }
-            </div>
-        );
-    }
+            </ul>
+        </div>
+    );
 }
 
-export class SideMenu extends React.PureComponent {
-    static propTypes = {
-        menu: PropTypes.instanceOf(Menu).isRequired,
-        openMenus: PropTypes.object,
-        activeMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
-        handleClick: PropTypes.func.isRequired
-    };
-    static defaultProps = {
-    };
+SideMenuItem.propTypes = {
+    title: PropTypes.string,
+    active: PropTypes.bool,
+    open: PropTypes.bool,
+    children: PropTypes.element,
+    handleClick: PropTypes.func
+};
 
-    renderMenuOptions = (menu) => {
-        const { openMenus, activeMenu, handleClick } = this.props;
-
-        return (
-            menu.options &&
-                <ul>
-                    {
-                        menu.options.map(subMenu =>
-                            <>
-                                <SideMenuItem
-                                    key={subMenu.id}
-                                    {...subMenu}
-                                    open={openMenus[subMenu.id]}
-                                    active={subMenu.id === activeMenu[1]}
-                                    handleClick={handleClick.bind(this, subMenu)}
-                                />
-                                { this.renderMenuOptions(subMenu) }
-                            </>
-                        )
-                    }
-                </ul>
-        );
+export function SideMenuItem({ title = '', active = false, open = false, children = null, handleClick = () => {} }) {
+    const canCollapse = () => {
+        return children !== null;
     }
 
-    render() {
-        const { menu, openMenus, activeMenu, handleClick } = this.props;
-
-        // TODO: Clean-up and allow full recursion of items.
-        return (
-            <div className='side-menu'>
-                <h3>{menu.title}</h3>
-                <ul>
-                    {
-                        menu.options && menu.options.map(subMenu =>
-                            <SideMenuItem
-                                key={subMenu.id}
-                                {...subMenu}
-                                open={openMenus[subMenu.id]}
-                                active={subMenu.id === activeMenu[1]}
-                                handleClick={handleClick.bind(this, subMenu)}
-                            >
-                                {
-                                    subMenu.options &&
-                                        <ul>
-                                            {
-                                                subMenu.options.map(subSubMenu =>
-                                                    <SideMenuItem
-                                                        key={subSubMenu.id}
-                                                        {...subSubMenu}
-                                                        open={openMenus[subSubMenu.id]}
-                                                        active={subSubMenu.id === activeMenu[1]}
-                                                        handleClick={handleClick.bind(this, subSubMenu)}
-                                                    />
-                                                )
-                                            }
-                                        </ul>
-                                }
-                            </SideMenuItem>
-                        )
-                    }
-                </ul>
-            </div>
-        );
-    }
-}
-
-export class SideMenuItem extends React.PureComponent {
-    static propTypes = {
-        title: PropTypes.string,
-        active: PropTypes.bool,
-        children: PropTypes.element,
-        handleClick: PropTypes.func
-    };
-    static defaultProps = {
-        title: '',
-        active: false,
-        children: null,
-        handleClick: () => {}
-    };
-
-    canCollapse = () => {
-        return this.props.children !== null;
-    }
-
-    handleClick = (event) => {
+    const onClick = (event) => {
         event.stopPropagation();
 
-        this.props.handleClick(event);
+        handleClick(event);
     }
 
-    determineIcon = () => {
-        return !this.canCollapse() ? null
-            : this.props.open
+    const determineIcon = () => {
+        return !canCollapse() ? null
+            : open
                 ? faCaretUp
                 : faCaretDown;
     }
 
-    render() {
-        const { children, active, title, open } = this.props;
-        const icon = this.determineIcon();
+    const icon = determineIcon();
 
-        return (
-            <div
-                className='collapsible-element'
-                onClick={this.handleClick}
-            >
-                <div className={classNames('top-level', active && 'active')}>
-                    {
-                        icon
-                            ? <FontAwesomeIcon icon={icon} />
-                            : <span className='spacer' />
-                    }
-                    <span className='title'>
-                        {title}
-                    </span>
-                </div>
+    return (
+        <div
+            className='collapsible-element'
+            onClick={onClick}
+        >
+            <div className={classNames('top-level', active && 'active')}>
                 {
-                    this.canCollapse() &&
-                        <div className='collapsible-body' style={{ maxHeight: open ? '6rem' : 0 }}>
-                            {children}
-                        </div>
+                    icon
+                        ? <FontAwesomeIcon icon={icon} />
+                        : <span className='spacer' />
                 }
+                <span className='title'>
+                    {title}
+                </span>
             </div>
-        );
-    }
+            {
+                canCollapse() &&
+                    <div className='collapsible-body' style={{ maxHeight: open ? '6rem' : 0 }}>
+                        {children}
+                    </div>
+            }
+        </div>
+    );
 }
 
 export default class MainPage extends React.PureComponent {
