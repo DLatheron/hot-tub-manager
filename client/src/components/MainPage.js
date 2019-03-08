@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -26,6 +26,22 @@ export class Menu {
         }
 
         _iterate(this, []);
+    }
+
+    openAppropriateMenus(menuId) {
+        const openMenus = {};
+
+        this.iterate((subMenu, parentTree) => {
+            if (subMenu.id === menuId) {
+                parentTree.forEach(menu => {
+                    openMenus[menu.id] = true
+                });
+            }
+        });
+
+        console.log(`openMenus: ${JSON.stringify(openMenus, null, 4)}`);
+
+        return openMenus;
     }
 }
 
@@ -63,7 +79,7 @@ export function HeaderMenu({ menu, activeMenu, handleClick }) {
                         key={subMenu.id}
                         {...subMenu}
                         active={subMenu.id === activeMenu[0]}
-                        handleClick={handleClick.bind(this, subMenu)}
+                        handleClick={() => handleClick(subMenu)}
                     />
                 )
             }
@@ -91,7 +107,7 @@ export function SideMenu({ menu, openMenus, activeMenu, handleClick }) {
                             {...subMenu}
                             open={openMenus[subMenu.id]}
                             active={subMenu.id === activeMenu[1]}
-                            handleClick={handleClick.bind(this, subMenu)}
+                            handleClick={() => handleClick(subMenu)}
                         >
                             {
                                 subMenu.options &&
@@ -103,7 +119,7 @@ export function SideMenu({ menu, openMenus, activeMenu, handleClick }) {
                                                     {...subSubMenu}
                                                     open={openMenus[subSubMenu.id]}
                                                     active={subSubMenu.id === activeMenu[1]}
-                                                    handleClick={handleClick.bind(this, subSubMenu)}
+                                                    handleClick={() => handleClick(subSubMenu)}
                                                 />
                                             )
                                         }
@@ -170,149 +186,118 @@ export function SideMenuItem({ title = '', active = false, open = false, childre
     );
 }
 
-export default class MainPage extends React.PureComponent {
-    static propTypes = {
-        menu: PropTypes.instanceOf(Menu).isRequired,
-        defaultMenu: PropTypes.arrayOf(PropTypes.string).isRequired
-    };
+MainPage.propTypes = {
+    menu: PropTypes.instanceOf(Menu).isRequired,
+    defaultMenu: PropTypes.arrayOf(PropTypes.string).isRequired
+};
 
-    static defaultProps = {
-        menu: new Menu('main', '', [
-            new Menu('creative', 'Creative', [
-                new Menu('uas', 'Underlying Ads', [
-                    new Menu('creative_uas_import', 'Import'),
-                    new Menu('creative_uas_adHarvesting', 'Ad Harvesting'),
-                    new Menu('creative_uas_metadataQueue', 'Metadata Queue'),
-                    new Menu('creative_uas_approvalQueue', 'Approval Queue')
-                ])
-            ], 'creative_uas_import'),
-            new Menu('reporting', 'Reporting', [
-                new Menu('internal', 'Internal', [
-                    new Menu('reporting_internal_dashboard', 'Dashboard'),
-                    new Menu('reporting_internal_kpis', 'KPIs'),
-                    new Menu('reporting_internal_milestones', 'Milestones')
-                ]),
-                new Menu('device-partner', 'Device Partner', [
-                    new Menu('reporting_device-partner_dashboard', 'Dashboard'),
-                    new Menu('reporting_device-partner_kpis', 'KPIs'),
-                    new Menu('reporting_device-partner_milestones', 'Milestones')
-                ]),
-                new Menu('inventory-parner', 'Inventory Partner', [
-                    new Menu('reporting_inventory-partner_dashboard', 'Dashboard'),
-                    new Menu('reporting_inventory-partner_kpis', 'KPIs'),
-                    new Menu('reporting_inventory-partner_milestones', 'Milestones')
-                ]),
-                new Menu('exchange', 'Exchange', [
-                    new Menu('reporting_exchange_dashboard', 'Dashboard'),
-                    new Menu('reporting_exchange_kpis', 'KPIs'),
-                    new Menu('reporting_exchange_milestones', 'Milestones')
-                ]),
-                new Menu('simple', 'Simple')
-            ], 'reporting_device-partner_dashboard'),
-            new Menu('channels', 'Channels'),
-            new Menu('devices', 'Devices'),
-            new Menu('admin', 'Admin')
+const initialMenu = new Menu('main', '', [
+    new Menu('creative', 'Creative', [
+        new Menu('uas', 'Underlying Ads', [
+            new Menu('creative_uas_import', 'Import'),
+            new Menu('creative_uas_adHarvesting', 'Ad Harvesting'),
+            new Menu('creative_uas_metadataQueue', 'Metadata Queue'),
+            new Menu('creative_uas_approvalQueue', 'Approval Queue')
+        ])
+    ], 'creative_uas_import'),
+    new Menu('reporting', 'Reporting', [
+        new Menu('internal', 'Internal', [
+            new Menu('reporting_internal_dashboard', 'Dashboard'),
+            new Menu('reporting_internal_kpis', 'KPIs'),
+            new Menu('reporting_internal_milestones', 'Milestones')
         ]),
-        defaultMenu: ['reporting', 'reporting_internal_kpis']
-    };
+        new Menu('device-partner', 'Device Partner', [
+            new Menu('reporting_device-partner_dashboard', 'Dashboard'),
+            new Menu('reporting_device-partner_kpis', 'KPIs'),
+            new Menu('reporting_device-partner_milestones', 'Milestones')
+        ]),
+        new Menu('inventory-parner', 'Inventory Partner', [
+            new Menu('reporting_inventory-partner_dashboard', 'Dashboard'),
+            new Menu('reporting_inventory-partner_kpis', 'KPIs'),
+            new Menu('reporting_inventory-partner_milestones', 'Milestones')
+        ]),
+        new Menu('exchange', 'Exchange', [
+            new Menu('reporting_exchange_dashboard', 'Dashboard'),
+            new Menu('reporting_exchange_kpis', 'KPIs'),
+            new Menu('reporting_exchange_milestones', 'Milestones')
+        ]),
+        new Menu('simple', 'Simple')
+    ], 'reporting_device-partner_dashboard'),
+    new Menu('channels', 'Channels'),
+    new Menu('devices', 'Devices'),
+    new Menu('admin', 'Admin')
+]);
 
-    constructor(props) {
-        super(props);
+export default function MainPage({ menu = initialMenu, defaultMenu = ['reporting', 'reporting_internal_kpis'] }) {
+    const [ lastSelections, setLastSelection ] = useState({});
+    const [ activeMenu, setActiveMenu ] = useState(defaultMenu);
+    const [ openMenus, setOpenMenus ] = useState(() => menu.openAppropriateMenus(defaultMenu[1]));
+    const sideMenu = menu.options.find(value => value.id === activeMenu[0]);
 
-        this.state = {
-            lastSelections: {},
-            activeMenu: props.defaultMenu,
-            ...this.openAppropriateMenus(props.defaultMenu[1])
-        };
-    }
-
-    openAppropriateMenus(menuId) {
-        const openMenus = {};
-
-        this.props.menu.iterate((subMenu, parentTree) => {
-            if (subMenu.id === menuId) {
-                parentTree.forEach(menu => {
-                    openMenus[menu.id] = true
-                });
-            }
-        });
-
-        console.log(`openMenus: ${JSON.stringify(openMenus, null, 4)}`);
-        return { openMenus };
-    }
-
-    handleMenuClick = (menu) => {
+    const handleMenuClick = (menu) => {
         console.log(`Menu clicked: ${menu}`);
 
-        const defaultSubMenu = this.state.lastSelections[menu.id] || menu.defaultSelectionId;
+        const defaultSubMenu = lastSelections[menu.id] || menu.defaultSelectionId;
         const defaultSelectionId = [menu.id, defaultSubMenu]
-        const activeMenu = defaultSelectionId || [menu.id, this.state.activeMenu[1]];
+        const newActiveMenu = defaultSelectionId || [menu.id, activeMenu[1]];
 
-        if (this.state.activeMenu[0] !== activeMenu[0] || this.state.activeMenu[1] !== activeMenu[1]) {
-            this.setState({ activeMenu });
+        if (activeMenu[0] !== newActiveMenu[0] || activeMenu[1] !== newActiveMenu[1]) {
+            setActiveMenu(newActiveMenu);
         }
 
-        this.setState(this.openAppropriateMenus(activeMenu[1]));
-    }
+        setOpenMenus(menu.openAppropriateMenus(newActiveMenu[1]));
+    };
 
-    handleSubMenuClick = (subMenu) => {
+    const handleSubMenuClick = (subMenu) => {
         console.log(`Sub menu clicked: ${subMenu}`);
 
         if (subMenu.options) {
-            const openMenus = {};
+            const newOpenMenus = {};
 
-            if (openMenus[subMenu.id]) {
-                delete openMenus[subMenu.id];
+            if (newOpenMenus[subMenu.id]) {
+                delete newOpenMenus[subMenu.id];
             } else {
-                openMenus[subMenu.id] = true;
+                newOpenMenus[subMenu.id] = true;
             }
 
-            this.setState({ openMenus });
+            setOpenMenus(newOpenMenus);
         } else {
-            const activeMenu = [this.state.activeMenu[0], subMenu.id];
+            const newActiveMenu = [activeMenu[0], subMenu.id];
 
-            if (this.state.activeMenu[0] !== activeMenu[0] || this.state.activeMenu[1] !== activeMenu[1]) {
-                this.setState({ activeMenu });
+            if (activeMenu[0] !== newActiveMenu[0] || activeMenu[1] !== newActiveMenu[1]) {
+                setActiveMenu(newActiveMenu);
             }
 
-            this.setState({
-                lastSelections: {
-                    ...this.state.lastSelections,
-                    [this.state.activeMenu[0]]: subMenu.id
-                }
+            setLastSelection({
+                ...lastSelections,
+                [activeMenu[0]]: subMenu.id
             });
         }
-    }
+    };
 
-    render() {
-        const { menu } = this.props;
-        const { activeMenu } = this.state;
-        const sideMenu = menu.options.find(value => value.id === activeMenu[0]);
-
-        return (
-            <div className='main-page'>
-                <div className='top-bar'>
-                    <img src='n-tab.png' alt='Nielsen logo' />
-                    <HeaderMenu
-                        menu={menu}
-                        activeMenu={this.state.activeMenu}
-                        handleClick={this.handleMenuClick}
-                    />
-                </div>
-                {
-                    sideMenu.options &&
-                        <SideMenu
-                            menu={sideMenu}
-                            activeMenu={this.state.activeMenu}
-                            openMenus={this.state.openMenus}
-                            handleClick={this.handleSubMenuClick}
-                        />
-                }
-                <div className='body'>Body content goes here...</div>
-                <div className='footer'>
-                    <p>© Copyright 2019, Nielsen Media Inc, All Rights Reserved.</p>
-                </div>
+    return (
+        <div className='main-page'>
+            <div className='top-bar'>
+                <img src='n-tab.png' alt='Nielsen logo' />
+                <HeaderMenu
+                    menu={menu}
+                    activeMenu={activeMenu}
+                    handleClick={handleMenuClick}
+                />
             </div>
-        );
-    }
+            {
+                sideMenu.options &&
+                    <SideMenu
+                        menu={sideMenu}
+                        activeMenu={activeMenu}
+                        openMenus={openMenus}
+                        handleClick={handleSubMenuClick}
+                    />
+            }
+            <div className='body'>Body content goes here...</div>
+            <div className='footer'>
+                <p>© Copyright 2019, Nielsen Media Inc, All Rights Reserved.</p>
+            </div>
+        </div>
+    );
 }
