@@ -8,7 +8,7 @@ class DAO {
     }
 
     async writeTelemetry({ dateTime, temperature }) {
-        await this.telemetryCollection.insert({
+        await this.telemetryCollection.insertOne({
             dateTime,
             temperature
         });

@@ -1,0 +1,23 @@
+version: "2"
+services:
+  web:
+    build: .
+    ports:
+      - "4999:4999"
+    links:
+      - mongo
+  mongo:
+    image: mongo:3.6
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: portal
+      MONGO_INITDB_ROOT_PASSWORD: I361MRg36Ym1tmY
+    volumes:
+      - /Users/davidlatheron/Development/Personal/hot-tub-manager/data:/data/db
+      - /Users/davidlatheron/Development/Personal/hot-tub-manager/ssl/mongodb.pem:/etc/ssl/mongodb.pem
+    ports:
+      - "27017:27017"
+    command:
+      - --sslMode=requireSSL
+      - --sslPEMKeyFile=/etc/ssl/mongodb.pem
+      - --bind_ip=0.0.0.0

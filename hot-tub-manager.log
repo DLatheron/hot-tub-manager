@@ -72,3 +72,27 @@
 {"message":"Listening on: 0.0.0.0:52604","level":"info"}
 {"message":"UDP message of 16 bytes sent to intouch.geckoal.com:10022","level":"info"}
 {"message":"Received message \"<BONJR>0</BONJR> (16 bytes) from: 13.82.137.28:10022","level":"info"}
+{"message":"Connected to 'hot-tub-manager' at 'mongodb://localhost:27017'","level":"info"}
+{"message":"Listening on port 4999","level":"info"}
+{"message":"Listening on: 0.0.0.0:50011","level":"info"}
+{"message":"UDP message of 16 bytes sent to intouch.geckoal.com:10022","level":"info"}
+{"message":"Received message \"<BONJR>0</BONJR> (16 bytes) from: 13.82.137.28:10022","level":"info"}
+{"message":"<BONJR>0</BONJR>","level":"info"}
+{"message":"Connected to 'hot-tub-manager' at 'mongodb://localhost:27017'","level":"info"}
+{"message":"Listening on port 4999","level":"info"}
+{"message":"Listening on: 0.0.0.0:59016","level":"info"}
+{"message":"UDP message of 16 bytes sent to intouch.geckoal.com:10022","level":"info"}
+{"message":"Received message \"<BONJR>0</BONJR> (16 bytes) from: 13.82.137.28:10022","level":"info"}
+{"message":"<BONJR>0</BONJR>","level":"info"}
+{"message":"Connected to 'hot-tub-manager' at 'mongodb://localhost:27017'","level":"info"}
+{"message":"Listening on port 4999","level":"info"}
+{"message":"Listening on: 0.0.0.0:65274","level":"info"}
+{"message":"UDP message of 16 bytes sent to intouch.geckoal.com:10022","level":"info"}
+{"message":"Received message \"<BONJR>0</BONJR> (16 bytes) from: 13.82.137.28:10022","level":"info"}
+{"message":"<BONJR>0</BONJR>","level":"info"}
+{"message":"Connecting to database, attempt 1...","level":"info"}
+{"message":"Connecting to database, attempt 1...","level":"info"}
+{"message":"Connecting to database, attempt 1...","level":"info"}
+{"message":"Connecting to database, attempt 2...","level":"info"}
+{"message":"Connecting to database, attempt 3...","level":"info"}
+{"message":"Connecting to database, attempt 4...","level":"info"}

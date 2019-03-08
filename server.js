@@ -2,9 +2,10 @@ const bodyParser = require('body-parser');
 const DAO = require('./src/helpers/DAO');
 const express = require('express');
 const fs = require('fs');
-const Logger = require('../Logger');
+const Logger = require('./src/Logger');
 const MongoClient = require('mongodb').MongoClient;
 const nconf = require('nconf');
+const promiseRetry = require('promise-retry');
 
 const { version } = require('./package.json');
 const { promisify } = require('util');
@@ -56,6 +57,9 @@ function connectToDatabase() {
         useNewUrlParser: true,
         connectTimeoutMS: 10000,
         socketTimeoutMS: 10000,
+        reconnectTries: 60,
+        reconnectInterval: 1000,
+        autoReconnect : true,
 
         ssl: true,
         sslKey: fs.readFileSync('./ssl/mongodb-cert.key'),
@@ -67,24 +71,29 @@ function connectToDatabase() {
         }
     };
 
-    return new Promise((resolve, reject) => {
-        MongoClient.connect(dbUrl, dbOptions, (error, client) => {
-            if (error) {
-                return reject(error);
-            }
+    return promiseRetry((retry, number) => {
+        Logger.info(`Connecting to database, attempt ${number}...`);
 
-            const database = client.db(dbName);
-            Logger.echo(`Connected to '${dbName}' at '${dbUrl}'`);
+        return new Promise((resolve, reject) => {
+            MongoClient.connect(dbUrl, dbOptions, (error, client) => {
+                if (error) {
+                    return reject(error);
+                }
 
-            resolve(database);
-        });
+                const database = client.db(dbName);
+                Logger.info(`Connected to '${dbName}' at '${dbUrl}'`);
+
+                resolve(database);
+            })
+        })
+        .catch(retry);
     });
 }
 
 async function startApp(app, port) {
     app.get('/api/version',
         (req, res) => {
-            Logger.echo('/api/version');
+            Logger.info('/api/version');
             res.send({ version });
         }
     );
@@ -94,7 +103,7 @@ async function startApp(app, port) {
 
     await registerRoutes(app);
 
-    app.listen(port, () => Logger.echo(`Listening on port ${port}`));
+    app.listen(port, () => Logger.info(`Listening on port ${port}`));
 
     // TEMPORARY...
     const InTouchController = require('./src/controllers/InTouchController');
@@ -105,7 +114,7 @@ async function startApp(app, port) {
 
     controller.connect();
     const response = await controller.sendAndReceiveMessage('<HELLO>${seq}</HELLO>');
-    Logger.echo(response);
+    Logger.info(response);
     // const response = await controller.receiveMessage();
 
     //controller.disconnect();
