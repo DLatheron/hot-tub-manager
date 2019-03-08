@@ -39,8 +39,6 @@ export class Menu {
             }
         });
 
-        console.log(`openMenus: ${JSON.stringify(openMenus, null, 4)}`);
-
         return openMenus;
     }
 }
@@ -64,13 +62,13 @@ export function HeaderMenuItem({ id, title, active = false, handleClick }) {
     );
 }
 
-HeaderMenu.propTyoes = {
+HeaderMenu.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
-    activeMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
+    activeMenuId: PropTypes.string.isRequired,
     handleClick: PropTypes.func.isRequired,
 };
 
-export function HeaderMenu({ menu, activeMenu, handleClick }) {
+export function HeaderMenu({ menu, activeMenuId, handleClick }) {
     return (
         <div className='header-menu'>
             {
@@ -78,7 +76,7 @@ export function HeaderMenu({ menu, activeMenu, handleClick }) {
                     <HeaderMenuItem
                         key={subMenu.id}
                         {...subMenu}
-                        active={subMenu.id === activeMenu[0]}
+                        active={subMenu.id === activeMenuId}
                         handleClick={() => handleClick(subMenu)}
                     />
                 )
@@ -89,12 +87,12 @@ export function HeaderMenu({ menu, activeMenu, handleClick }) {
 
 SideMenu.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
-    openMenus: PropTypes.object,
-    activeMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
+    openMenus: PropTypes.object.isRequired,
+    activeSubMenuId: PropTypes.string.isRequired,
     handleClick: PropTypes.func.isRequired
 };
 
-export function SideMenu({ menu, openMenus, activeMenu, handleClick }) {
+export function SideMenu({ menu, openMenus, activeSubMenuId, handleClick }) {
     // TODO: Clean-up and allow full recursion of items.
     return (
         <div className='side-menu'>
@@ -106,7 +104,7 @@ export function SideMenu({ menu, openMenus, activeMenu, handleClick }) {
                             key={subMenu.id}
                             {...subMenu}
                             open={openMenus[subMenu.id]}
-                            active={subMenu.id === activeMenu[1]}
+                            active={subMenu.id === activeSubMenuId}
                             handleClick={() => handleClick(subMenu)}
                         >
                             {
@@ -118,7 +116,7 @@ export function SideMenu({ menu, openMenus, activeMenu, handleClick }) {
                                                     key={subSubMenu.id}
                                                     {...subSubMenu}
                                                     open={openMenus[subSubMenu.id]}
-                                                    active={subSubMenu.id === activeMenu[1]}
+                                                    active={subSubMenu.id === activeSubMenuId}
                                                     handleClick={() => handleClick(subSubMenu)}
                                                 />
                                             )
@@ -191,66 +189,27 @@ MainPage.propTypes = {
     defaultMenu: PropTypes.arrayOf(PropTypes.string).isRequired
 };
 
-const initialMenu = new Menu('main', '', [
-    new Menu('creative', 'Creative', [
-        new Menu('uas', 'Underlying Ads', [
-            new Menu('creative_uas_import', 'Import'),
-            new Menu('creative_uas_adHarvesting', 'Ad Harvesting'),
-            new Menu('creative_uas_metadataQueue', 'Metadata Queue'),
-            new Menu('creative_uas_approvalQueue', 'Approval Queue')
-        ])
-    ], 'creative_uas_import'),
-    new Menu('reporting', 'Reporting', [
-        new Menu('internal', 'Internal', [
-            new Menu('reporting_internal_dashboard', 'Dashboard'),
-            new Menu('reporting_internal_kpis', 'KPIs'),
-            new Menu('reporting_internal_milestones', 'Milestones')
-        ]),
-        new Menu('device-partner', 'Device Partner', [
-            new Menu('reporting_device-partner_dashboard', 'Dashboard'),
-            new Menu('reporting_device-partner_kpis', 'KPIs'),
-            new Menu('reporting_device-partner_milestones', 'Milestones')
-        ]),
-        new Menu('inventory-parner', 'Inventory Partner', [
-            new Menu('reporting_inventory-partner_dashboard', 'Dashboard'),
-            new Menu('reporting_inventory-partner_kpis', 'KPIs'),
-            new Menu('reporting_inventory-partner_milestones', 'Milestones')
-        ]),
-        new Menu('exchange', 'Exchange', [
-            new Menu('reporting_exchange_dashboard', 'Dashboard'),
-            new Menu('reporting_exchange_kpis', 'KPIs'),
-            new Menu('reporting_exchange_milestones', 'Milestones')
-        ]),
-        new Menu('simple', 'Simple')
-    ], 'reporting_device-partner_dashboard'),
-    new Menu('channels', 'Channels'),
-    new Menu('devices', 'Devices'),
-    new Menu('admin', 'Admin')
-]);
+export default function MainPage({ menu, defaultMenu }) {
+    const [ defaultSideMenuId, defaultSubMenuId ] = defaultMenu;
 
-export default function MainPage({ menu = initialMenu, defaultMenu = ['reporting', 'reporting_internal_kpis'] }) {
-    const [ lastSelections, setLastSelection ] = useState({});
-    const [ activeMenu, setActiveMenu ] = useState(defaultMenu);
-    const [ openMenus, setOpenMenus ] = useState(() => menu.openAppropriateMenus(defaultMenu[1]));
-    const sideMenu = menu.options.find(value => value.id === activeMenu[0]);
+    const [ lastSelections, setLastSelection ] = useState(() => ({ [defaultSideMenuId]: defaultSubMenuId }));
+    const [ activeSubMenuId, setActiveMenu ] = useState(defaultSubMenuId);
+    const [ openMenus, setOpenMenus ] = useState(() => menu.openAppropriateMenus(defaultSubMenuId));
+    const [ sideMenu, setSideMenu ] = useState(() => menu.options.find(value => value.id === defaultSideMenuId));
 
     const handleMenuClick = (menu) => {
-        console.log(`Menu clicked: ${menu}`);
-
-        const defaultSubMenu = lastSelections[menu.id] || menu.defaultSelectionId;
-        const defaultSelectionId = [menu.id, defaultSubMenu]
-        const newActiveMenu = defaultSelectionId || [menu.id, activeMenu[1]];
-
-        if (activeMenu[0] !== newActiveMenu[0] || activeMenu[1] !== newActiveMenu[1]) {
-            setActiveMenu(newActiveMenu);
+        if (menu === sideMenu) {
+            return
         }
 
-        setOpenMenus(menu.openAppropriateMenus(newActiveMenu[1]));
+        const defaultSubMenu = lastSelections[menu.id] || menu.defaultSelectionId;
+
+        setSideMenu(menu);
+        setActiveMenu(defaultSubMenu);
+        setOpenMenus(menu.openAppropriateMenus(defaultSubMenu));
     };
 
     const handleSubMenuClick = (subMenu) => {
-        console.log(`Sub menu clicked: ${subMenu}`);
-
         if (subMenu.options) {
             const newOpenMenus = {};
 
@@ -262,16 +221,8 @@ export default function MainPage({ menu = initialMenu, defaultMenu = ['reporting
 
             setOpenMenus(newOpenMenus);
         } else {
-            const newActiveMenu = [activeMenu[0], subMenu.id];
-
-            if (activeMenu[0] !== newActiveMenu[0] || activeMenu[1] !== newActiveMenu[1]) {
-                setActiveMenu(newActiveMenu);
-            }
-
-            setLastSelection({
-                ...lastSelections,
-                [activeMenu[0]]: subMenu.id
-            });
+            setActiveMenu(subMenu.id);
+            setLastSelection({ ...lastSelections, [sideMenu.id]: subMenu.id });
         }
     };
 
@@ -281,7 +232,7 @@ export default function MainPage({ menu = initialMenu, defaultMenu = ['reporting
                 <img src='n-tab.png' alt='Nielsen logo' />
                 <HeaderMenu
                     menu={menu}
-                    activeMenu={activeMenu}
+                    activeMenuId={sideMenu.id}
                     handleClick={handleMenuClick}
                 />
             </div>
@@ -289,7 +240,7 @@ export default function MainPage({ menu = initialMenu, defaultMenu = ['reporting
                 sideMenu.options &&
                     <SideMenu
                         menu={sideMenu}
-                        activeMenu={activeMenu}
+                        activeSubMenuId={activeSubMenuId}
                         openMenus={openMenus}
                         handleClick={handleSubMenuClick}
                     />
