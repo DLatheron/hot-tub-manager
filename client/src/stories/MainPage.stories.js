@@ -44,7 +44,12 @@ storiesOf('MainPage', module)
                 new Menu('devices', 'Devices'),
                 new Menu('admin', 'Admin')
             ]),
-            defaultMenu: ['reporting', 'reporting_internal_kpis']
+            defaultMenu: ['reporting', 'reporting_internal_kpis'],
+            profileMenu: new Menu('profile', 'Profile', [
+                new Menu('settings', 'Settings'),
+                new Menu('other', 'Other'),
+                new Menu('logout', 'Logout')
+            ])
         });
 
         return (

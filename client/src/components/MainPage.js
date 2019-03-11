@@ -62,26 +62,33 @@ export function HeaderMenuItem({ id, title, active = false, handleClick }) {
     );
 }
 
-HeaderMenu.propTypes = {
-    menu: PropTypes.instanceOf(Menu).isRequired,
-    activeMenuId: PropTypes.string.isRequired,
-    handleClick: PropTypes.func.isRequired,
-};
-
-export function HeaderMenu({ menu, activeMenuId, handleClick }) {
+export function ProfileMenu({ menu, open = true, handleClick }) {
     return (
-        <div className='header-menu'>
+        <div className='profile'>
+            <img
+                className='avatar'
+                src='default-profile.png'
+                width='48'
+                height='48'
+                alt='Default Profile'
+                onClick={() => handleClick(menu)}
+            />
             {
-                menu.options.map(subMenu =>
-                    <HeaderMenuItem
-                        key={subMenu.id}
-                        {...subMenu}
-                        active={subMenu.id === activeMenuId}
-                        handleClick={() => handleClick(subMenu)}
-                    />
-                )
+                <div className={classNames('drop-down-wrapper', open ? 'visible' : 'hidden')}>
+                    <div className='drop-down-content'>
+                        {
+                            menu.options.map(subMenu =>
+                                <SideMenuItem
+                                    key={subMenu.id}
+                                    {...subMenu}
+                                    handleClick={() => handleClick(subMenu)}
+                                />
+                            )
+                        }
+                    </div>
+                </div>
             }
-        </div>
+            </div>
     );
 }
 
@@ -186,16 +193,18 @@ export function SideMenuItem({ title = '', active = false, open = false, childre
 
 MainPage.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
-    defaultMenu: PropTypes.arrayOf(PropTypes.string).isRequired
+    defaultMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
+    profileMenu: PropTypes.instanceOf(Menu).isRequired
 };
 
-export default function MainPage({ menu, defaultMenu }) {
+export default function MainPage({ menu, defaultMenu, profileMenu }) {
     const [ defaultSideMenuId, defaultSubMenuId ] = defaultMenu;
 
     const [ lastSelections, setLastSelection ] = useState(() => ({ [defaultSideMenuId]: defaultSubMenuId }));
     const [ activeSubMenuId, setActiveMenu ] = useState(defaultSubMenuId);
     const [ openMenus, setOpenMenus ] = useState(() => menu.openAppropriateMenus(defaultSubMenuId));
     const [ sideMenu, setSideMenu ] = useState(() => menu.options.find(value => value.id === defaultSideMenuId));
+    const [ showProfileMenu, setShowProfileMenu ] = useState(false);
 
     const handleMenuClick = (menu) => {
         if (menu === sideMenu) {
@@ -226,14 +235,39 @@ export default function MainPage({ menu, defaultMenu }) {
         }
     };
 
+    const handleProfileMenuClick = (menu) => {
+        if (menu === profileMenu) {
+            setShowProfileMenu(!showProfileMenu);
+        } else {
+            console.log(`Option selected: ${menu.id}`);
+
+            setShowProfileMenu(false);
+        }
+    }
+
+    console.log(`Menu: ${JSON.stringify(profileMenu, null, 4)}`);
+
     return (
         <div className='main-page'>
             <div className='top-bar'>
-                <img src='n-tab.png' alt='Nielsen logo' />
-                <HeaderMenu
-                    menu={menu}
-                    activeMenuId={sideMenu.id}
-                    handleClick={handleMenuClick}
+                <img className='logo' src='n-tab.png' alt='Nielsen logo' />
+                <div className='header-menu'>
+                    {
+                        menu.options.map(subMenu =>
+                            <HeaderMenuItem
+                                key={subMenu.id}
+                                {...subMenu}
+                                active={subMenu.id === sideMenu.id}
+                                handleClick={() => handleMenuClick(subMenu)}
+                            />
+                        )
+                    }
+                </div>
+                <ProfileMenu
+                    className='profile'
+                    menu={profileMenu}
+                    open={showProfileMenu}
+                    handleClick={handleProfileMenuClick}
                 />
             </div>
             {
