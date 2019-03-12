@@ -5,55 +5,58 @@ import { storiesOf } from '@storybook/react';
 import MainPage, { Menu } from '../components/MainPage';
 import { ThemeContext, Themes } from '../components/ThemeContext';
 import { UserContext, User } from '../components/UserContext';
+import { LocaleContext, Locales } from '../components/LocaleContext';
 import '../components/MainPage.scss';
 
 storiesOf('MainPage', module)
     .add('default', () => {
         const store = new Store({
             menu: new Menu('main', '', [
-                new Menu('creative', 'Creative', [
-                    new Menu('uas', 'Underlying Ads', [
-                        new Menu('creative_uas_import', 'Import'),
-                        new Menu('creative_uas_adHarvesting', 'Ad Harvesting'),
-                        new Menu('creative_uas_metadataQueue', 'Metadata Queue'),
-                        new Menu('creative_uas_approvalQueue', 'Approval Queue')
+                new Menu('creative', 'menus.headers.creative', [
+                    new Menu('uas', 'menus.creative.uas', [
+                        new Menu('creative_uas_import', 'menus.creative.import'),
+                        new Menu('creative_uas_adHarvesting', 'menus.creative.harvesting'),
+                        new Menu('creative_uas_metadataQueue', 'menus.creative.metadata'),
+                        new Menu('creative_uas_approvalQueue', 'menus.creative.approval')
                     ])
                 ], 'creative_uas_import'),
-                new Menu('reporting', 'Reporting', [
-                    new Menu('internal', 'Internal', [
-                        new Menu('reporting_internal_dashboard', 'Dashboard'),
-                        new Menu('reporting_internal_kpis', 'KPIs'),
-                        new Menu('reporting_internal_milestones', 'Milestones')
+                new Menu('reporting', 'menus.headers.reporting', [
+                    new Menu('internal', 'menus.reporting.internal', [
+                        new Menu('reporting_internal_dashboard', 'menus.reporting.dashboard'),
+                        new Menu('reporting_internal_kpis', 'menus.reporting.kpis'),
+                        new Menu('reporting_internal_milestones', 'menus.reporting.milestones')
                     ]),
-                    new Menu('device-partner', 'Device Partner', [
-                        new Menu('reporting_device-partner_dashboard', 'Dashboard'),
-                        new Menu('reporting_device-partner_kpis', 'KPIs'),
-                        new Menu('reporting_device-partner_milestones', 'Milestones')
+                    new Menu('device-partner', 'menus.reporting.devicePartner', [
+                        new Menu('reporting_device-partner_dashboard', 'menus.reporting.dashboard'),
+                        new Menu('reporting_device-partner_kpis', 'menus.reporting.kpis'),
+                        new Menu('reporting_device-partner_milestones', 'menus.reporting.milestones')
                     ]),
-                    new Menu('inventory-parner', 'Inventory Partner', [
-                        new Menu('reporting_inventory-partner_dashboard', 'Dashboard'),
-                        new Menu('reporting_inventory-partner_kpis', 'KPIs'),
-                        new Menu('reporting_inventory-partner_milestones', 'Milestones')
+                    new Menu('inventory-parner', 'menus.reporting.inventoryPartner', [
+                        new Menu('reporting_inventory-partner_dashboard', 'menus.reporting.dashboard'),
+                        new Menu('reporting_inventory-partner_kpis', 'menus.reporting.kpis'),
+                        new Menu('reporting_inventory-partner_milestones', 'menus.reporting.milestones')
                     ]),
-                    new Menu('exchange', 'Exchange', [
-                        new Menu('reporting_exchange_dashboard', 'Dashboard'),
-                        new Menu('reporting_exchange_kpis', 'KPIs'),
-                        new Menu('reporting_exchange_milestones', 'Milestones')
+                    new Menu('exchange', 'menus.reporting.exchange', [
+                        new Menu('reporting_exchange_dashboard', 'menus.reporting.dashboard'),
+                        new Menu('reporting_exchange_kpis', 'menus.reporting.kpis'),
+                        new Menu('reporting_exchange_milestones', 'menus.reporting.milestones')
                     ]),
-                    new Menu('simple', 'Simple')
+                    new Menu('simple', 'menus.reporting.simple')
                 ], 'reporting_device-partner_dashboard'),
-                new Menu('channels', 'Channels'),
-                new Menu('devices', 'Devices'),
-                new Menu('admin', 'Admin')
+                new Menu('channels', 'menus.headers.channels'),
+                new Menu('devices', 'menus.headers.devices'),
+                new Menu('admin', 'menus.headers.admin')
             ]),
             defaultMenu: ['reporting', 'reporting_internal_kpis'],
             profileMenu: new Menu('profile', 'Profile', [
                 new Menu('settings', 'Settings'),
+                new Menu('toggle-locale', 'Toggle Locale'),
                 new Menu('toggle-theme', 'Toggle Theme'),
                 new Menu('logout', 'Logout')
             ]),
             user: User,
-            theme: Themes.light
+            theme: Themes.light,
+            locale: Locales['en-GB']
         });
 
         const handleSelection = (id) => {
@@ -67,23 +70,24 @@ storiesOf('MainPage', module)
                     break;
 
                 case 'toggle-theme':
-                console.log(`store.theme: ${store.theme}`);
                     store.set({ theme: store.get('theme') === Themes.dark ? Themes.light : Themes.dark });
                     break;
 
+                case 'toggle-locale':
+                    store.set({ locale: store.get('locale') === Locales['en-GB'] ? Locales['dt-DT'] : Locales['en-GB']});
+                    break;
+
                 default:
-                    console(`Clicked ${id}`);
+                    console.log(`Clicked ${id}`);
                     break;
             }
         };
-
-        const LocaleContext = React.createContext();
 
         return (
             <State store={store}>
                 {
                     state => (
-                        <LocaleContext.Provider>
+                        <LocaleContext.Provider value={state.locale}>
                             <ThemeContext.Provider value={state.theme}>
                                 <UserContext.Provider value={state.user}>
                                     <MainPage

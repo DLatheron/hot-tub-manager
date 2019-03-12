@@ -41,7 +41,7 @@ $nielsen-blue: #01adee;
 
             .visible {
                 transition: max-height .3s;
-                max-height: 200px;
+                max-height: 300px;
             }
 
             .drop-down-wrapper {
@@ -123,7 +123,7 @@ $nielsen-blue: #01adee;
     }
 
     .side-menu {
-        width: 200px;
+        width: 300px;
         grid-area: side-bar;
         overflow: hidden;
         padding: 0;
@@ -134,7 +134,7 @@ $nielsen-blue: #01adee;
         .side-menu-content {
             padding: 10px;
             overflow: visible;
-            width: 180px;
+            width: 280px;
 
             ul {
                 list-style-type: none;

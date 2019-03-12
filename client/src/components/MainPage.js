@@ -1,11 +1,13 @@
 import React, { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import _ from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretUp, faCaretDown, faThermometerEmpty, faMenorah } from '@fortawesome/free-solid-svg-icons'
+import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 
 import { ThemeContext } from './ThemeContext';
 import { UserContext } from './UserContext';
+import { LocaleContext } from './LocaleContext';
 
 export class Menu {
     constructor(id, title, options = null, defaultSelectionId) {
@@ -54,13 +56,15 @@ HeaderMenuItem.propTypes = {
 };
 
 export function HeaderMenuItem({ id, title, active = false, handleClick }) {
+    const { translations } = useContext(LocaleContext);
+
     return (
         <div
             id={id}
             className={classNames('item', active && 'active')}
             onClick={handleClick}
         >
-            {title}
+            {_.get(translations, title, title)}
         </div>
     );
 }
@@ -111,19 +115,21 @@ SideMenu.propTypes = {
 };
 
 export function SideMenu({ menu, openMenus, activeSubMenuId, handleClick }) {
+    const { translations } = useContext(LocaleContext);
+
     // TODO: Clean-up and allow full recursion of items.
     return (
         <div
             className='side-menu'
             style={{
-                maxWidth: menu.options ? '200px' : '0'
+                maxWidth: menu.options ? '280px' : '0'
             }}
         >
             <div className='side-menu-content'>
                 {
                     menu.options &&
                         <>
-                            <h3>{menu.title}</h3>
+                            <h3>{_.get(translations, menu.title, menu.title)}</h3>
                             <ul>
                                 {
                                     menu.options.map(subMenu =>
@@ -170,6 +176,8 @@ SideMenuItem.propTypes = {
 };
 
 export function SideMenuItem({ title = '', active = false, open = false, children = null, handleClick = () => {} }) {
+    const { translations } = useContext(LocaleContext);
+
     const canCollapse = () => {
         return children !== null;
     }
@@ -201,7 +209,7 @@ export function SideMenuItem({ title = '', active = false, open = false, childre
                         : <span className='spacer' />
                 }
                 <span className='title'>
-                    {title}
+                    {_.get(translations, title, title)}
                 </span>
             </div>
             {
@@ -231,6 +239,7 @@ export default function MainPage({ menu, defaultMenu, profileMenu, handleSelecti
     const [ showProfileMenu, setShowProfileMenu ] = useState(false);
     const theme = useContext(ThemeContext);
     const user = useContext(UserContext);
+    const { translations } = useContext(LocaleContext);
 
     const handleMenuClick = (menu) => {
         if (menu === sideMenu) {
@@ -279,8 +288,6 @@ export default function MainPage({ menu, defaultMenu, profileMenu, handleSelecti
         }
     }
 
-    console.log(`Menu: ${JSON.stringify(profileMenu, null, 4)}`);
-
     return (
         <div
             className='main-page'
@@ -311,13 +318,12 @@ export default function MainPage({ menu, defaultMenu, profileMenu, handleSelecti
                 />
             </div>
             {
-                // sideMenu.options &&
-                    <SideMenu
-                        menu={sideMenu}
-                        activeSubMenuId={activeSubMenuId}
-                        openMenus={openMenus}
-                        handleClick={handleSubMenuClick}
-                    />
+                <SideMenu
+                    menu={sideMenu}
+                    activeSubMenuId={activeSubMenuId}
+                    openMenus={openMenus}
+                    handleClick={handleSubMenuClick}
+                />
             }
             <div
                 className='body'
@@ -325,7 +331,7 @@ export default function MainPage({ menu, defaultMenu, profileMenu, handleSelecti
                 Body content goes here...
             </div>
             <div className='footer'>
-                <p>© Copyright 2019, Nielsen Media Inc, All Rights Reserved.</p>
+                <p>{translations.copyright}</p>
             </div>
         </div>
     );
