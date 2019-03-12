@@ -3,6 +3,8 @@ import { State, Store } from '@sambego/storybook-state';
 import { storiesOf } from '@storybook/react';
 
 import MainPage, { Menu } from '../components/MainPage';
+import { ThemeContext, Themes } from '../components/ThemeContext';
+import { UserContext, User } from '../components/UserContext';
 import '../components/MainPage.scss';
 
 storiesOf('MainPage', module)
@@ -47,16 +49,51 @@ storiesOf('MainPage', module)
             defaultMenu: ['reporting', 'reporting_internal_kpis'],
             profileMenu: new Menu('profile', 'Profile', [
                 new Menu('settings', 'Settings'),
-                new Menu('other', 'Other'),
+                new Menu('toggle-theme', 'Toggle Theme'),
                 new Menu('logout', 'Logout')
-            ])
+            ]),
+            user: User,
+            theme: Themes.light
         });
+
+        const handleSelection = (id) => {
+            switch (id) {
+                case 'login':
+                    store.set({ user: User });
+                    break;
+
+                case 'logout':
+                    store.set({ user: null })
+                    break;
+
+                case 'toggle-theme':
+                console.log(`store.theme: ${store.theme}`);
+                    store.set({ theme: store.get('theme') === Themes.dark ? Themes.light : Themes.dark });
+                    break;
+
+                default:
+                    console(`Clicked ${id}`);
+                    break;
+            }
+        };
+
+        const LocaleContext = React.createContext();
 
         return (
             <State store={store}>
                 {
                     state => (
-                        <MainPage {...state}>{}</MainPage>
+                        <LocaleContext.Provider>
+                            <ThemeContext.Provider value={state.theme}>
+                                <UserContext.Provider value={state.user}>
+                                    <MainPage
+                                        {...state}
+                                        handleSelection={handleSelection}
+                                    >
+                                    </MainPage>
+                                </UserContext.Provider>
+                            </ThemeContext.Provider>
+                        </LocaleContext.Provider>
                     )
                 }
             </State>

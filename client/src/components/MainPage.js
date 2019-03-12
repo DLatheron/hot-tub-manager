@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import { faCaretUp, faCaretDown, faThermometerEmpty, faMenorah } from '@fortawesome/free-solid-svg-icons'
+
+import { ThemeContext } from './ThemeContext';
+import { UserContext } from './UserContext';
 
 export class Menu {
     constructor(id, title, options = null, defaultSelectionId) {
@@ -63,18 +66,26 @@ export function HeaderMenuItem({ id, title, active = false, handleClick }) {
 }
 
 export function ProfileMenu({ menu, open = true, handleClick }) {
+    const theme = useContext(ThemeContext);
+    const user = useContext(UserContext);
+
     return (
         <div className='profile'>
             <img
                 className='avatar'
-                src='default-profile.png'
+                src={(user && user.image) || 'default-profile.png'}
                 width='48'
                 height='48'
                 alt='Default Profile'
                 onClick={() => handleClick(menu)}
             />
             {
-                <div className={classNames('drop-down-wrapper', open ? 'visible' : 'hidden')}>
+                <div
+                    className={classNames('drop-down-wrapper', (open && user) ? 'visible' : 'hidden')}
+                    style={{
+                        backgroundColor: theme.backgroundColor
+                    }}
+                >
                     <div className='drop-down-content'>
                         {
                             menu.options.map(subMenu =>
@@ -102,38 +113,50 @@ SideMenu.propTypes = {
 export function SideMenu({ menu, openMenus, activeSubMenuId, handleClick }) {
     // TODO: Clean-up and allow full recursion of items.
     return (
-        <div className='side-menu'>
-            <h3>{menu.title}</h3>
-            <ul>
+        <div
+            className='side-menu'
+            style={{
+                maxWidth: menu.options ? '200px' : '0'
+            }}
+        >
+            <div className='side-menu-content'>
                 {
-                    menu.options && menu.options.map(subMenu =>
-                        <SideMenuItem
-                            key={subMenu.id}
-                            {...subMenu}
-                            open={openMenus[subMenu.id]}
-                            active={subMenu.id === activeSubMenuId}
-                            handleClick={() => handleClick(subMenu)}
-                        >
-                            {
-                                subMenu.options &&
-                                    <ul>
-                                        {
-                                            subMenu.options.map(subSubMenu =>
-                                                <SideMenuItem
-                                                    key={subSubMenu.id}
-                                                    {...subSubMenu}
-                                                    open={openMenus[subSubMenu.id]}
-                                                    active={subSubMenu.id === activeSubMenuId}
-                                                    handleClick={() => handleClick(subSubMenu)}
-                                                />
-                                            )
-                                        }
-                                    </ul>
-                            }
-                        </SideMenuItem>
-                    )
+                    menu.options &&
+                        <>
+                            <h3>{menu.title}</h3>
+                            <ul>
+                                {
+                                    menu.options.map(subMenu =>
+                                        <SideMenuItem
+                                            key={subMenu.id}
+                                            {...subMenu}
+                                            open={openMenus[subMenu.id]}
+                                            active={subMenu.id === activeSubMenuId}
+                                            handleClick={() => handleClick(subMenu)}
+                                        >
+                                            {
+                                                subMenu.options &&
+                                                    <ul>
+                                                        {
+                                                            subMenu.options.map(subSubMenu =>
+                                                                <SideMenuItem
+                                                                    key={subSubMenu.id}
+                                                                    {...subSubMenu}
+                                                                    open={openMenus[subSubMenu.id]}
+                                                                    active={subSubMenu.id === activeSubMenuId}
+                                                                    handleClick={() => handleClick(subSubMenu)}
+                                                                />
+                                                            )
+                                                        }
+                                                    </ul>
+                                            }
+                                        </SideMenuItem>
+                                    )
+                                }
+                            </ul>
+                        </>
                 }
-            </ul>
+            </div>
         </div>
     );
 }
@@ -194,10 +217,11 @@ export function SideMenuItem({ title = '', active = false, open = false, childre
 MainPage.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
     defaultMenu: PropTypes.arrayOf(PropTypes.string).isRequired,
-    profileMenu: PropTypes.instanceOf(Menu).isRequired
+    profileMenu: PropTypes.instanceOf(Menu).isRequired,
+    handleSelection: PropTypes.func
 };
 
-export default function MainPage({ menu, defaultMenu, profileMenu }) {
+export default function MainPage({ menu, defaultMenu, profileMenu, handleSelection }) {
     const [ defaultSideMenuId, defaultSubMenuId ] = defaultMenu;
 
     const [ lastSelections, setLastSelection ] = useState(() => ({ [defaultSideMenuId]: defaultSubMenuId }));
@@ -205,6 +229,8 @@ export default function MainPage({ menu, defaultMenu, profileMenu }) {
     const [ openMenus, setOpenMenus ] = useState(() => menu.openAppropriateMenus(defaultSubMenuId));
     const [ sideMenu, setSideMenu ] = useState(() => menu.options.find(value => value.id === defaultSideMenuId));
     const [ showProfileMenu, setShowProfileMenu ] = useState(false);
+    const theme = useContext(ThemeContext);
+    const user = useContext(UserContext);
 
     const handleMenuClick = (menu) => {
         if (menu === sideMenu) {
@@ -232,23 +258,37 @@ export default function MainPage({ menu, defaultMenu, profileMenu }) {
         } else {
             setActiveMenu(subMenu.id);
             setLastSelection({ ...lastSelections, [sideMenu.id]: subMenu.id });
+
+            handleSelection(subMenu.id);
         }
     };
 
     const handleProfileMenuClick = (menu) => {
+        if (user === null) {
+            return handleSelection('login');
+        }
+
         if (menu === profileMenu) {
             setShowProfileMenu(!showProfileMenu);
         } else {
             console.log(`Option selected: ${menu.id}`);
 
             setShowProfileMenu(false);
+
+            handleSelection(menu.id);
         }
     }
 
     console.log(`Menu: ${JSON.stringify(profileMenu, null, 4)}`);
 
     return (
-        <div className='main-page'>
+        <div
+            className='main-page'
+            style={{
+                backgroundColor: theme.backgroundColor,
+                color: theme.textColor
+            }}
+        >
             <div className='top-bar'>
                 <img className='logo' src='n-tab.png' alt='Nielsen logo' />
                 <div className='header-menu'>
@@ -271,7 +311,7 @@ export default function MainPage({ menu, defaultMenu, profileMenu }) {
                 />
             </div>
             {
-                sideMenu.options &&
+                // sideMenu.options &&
                     <SideMenu
                         menu={sideMenu}
                         activeSubMenuId={activeSubMenuId}
@@ -279,7 +319,11 @@ export default function MainPage({ menu, defaultMenu, profileMenu }) {
                         handleClick={handleSubMenuClick}
                     />
             }
-            <div className='body'>Body content goes here...</div>
+            <div
+                className='body'
+            >
+                Body content goes here...
+            </div>
             <div className='footer'>
                 <p>© Copyright 2019, Nielsen Media Inc, All Rights Reserved.</p>
             </div>

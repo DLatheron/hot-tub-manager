@@ -15,6 +15,8 @@ $nielsen-blue: #01adee;
         grid-template-columns:  auto 1fr auto;
         grid-template-areas: 'logo header-menu profile';
         height: 65px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
 
         .logo {
             grid-area: logo;
@@ -46,14 +48,13 @@ $nielsen-blue: #01adee;
                 overflow: hidden;
                 position: absolute;
                 right: 0;
+                box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 
                 .drop-down-content {
                     // display: none;
-                    background-color: white;
                     color: $nielsen-blue;
                     z-index: 1;
                     border: 1px solid $nielsen-blue;
-                    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 
                     .collapsible-element {
                         user-select: none;
@@ -91,7 +92,7 @@ $nielsen-blue: #01adee;
         .header-menu {
             grid-area: header-menu;
             height: 65px;
-            background-color: white;
+            // background-color: white;
             text-align: left;
             vertical-align: top;
 
@@ -122,66 +123,75 @@ $nielsen-blue: #01adee;
     }
 
     .side-menu {
+        width: 200px;
         grid-area: side-bar;
         overflow: hidden;
-        background-color: white;
-        margin: 10px;
+        padding: 0;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+        transition: max-width .3s;
 
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
+        .side-menu-content {
+            padding: 10px;
+            overflow: visible;
+            width: 180px;
 
             ul {
-                margin-left: 14px;
-                font-size: 0.8rem;
-                padding-bottom: 6px;
-            }
-        }
-        li {
-            text-decoration: none;
-            margin-left: 20px;
-        }
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
 
-        .collapsible-element {
-            user-select: none;
-            cursor: pointer;
-            width: 100%;
-            outline: none;
-            text-align: left;
-            border: none;
-            font-size: 1rem;
-            padding: 0;
-            color: $nielsen-blue;
-
-            svg {
-                display: inline-block;
-                padding-left: 4px;
-                width: 10px;
-            }
-            .spacer {
-                padding-left: 14px;
-            }
-            .title {
-                margin-left: 6px;
-                padding-right: 10px;
-            }
-            .top-level {
-                &:hover {
-                    background-color: darken($color: white, $amount: 10);
+                ul {
+                    margin-left: 14px;
+                    font-size: 0.8rem;
+                    padding-bottom: 6px;
                 }
             }
-            .active {
-                color: white;
-                background-color: $nielsen-blue;
-
-                &:hover {
-                    background-color: lighten($color: $nielsen-blue, $amount: 5)
-                }
+            li {
+                text-decoration: none;
+                margin-left: 20px;
             }
-            .collapsible-body {
-                overflow: hidden;
-                transition: max-height 0.4s;
+
+            .collapsible-element {
+                user-select: none;
+                cursor: pointer;
+                width: 100%;
+                outline: none;
+                text-align: left;
+                border: none;
+                font-size: 1rem;
+                padding: 0;
+                color: $nielsen-blue;
+
+                svg {
+                    display: inline-block;
+                    padding-left: 4px;
+                    width: 10px;
+                }
+                .spacer {
+                    padding-left: 14px;
+                }
+                .title {
+                    margin-left: 6px;
+                    padding-right: 10px;
+                }
+                .top-level {
+                    &:hover {
+                        background-color: darken($color: white, $amount: 10);
+                    }
+                }
+                .active {
+                    color: white;
+                    background-color: $nielsen-blue;
+
+                    &:hover {
+                        background-color: lighten($color: $nielsen-blue, $amount: 5)
+                    }
+                }
+                .collapsible-body {
+                    overflow: hidden;
+                    transition: max-height 0.4s;
+                }
             }
         }
     }
@@ -189,9 +199,10 @@ $nielsen-blue: #01adee;
     .body {
         grid-area: body;
         height: calc(100vh - 65px - 40px);
+        padding: 8px;
 
         // height: calc(100vh - 40px);
-        background-color: green;
+        // background-color: green;
     }
 
     .footer {
