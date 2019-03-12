@@ -15,6 +15,7 @@
     "prop-types": "^15.7.2",
     "react": "^16.8.46.3",
     "react-dom": "^16.8.4",
+    "react-router-dom": "^4.3.1",
     "react-scripts": "2.1.8",
     "react-style-proptype": "^3.2.2",
     "react-tiny-popover": "^3.4.2",

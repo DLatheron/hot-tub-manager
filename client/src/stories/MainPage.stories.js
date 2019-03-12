@@ -14,10 +14,10 @@ storiesOf('MainPage', module)
             menu: new Menu('main', '', [
                 new Menu('creative', 'menus.headers.creative', [
                     new Menu('uas', 'menus.creative.uas', [
-                        new Menu('creative_uas_import', 'menus.creative.import'),
-                        new Menu('creative_uas_adHarvesting', 'menus.creative.harvesting'),
-                        new Menu('creative_uas_metadataQueue', 'menus.creative.metadata'),
-                        new Menu('creative_uas_approvalQueue', 'menus.creative.approval')
+                        new Menu('creative_uas_import', 'menus.creative.import', null, null, '/iframe.html/creative/import'),
+                        new Menu('creative_uas_adHarvesting', 'menus.creative.harvesting', null, null, '/iframe.html/creative/harvesting'),
+                        new Menu('creative_uas_metadataQueue', 'menus.creative.metadata', null, null, '/iframe.html/creative/metadata'),
+                        new Menu('creative_uas_approvalQueue', 'menus.creative.approval', null, null, '/iframe.html/creative/approval')
                     ])
                 ], 'creative_uas_import'),
                 new Menu('reporting', 'menus.headers.reporting', [
@@ -43,9 +43,9 @@ storiesOf('MainPage', module)
                     ]),
                     new Menu('simple', 'menus.reporting.simple')
                 ], 'reporting_device-partner_dashboard'),
-                new Menu('channels', 'menus.headers.channels'),
-                new Menu('devices', 'menus.headers.devices'),
-                new Menu('admin', 'menus.headers.admin')
+                new Menu('channels', 'menus.headers.channels', null, null, '/iframe.html/channels'),
+                new Menu('devices', 'menus.headers.devices', null, null, '/iframe.html/devices'),
+                new Menu('admin', 'menus.headers.admin', null, null, '/iframe.html/admin')
             ]),
             defaultMenu: ['reporting', 'reporting_internal_kpis'],
             profileMenu: new Menu('profile', 'Profile', [
@@ -61,6 +61,10 @@ storiesOf('MainPage', module)
 
         const handleSelection = (id) => {
             switch (id) {
+                case '':
+                    // location = '/creative/stuff';
+                    break;
+
                 case 'login':
                     store.set({ user: User });
                     break;

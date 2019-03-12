@@ -1,4 +1,5 @@
 import React, { useContext, useState } from 'react';
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -10,11 +11,12 @@ import { UserContext } from './UserContext';
 import { LocaleContext } from './LocaleContext';
 
 export class Menu {
-    constructor(id, title, options = null, defaultSelectionId) {
+    constructor(id, title, options = null, defaultSelectionId, url) {
         this.id = id;
         this.title = title;
         this.options = options;
         this.defaultSelectionId = defaultSelectionId;
+        this.url = url;
     }
 
     iterate(iterationFn) {
@@ -55,7 +57,7 @@ HeaderMenuItem.propTypes = {
     handleClick: PropTypes.func.isRequired
 };
 
-export function HeaderMenuItem({ id, title, active = false, handleClick }) {
+export function HeaderMenuItem({ id, title, url = null, active = false, handleClick }) {
     const { translations } = useContext(LocaleContext);
 
     return (
@@ -64,7 +66,11 @@ export function HeaderMenuItem({ id, title, active = false, handleClick }) {
             className={classNames('item', active && 'active')}
             onClick={handleClick}
         >
-            {_.get(translations, title, title)}
+            {
+                url
+                    ? <Link to={url}>{_.get(translations, title, title)}</Link>
+                    : _.get(translations, title, title)
+            }
         </div>
     );
 }
@@ -175,7 +181,7 @@ SideMenuItem.propTypes = {
     handleClick: PropTypes.func
 };
 
-export function SideMenuItem({ title = '', active = false, open = false, children = null, handleClick = () => {} }) {
+export function SideMenuItem({ title = '', url = null, active = false, open = false, children = null, handleClick = () => {} }) {
     const { translations } = useContext(LocaleContext);
 
     const canCollapse = () => {
@@ -209,7 +215,11 @@ export function SideMenuItem({ title = '', active = false, open = false, childre
                         : <span className='spacer' />
                 }
                 <span className='title'>
-                    {_.get(translations, title, title)}
+                    {
+                        url
+                            ? <Link to={url}>{_.get(translations, title, title)}</Link>
+                            : _.get(translations, title, title)
+                    }
                 </span>
             </div>
             {
@@ -251,6 +261,10 @@ export default function MainPage({ menu, defaultMenu, profileMenu, handleSelecti
         setSideMenu(menu);
         setActiveMenu(defaultSubMenu);
         setOpenMenus(menu.openAppropriateMenus(defaultSubMenu));
+
+        if (!menu.options) {
+            handleSelection(menu.id);
+        }
     };
 
     const handleSubMenuClick = (subMenu) => {
@@ -289,50 +303,66 @@ export default function MainPage({ menu, defaultMenu, profileMenu, handleSelecti
     }
 
     return (
-        <div
-            className='main-page'
-            style={{
-                backgroundColor: theme.backgroundColor,
-                color: theme.textColor
-            }}
-        >
-            <div className='top-bar'>
-                <img className='logo' src='n-tab.png' alt='Nielsen logo' />
-                <div className='header-menu'>
-                    {
-                        menu.options.map(subMenu =>
-                            <HeaderMenuItem
-                                key={subMenu.id}
-                                {...subMenu}
-                                active={subMenu.id === sideMenu.id}
-                                handleClick={() => handleMenuClick(subMenu)}
-                            />
-                        )
-                    }
-                </div>
-                <ProfileMenu
-                    className='profile'
-                    menu={profileMenu}
-                    open={showProfileMenu}
-                    handleClick={handleProfileMenuClick}
-                />
-            </div>
-            {
-                <SideMenu
-                    menu={sideMenu}
-                    activeSubMenuId={activeSubMenuId}
-                    openMenus={openMenus}
-                    handleClick={handleSubMenuClick}
-                />
-            }
+        <Router>
             <div
-                className='body'
+                className='main-page'
+                style={{
+                    backgroundColor: theme.backgroundColor,
+                    color: theme.textColor
+                }}
             >
-                Body content goes here...
+                <div className='top-bar'>
+                    <img className='logo' src='n-tab.png' alt='Nielsen logo' />
+                    <div className='header-menu'>
+                        {
+                            menu.options.map(subMenu =>
+                                <HeaderMenuItem
+                                    key={subMenu.id}
+                                    {...subMenu}
+                                    active={subMenu.id === sideMenu.id}
+                                    handleClick={() => handleMenuClick(subMenu)}
+                                />
+                            )
+                        }
+                    </div>
+                    <ProfileMenu
+                        className='profile'
+                        menu={profileMenu}
+                        open={showProfileMenu}
+                        handleClick={handleProfileMenuClick}
+                    />
+                </div>
+                {
+                    <SideMenu
+                        menu={sideMenu}
+                        activeSubMenuId={activeSubMenuId}
+                        openMenus={openMenus}
+                        handleClick={handleSubMenuClick}
+                    />
+                }
+                <div
+                    className='body'
+                >
+                    <Route exact path='/iframe.html' render={() => (
+                        <p>Home Page</p>
+                    )} />
+                    <Route path='/iframe.html/creative/:page' render={() => (
+                        <p>Creative</p>
+                    )} />
+                    <Route path='/iframe.html/channels' render={() => (
+                        <p>Channels</p>
+                    )} />
+                    <Route path='/iframe.html/devices' render={() => (
+                        <p>Devices</p>
+                    )} />
+                    <Route path='/iframe.html/admin' render={() => (
+                        <p>Admin</p>
+                    )} />
+                </div>
+                <div className='footer'>
+                    <p>{translations.copyright}</p>
+                </div>
             </div>
-            <div className='footer'>
-                <p>{translations.copyright}</p>
-            </div>
-        </div>
+        </Router>
     );
 }
