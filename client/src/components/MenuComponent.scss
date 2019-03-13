@@ -1,0 +1,68 @@
+$nielsen-blue: #01adee;
+$transition-duration: 0.5s;
+
+.menu {
+    background-color: inherit;
+
+    li {
+        list-style-type: none;
+        padding: 0;
+
+        ul {
+            max-height: 0px;
+        }
+    }
+
+    li.active {
+        ul {
+            max-height: 100vh;
+        }
+    }
+
+    ul li {
+        color: red;
+        overflow: hidden;
+    }
+    ul li ul li {
+        color: green;
+
+        ul li {
+            max-height: 0px;
+            transition: all $transition-duration;
+        }
+    }
+    ul li ul li.active {
+        color: green;
+
+        ul li {
+            max-height: 100px;
+        }
+    }
+    ul li ul li ul li {
+        color: blue;
+    }
+
+    // Clear the specific formatting of Links and inherit from container instead.
+    a {
+        color: inherit;
+        text-decoration: inherit;
+    }
+
+    .item {
+        cursor: pointer;
+        user-select: none;
+        font-weight: normal;
+    }
+
+    .active {
+        font-weight: bold;
+    }
+
+    // .leaf {
+    //     color: pink;
+    // }
+
+    .active.leaf {
+        color: red;
+    }
+}
