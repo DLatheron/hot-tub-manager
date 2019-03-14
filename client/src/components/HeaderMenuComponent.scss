@@ -1,5 +1,6 @@
 $nielsen-blue: #01adee;
-$transition-duration: 0.75s;
+$max-height-transition-duration: 0.75s;
+$opacity-transition-duration: 1s;
 
 .menu {
     a {
@@ -53,17 +54,21 @@ $transition-duration: 0.75s;
 }
 
 .side-menu-container {
-    // position: absolute;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: all;
 
     .menu {
+        grid-area: side-all;
         width: auto;
-        // visibility: hidden;
-        padding: 0;// 8px;
+        padding: 0;
         text-overflow: clip;
         overflow: hidden;
         color: $nielsen-blue;
         background-color: white;
-        max-height: 0;
+        opacity: 0;
+        transition: opacity $opacity-transition-duration;
 
         ul {
             padding-inline-start: 20px;
@@ -86,7 +91,7 @@ $transition-duration: 0.75s;
 
             ul {
                 max-height: 0px;
-                transition: max-height $transition-duration;
+                transition: max-height $max-height-transition-duration;
             }
 
         }
@@ -120,7 +125,7 @@ $transition-duration: 0.75s;
         li.active {
             ul {
                 max-height: 100px;
-                transition: max-height $transition-duration;
+                transition: max-height $max-height-transition-duration;
             }
         }
 
@@ -145,7 +150,7 @@ $transition-duration: 0.75s;
     }
 
     .menu.active {
-        max-height: 100vh;
-        // visibility: visible;
+        opacity: 1;
+        transition: opacity $opacity-transition-duration;
     }
 }
