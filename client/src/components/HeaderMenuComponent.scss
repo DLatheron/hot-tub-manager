@@ -3,7 +3,7 @@ $max-height-transition-duration: 0.75s;
 $opacity-transition-duration: 1s;
 
 .menu {
-    a {
+    .option {
         color: inherit;
         text-decoration: inherit;
         display: block;
@@ -11,11 +11,127 @@ $opacity-transition-duration: 1s;
         padding-left: 8px;
         padding-right: 8px;
     }
+}
 
-    div {
-        width: 100%;
-        padding-left: 8px;
-        padding-right: 8px;
+.profile-button {
+    cursor: pointer;
+    user-select: none;
+    margin: auto;
+    padding: 8px;
+
+    .profile-image {
+        border-radius: 50%;
+        background-color: white;
+        border: 2px solid $nielsen-blue;
+    }
+}
+
+.profile-menu {
+    position: absolute;
+    right: 0;
+    background-color: #f0f0f0;
+    padding: 0;
+
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+
+    .menu {
+        background-color: inherit;
+        display: block;
+        padding-inline-start: 0;
+        // border: 1px solid $nielsen-blue;
+
+        height: auto;
+
+        .item {
+            display: grid;
+            grid-template-columns: 20px 1fr;
+            grid-template-areas: 'gutter menu-option';
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            // display: block;
+            list-style-type: none;
+            color: $nielsen-blue;
+            // overflow: hidden;
+            padding: 8px 16px;
+
+            &:hover {
+                background-color: darken($color: #f0f0f0, $amount: 10);
+            }
+
+            .icon {
+                grid-area: 'gutter';
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                margin: auto;
+            }
+            .option {
+                grid-column: 2 / 3;
+            }
+        }
+
+        .menu-wrapper {
+            border: 1px solid $nielsen-blue;
+        }
+
+        .item .menu {
+            position: absolute;
+            top: 0;
+            right: 100%;
+            background-color: #f0f0f0;
+            padding: 0;
+            // border: 1px solid $nielsen-blue;
+            max-height: 0;
+            overflow: hidden;
+
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .item {
+            &:hover {
+                // font-weight: bold;
+
+                .menu {
+                    max-height: 6em;
+                }
+            }
+        }
+
+        // li:not(.leaf) {
+        //     .option:before {
+        //         background-color: beige;
+        //         width: 20px;
+        //         font-family: "Font Awesome 5 Free";
+        //         font-weight: 900;
+        //         content: "\f0d9";
+        //         // margin-left: -10px;
+        //         // margin-right: 10px;
+        //     }
+        // }
+
+        // li.leaf {
+        //     .option:before {
+        //         content: '\0020';
+        //         // margin-right: 8px;
+        //     }
+        // }
+
+        .separator {
+            border-bottom: 1px solid $nielsen-blue;
+            padding: 0;
+            height: 0;
+
+            .option {
+                visibility: collapse;
+            }
+        }
+    }
+
+    .active {
+        max-height: 6em;
+        transition: max-height 1s;
     }
 }
 
@@ -25,7 +141,7 @@ $opacity-transition-duration: 1s;
         display: inline-block;
         padding-inline-start: 0;
 
-        li {
+        .item {
             cursor: pointer;
             user-select: none;
             display: inline-block;
@@ -68,15 +184,16 @@ $opacity-transition-duration: 1s;
         color: $nielsen-blue;
         background-color: white;
         opacity: 0;
+        pointer-events: none;
         transition: opacity $opacity-transition-duration;
 
-        ul {
+        .menu {
             padding-inline-start: 20px;
             list-style: none;
             overflow: hidden;
         }
 
-        li {
+        .item {
             cursor: pointer;
             user-select: none;
             list-style-type: none;
@@ -89,15 +206,15 @@ $opacity-transition-duration: 1s;
                 display: inline-block;
             }
 
-            ul {
+            .menu {
                 max-height: 0px;
                 transition: max-height $max-height-transition-duration;
             }
 
         }
 
-        li:not(.leaf) {
-            a:before,div:before {
+        .item:not(.leaf) {
+            .option:before {
                 content: '+';
                 display: inline-block;
                 margin-left: 0px;
@@ -105,8 +222,8 @@ $opacity-transition-duration: 1s;
             }
         }
 
-        li.leaf {
-            a:before,div:before {
+        .item.leaf {
+            .option:before {
                 content: '-';
                 display: inline-block;
                 margin-left: 0px;
@@ -114,34 +231,34 @@ $opacity-transition-duration: 1s;
             }
         }
 
-        li {
-            a,div {
+        .item {
+            .option {
                 &:hover {
                     background-color: lighten($color: $nielsen-blue, $amount: 20);
                 }
             }
         }
 
-        li.active {
-            ul {
+        .item.active {
+            .menu {
                 max-height: 100px;
                 transition: max-height $max-height-transition-duration;
             }
         }
 
-        li {
-            a,div {
+        .item {
+            .option {
                 &:hover {
                     background-color: darken($color: white, $amount: 10);
                 }
             }
         }
 
-        li li.active {
+        .item .item.active {
             background-color: $nielsen-blue;
             color: white;
 
-            a,div {
+            .option {
                 &:hover {
                     background-color: lighten($color: $nielsen-blue, $amount: 20);
                 }
@@ -151,6 +268,7 @@ $opacity-transition-duration: 1s;
 
     .menu.active {
         opacity: 1;
+        pointer-events: initial;
         transition: opacity $opacity-transition-duration;
     }
 }

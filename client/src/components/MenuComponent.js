@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from "react-router-dom";
 import classNames from 'classnames';
 import _ from 'lodash';
+
+import { UserContext } from './UserContext';
 
 export class Menu {
     constructor(id, options = {}) {
@@ -11,6 +13,7 @@ export class Menu {
         this.subMenu = options.subMenu;
         this.actionFn = options.actionFn;
         this.url = options.url;
+        this.icon = options.icon;
         this.classes = options.classes;
         this.active = false;
     }
@@ -88,28 +91,62 @@ export class Menu {
     }
 }
 
+ProfileItemComponent.propTypes = {
+    menu: PropTypes.instanceOf(Menu).isRequired,
+    handleClick: PropTypes.func.isRequired,
+    children: PropTypes.element
+};
+
+export function ProfileItemComponent({ menu, handleClick, children }) {
+    const user = useContext(UserContext);
+
+    return (
+        <div className='profile-button'>
+            <img
+                className='profile-image'
+                src={(user && user.image) || 'default-profile.png'}
+                width='48'
+                height='48'
+                alt='Default Profile'
+                onClick={() => handleClick(menu)}
+            />
+            {children}
+        </div>
+    );
+}
+
 MenuItemComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
     handleClick: PropTypes.func.isRequired
 };
 
 export function MenuItemComponent({ menu, handleClick }) {
+    const icon = menu.icon && <div className='icon'>{menu.icon}</div>;
+
     if (menu.url) {
         return (
-            <Link
-                to={menu.url || '#'}
-                onClick={() => handleClick(menu)}
-            >
-                {menu.title}
-            </Link>
+            <>
+                {icon}
+                <Link
+                    className='option'
+                    to={menu.url || '#'}
+                    onClick={() => handleClick(menu)}
+                >
+                    {menu.title}
+                </Link>
+            </>
         );
     } else {
         return (
-            <div
-                onClick={() => handleClick(menu)}
-            >
-                {menu.title}
-            </div>
+            <>
+                {icon}
+                <div
+                    className='option'
+                    onClick={() => handleClick(menu)}
+                >
+                    {menu.title}
+                </div>
+            </>
         );
     }
 }
@@ -123,41 +160,44 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
     const onClick = (subMenu) => (subMenu.actionFn || handleClick)(subMenu);
 
     return (
-        <ul className={classNames(menu.classes, menu.active && 'active')}>
-            {
-                menu.subMenu.map(subMenu => {
-                    let subItem;
+        <ul className={classNames('menu', menu.classes, menu.active && 'active')}>
+            <div className='menu-wrapper'>
+                {
+                    menu.subMenu.map(subMenu => {
+                        let subItem;
 
-                    if (subMenu.subMenu && !(subMenu.subMenu instanceof Menu)) {
-                        subItem = (
-                            <SubMenuComponent
-                                className='menu'
-                                menu={subMenu}
-                                handleClick={handleClick}
-                            />
+                        if (subMenu.subMenu && !(subMenu.subMenu instanceof Menu)) {
+                            subItem = (
+                                <SubMenuComponent
+                                    className='menu'
+                                    menu={subMenu}
+                                    handleClick={handleClick}
+                                />
+                            );
+
+                        }
+
+                        return (
+                            <li
+                                key={subMenu.id}
+                                className={classNames(
+                                    'item',
+                                    subMenu.active && 'active',
+                                    subMenu.isLeaf() && 'leaf',
+                                    subMenu.classes
+                                )}
+                            >
+                                <MenuItemComponent
+                                    className='item subMenu'
+                                    menu={subMenu}
+                                    handleClick={onClick}
+                                />
+                                {subItem}
+                            </li>
                         );
-
-                    }
-
-                    return (
-                        <li
-                            key={subMenu.id}
-                            className={classNames(
-                                'item',
-                                subMenu.active && 'active',
-                                subMenu.isLeaf() && 'leaf'
-                            )}
-                        >
-                            <MenuItemComponent
-                                className='item'
-                                menu={subMenu}
-                                handleClick={onClick}
-                            />
-                            {subItem}
-                        </li>
-                    );
-                })
-            }
+                    })
+                }
+            </div>
         </ul>
     )
 }

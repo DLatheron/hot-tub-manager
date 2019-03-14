@@ -2,17 +2,17 @@ import React from 'react';
 import { State, Store } from '@sambego/storybook-state';
 import { storiesOf } from '@storybook/react';
 import { BrowserRouter as Router } from "react-router-dom";
-import _ from 'lodash';
 
-import MenuComponent, { Menu } from '../components/MenuComponent';
+import MenuComponent, { Menu, ProfileItemComponent } from '../components/MenuComponent';
 import { ThemeContext, Themes } from '../components/ThemeContext';
 import { UserContext, User } from '../components/UserContext';
 import { LocaleContext, Locales } from '../components/LocaleContext';
 import '../components/App.scss';
 // import '../components/MenuComponent.scss';
 import '../components/HeaderMenuComponent.scss';
+import '../../node_modules/@fortawesome/free-solid-svg-icons/'
 
-const creativeMenu = new Menu('creative', { title: 'Creative', classes: ['menu'], subMenu: [
+const creativeMenu = new Menu('creative', { classes: ['menu'], subMenu: [
     new Menu('creative_uas', { title: 'Underlying Ads', subMenu: [
         new Menu('creative_uas_import', { title: 'Import', url: '/iframe.html/creative/import' }),
         new Menu('creative_uas_adHarvesting', { title: 'Ad Harvesting', url: '/iframe.html/creative/harvesting' }),
@@ -21,7 +21,7 @@ const creativeMenu = new Menu('creative', { title: 'Creative', classes: ['menu']
     ]})
 ]});
 
-const reportingMenu = new Menu('reporting', { title: 'Reporting', classes: ['menu'], subMenu: [
+const reportingMenu = new Menu('reporting', { classes: ['menu'], subMenu: [
     new Menu('internal', { title: 'Internal', classes: [], subMenu: [
         new Menu('reporting_internal_dashboard', { title: 'Dashboard' }),
         new Menu('reporting_internal_kpis', { title: 'KPIs' }),
@@ -34,6 +34,12 @@ const reportingMenu = new Menu('reporting', { title: 'Reporting', classes: ['men
     ]}),
 ]});
 
+const adminMenu = new Menu('admin', { classes: ['menu'], subMenu: [
+    new Menu('admin_devices', { title: 'Devices' }),
+    new Menu('admin_channels', { title: 'Channels' }),
+    new Menu('admin_uas', { title: 'Underlying Ads' })
+]});
+
 const menu = new Menu('main', { classes: ['menu'], subMenu: [
     new Menu('creative', { title: 'Creative', classes: [] }),
     new Menu('reporting', { title: 'Reporting', classes: [] }),
@@ -44,13 +50,28 @@ const menu = new Menu('main', { classes: ['menu'], subMenu: [
 
 const sideMenu = [
     creativeMenu,
-    reportingMenu
+    reportingMenu,
+    adminMenu
 ];
+
+const profileMenu = new Menu('profile', { classes: ['menu' ], subMenu: [
+    new Menu('toggle_locale', { title: 'Locale', icon: '\uf0d9', subMenu: [
+        new Menu('en_GB', { title: 'English', icon: 'GB' }),
+        new Menu('dt_DT', { title: 'German', icon: 'DT' }),
+    ]}),
+    new Menu('toggle_theme', { title: 'Theme', icon: '\uf0d9', subMenu: [
+        new Menu('theme_light', { title: 'Light', icon: '\uf185' }),
+        new Menu('theme_dark', { title: 'Dark', icon: '\uf186' }),
+    ]}),
+    new Menu('separator', { title: '', classes: ['separator'] }),
+    new Menu('logout', { title: 'Logout', icon: '\uf2f5' }),
+]});
 
 const store = new Store({
     menu,
     sideMenu,
     hideSideMenu: false,
+    profileMenu,
     user: User,
     theme: Themes.light,
     locale: Locales['en-GB']
@@ -78,6 +99,14 @@ const handleSideMenuClick = (menuItem) => {
     store.set({ sideMenu });
 
     console.log(`Side clicked ${menuItem.id}`);
+    return true;
+}
+
+const handleProfileMenuClick = (menuItem) => {
+    // Force refresh.
+    store.set({ profileMenu });
+
+    console.log(`Profile menu clicked ${menuItem.id}`);
     return true;
 }
 
@@ -128,8 +157,6 @@ storiesOf('MenuComponent', module)
                             subStyle.width = `${maxSideMenuWidth}px`;
                         }
 
-                        console.log(`maxSideMenuWidth: ${maxSideMenuWidth}`);
-
                         return (
                             <Router>
                                 <LocaleContext.Provider value={state.locale}>
@@ -144,7 +171,21 @@ storiesOf('MenuComponent', module)
                                                             handleClick={handleClick}
                                                         />
                                                     </div>
-                                                    {/* <div className='profile'><p>Profile</p></div> */}
+                                                    <div className='profile'>
+                                                    </div>
+                                                    <div className='profile'>
+                                                        <ProfileItemComponent
+                                                            menu={state.profileMenu}
+                                                            handleClick={handleProfileMenuClick}
+                                                        >
+                                                            <div className='profile-menu'>
+                                                                <MenuComponent
+                                                                    menu={state.profileMenu}
+                                                                    handleClick={handleProfileMenuClick}
+                                                                />
+                                                            </div>
+                                                        </ProfileItemComponent>
+                                                    </div>
                                                 </div>
                                                 <div
                                                     className='side-menu'
@@ -155,14 +196,14 @@ storiesOf('MenuComponent', module)
                                                         className='side-menu-container'
                                                         style={subStyle}
                                                     >
-                                                        <MenuComponent
-                                                            menu={creativeMenu}
-                                                            handleClick={handleSideMenuClick}
-                                                        />
-                                                        <MenuComponent
-                                                            menu={reportingMenu}
-                                                            handleClick={handleSideMenuClick}
-                                                        />
+                                                        {
+                                                            state.sideMenu.map(menu => (
+                                                                <MenuComponent
+                                                                    menu={menu}
+                                                                    handleClick={handleSideMenuClick}
+                                                                />
+                                                            ))
+                                                        }
                                                     </div>
                                                 </div>
 

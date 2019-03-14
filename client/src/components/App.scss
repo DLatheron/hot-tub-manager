@@ -2,6 +2,8 @@ $nielsen-blue: #01adee;
 $transition-duration: 1s;
 
 .app {
+    box-sizing: content-box;
+
     display: grid;
     grid-template-columns: auto 1fr;
     grid-template-rows: 65px 1fr 40px;
@@ -15,6 +17,7 @@ $transition-duration: 1s;
         display: grid;
         grid-template-columns: auto 1fr auto;
         grid-template-areas: 'logo top-menu profile';
+        overflow: hidden;
 
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         z-index: 1;
