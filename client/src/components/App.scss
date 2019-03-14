@@ -1,265 +1,58 @@
 $nielsen-blue: #01adee;
+$transition-duration: 1s;
 
 .app {
     display: grid;
-    grid-template-columns: 45px auto 1fr auto;
+    grid-template-columns: auto 1fr;
     grid-template-rows: 65px 1fr 40px;
     grid-template-areas:
-        'logo top-menu top-menu profile'
-        'side-menu side-menu body body'
-        'footer footer footer footer';
+        'header header'
+        'side-menu body'
+        'footer footer';
 
-    .logo {
-        grid-area: logo;
-        z-index: 1;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    }
+    .header {
+        grid-area: header;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas: 'logo top-menu profile';
 
-    .top-menu {
-        grid-area: top-menu;
-        z-index: 1;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    }
+        z-index: 1;
 
-    .profile {
-        grid-area: profile;
-        z-index: 1;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        .logo {
+            grid-area: logo;
+        }
+
+        .top-menu {
+            grid-area: top-menu;
+        }
+
+        .profile {
+            grid-area: profile;
+        }
     }
 
     .side-menu {
         grid-area: side-menu;
         height: 100vh;
+        z-index: 2;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        transition: max-width $transition-duration;
+        background-color: white;
+        overflow: hidden;
     }
-
-    // .top-bar {
-    //     grid-area: top-bar;
-    //     display: grid;
-    //     grid-template-columns:  auto 1fr auto;
-    //     grid-template-areas: 'logo header-menu profile';
-    //     height: 65px;
-    //     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    //     z-index: 1;
-
-    //     .logo {
-    //         grid-area: logo;
-    //         display: inline-block;
-    //     }
-
-    //     .profile {
-    //         grid-area: profile;
-    //         padding-top: 10px;
-    //         padding-bottom: 10px;
-    //         padding-left: 4px;
-    //         padding-right: 4px;
-
-    //         .avatar {
-    //             border: 1px solid $nielsen-blue;
-    //             border-radius: 50%;
-    //         }
-
-    //         .hidden {
-    //             transition: max-height .3s;
-    //             max-height: 0;
-    //         }
-
-    //         .visible {
-    //             transition: max-height .3s;
-    //             max-height: 300px;
-    //         }
-
-    //     //     .drop-down-wrapper {
-    //     //         overflow: hidden;
-    //     //         position: absolute;
-    //     //         right: 0;
-    //     //         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-
-    //     //         .drop-down-content {
-    //     //             // display: none;
-    //     //             color: $nielsen-blue;
-    //     //             z-index: 1;
-    //     //             border: 1px solid $nielsen-blue;
-
-    //     //             .collapsible-element {
-    //     //                 user-select: none;
-    //     //                 cursor: pointer;
-    //     //                 width: 100%;
-    //     //                 outline: none;
-    //     //                 text-align: left;
-    //     //                 border: none;
-    //     //                 font-size: 1rem;
-    //     //                 padding: 20px;
-    //     //                 color: $nielsen-blue;
-
-    //     //                 .spacer {
-    //     //                     display: none;
-    //     //                 }
-
-    //     //                 .title {
-    //     //                     width: 100%;
-    //     //                     height: 100%;
-    //     //                     // padding: 20px;
-    //     //                 }
-
-    //     //                 &:hover {
-    //     //                     background-color: darken($color: white, $amount: 10);
-    //     //                 }
-    //     //             }
-    //     //         }
-    //     //     }
-
-    //     //     // &:hover .drop-down-content {
-    //     //     //     display: block;
-    //     //     // }
-    //     }
-
-
-    //     //     // .item {
-    //     //     //     user-select: none;
-    //     //     //     cursor: pointer;
-    //     //     //     display: inline-block;
-    //     //     //     font-size: 2em;
-    //     //     //     height: 65px;
-    //     //     //     line-height: 65px;
-    //     //     //     padding: 0 20px 0 20px;
-    //     //     //     color: $nielsen-blue;
-
-    //     //     //     a {
-    //     //     //         color: $nielsen-blue;
-    //     //     //         text-decoration: none;
-    //     //     //     }
-
-    //     //     //     &:hover {
-    //     //     //         background-color: darken($color: white, $amount: 10);
-    //     //     //     }
-    //     //     // }
-
-    //     //     // .active {
-    //     //     //     color: white;
-    //     //     //     background-color: $nielsen-blue;
-
-    //     //     //     a {
-    //     //     //         color: white;
-    //     //     //         background-color: $nielsen-blue;
-    //     //     //     }
-
-    //     //     //     &:hover {
-    //     //     //         background-color: lighten($color: $nielsen-blue, $amount: 5)
-    //     //     //     }
-    //     //     // }
-    //     // }
-    // }
-
-    // // .header-menu {
-    // //     grid-area: header-menu;
-    // //     position: relative;
-    // //     // position: absolute;
-    // //     height: 65px;
-    // //     text-align: left;
-    // //     vertical-align: top;
-    // // }
-
-    // // .side-menu {
-    // //     width: 300px;
-    // //     grid-area: side-bar;
-    // //     overflow: hidden;
-    // //     padding: 0;
-    // //     height: 100vh;
-    // //     padding: 8px;
-    // //     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    // //     z-index: 1;
-    // //     transition: max-width .3s;
-    // //     color: red;
-
-    //     // .side-menu-content {
-    //     //     padding: 10px;
-    //     //     overflow: visible;
-    //     //     width: 280px;
-
-    //     //     a {
-    //     //         text-decoration: none;
-    //     //         color: $nielsen-blue;
-    //     //     }
-
-    //     //     ul {
-    //     //         list-style-type: none;
-    //     //         padding: 0;
-    //     //         margin: 0;
-
-    //     //         ul {
-    //     //             margin-left: 14px;
-    //     //             font-size: 0.8rem;
-    //     //             padding-bottom: 6px;
-    //     //         }
-    //     //     }
-    //     //     li {
-    //     //         text-decoration: none;
-    //     //         margin-left: 20px;
-    //     //     }
-
-    //     //     .collapsible-element {
-    //     //         user-select: none;
-    //     //         cursor: pointer;
-    //     //         width: 100%;
-    //     //         outline: none;
-    //     //         text-align: left;
-    //     //         border: none;
-    //     //         font-size: 1rem;
-    //     //         padding: 0;
-    //     //         color: $nielsen-blue;
-
-    //     //         svg {
-    //     //             display: inline-block;
-    //     //             padding-left: 4px;
-    //     //             width: 10px;
-    //     //         }
-    //     //         .spacer {
-    //     //             padding-left: 14px;
-    //     //         }
-    //     //         .title {
-    //     //             margin-left: 6px;
-    //     //             padding-right: 10px;
-    //     //         }
-    //     //         .top-level {
-    //     //             &:hover {
-    //     //                 background-color: darken($color: white, $amount: 10);
-    //     //             }
-    //     //         }
-    //     //         .active {
-    //     //             color: white;
-    //     //             background-color: $nielsen-blue;
-
-    //     //             a {
-    //     //                 color: white;
-    //     //                 background-color: $nielsen-blue;
-    //     //             }
-
-    //     //             &:hover {
-    //     //                 background-color: lighten($color: $nielsen-blue, $amount: 5)
-    //     //             }
-    //     //         }
-    //     //         .collapsible-body {
-    //     //             overflow: hidden;
-    //     //             transition: max-height 0.4s;
-    //     //         }
-    //     //     }
-    //     // }
-    // // }
 
     .body {
         grid-area: body;
         height: calc(100vh - 65px - 40px);
         padding: 8px;
-
-        // height: calc(100vh - 40px);
-        // background-color: green;
     }
 
     .footer {
+        grid-area: footer;
         position: sticky;
         background-color: orange;
         bottom: 0;
-        grid-area: footer;
         z-index: 10;
 
         p {

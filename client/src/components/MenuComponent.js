@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from "react-router-dom";
 import classNames from 'classnames';
@@ -171,14 +171,30 @@ export default function MenuComponent({ menu, handleClick }) {
     return (
         <>
             {
-                menu.iterateMenus(subMenus =>
-                    <SubMenuComponent
-                        key={subMenus.id}
-                        className='menu'
-                        menu={subMenus}
-                        handleClick={handleClick}
-                    />
-                )
+                _.isArray(menu)
+                    ?
+                        menu.map(subMenu => (
+                            <SubMenuComponent
+                                key={subMenu.id}
+                                className='menu'
+                                menu={subMenu}
+                                handleClick={handleClick}
+                            />
+                        ))
+                    :
+                        <SubMenuComponent
+                            className='menu'
+                            menu={menu}
+                            handleClick={handleClick}
+                        />
+                // menu.iterateMenus(subMenus =>
+                //     <SubMenuComponent
+                //         key={subMenus.id}
+                //         className='menu'
+                //         menu={subMenus}
+                //         handleClick={handleClick}
+                //     />
+                // )
             }
         </>
     );

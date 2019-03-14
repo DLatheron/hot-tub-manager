@@ -1,10 +1,11 @@
 $nielsen-blue: #01adee;
 $transition-duration: 0.75s;
 
-.menu.header-menu {
+.menu {
     a {
         color: inherit;
         text-decoration: inherit;
+        display: block;
         width: 100%;
         padding-left: 8px;
         padding-right: 8px;
@@ -17,158 +18,134 @@ $transition-duration: 0.75s;
     }
 }
 
-.menu.header-menu.header {
-    grid-area: top-menu;
-    background-color: inherit;
-    display: block;
-    padding-inline-start: 0;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-
-    li {
-        cursor: pointer;
-        user-select: none;
+.top-menu {
+    .menu {
+        background-color: inherit;
         display: inline-block;
-        list-style-type: none;
-        font-size: 2em;
-        height: 65px;
-        line-height: 65px;
-        padding: 0 10px 0 10px;
-        color: $nielsen-blue;
-        overflow: hidden;
+        padding-inline-start: 0;
 
-        &:hover {
-            background-color: darken($color: white, $amount: 10);
-        }
-    }
-
-    .active {
-        color: white;
-        background-color: $nielsen-blue;
-
-        &:hover {
-            background-color: lighten($color: $nielsen-blue, $amount: 5)
-        }
-    }
-}
-
-.menu.header-menu.side {
-    grid-area: side-menu;
-    width: auto;
-    padding: 0px;
-    padding-top: 10px;
-    visibility: hidden;
-    text-overflow: clip;
-    overflow: hidden;
-    color: $nielsen-blue;
-    background-color: white;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-
-    ul {
-        padding-inline-start: 20px;
-        list-style: none;
-        overflow: hidden;
-    }
-
-    li {
-        cursor: pointer;
-        user-select: none;
-        list-style-type: none;
-        display: block;
-
-        color: $nielsen-blue;
-        overflow: hidden;
-
-        div {
+        li {
+            cursor: pointer;
+            user-select: none;
             display: inline-block;
-        }
+            list-style-type: none;
+            font-size: 2em;
+            height: 65px;
+            line-height: 65px;
+            padding: 0 10px 0 10px;
+            color: $nielsen-blue;
+            overflow: hidden;
 
-        ul {
-            max-height: 0px;
-            transition: max-height $transition-duration;
-        }
-
-    }
-
-    li:not(.leaf) {
-        a:before,div:before {
-            content: '+';
-            display: inline-block;
-            margin-left: 0px;
-            margin-right: 8px;
-        }
-    }
-
-    li.leaf {
-        a:before,div:before {
-            content: '-';
-            display: inline-block;
-            margin-left: 0px;
-            margin-right: 8px;
-        }
-    }
-
-    li {
-        a,div {
-            &:hover {
-                background-color: darken($color: $nielsen-blue, $amount: 10);
-            }
-        }
-    }
-
-    li.active {
-        ul {
-            max-height: 100px;
-            transition: max-height $transition-duration;
-        }
-    }
-
-    li {
-        a,div {
             &:hover {
                 background-color: darken($color: white, $amount: 10);
             }
         }
 
-    }
+        .active {
+            color: white;
+            background-color: $nielsen-blue;
 
-    li li {
-        a,div {
             &:hover {
-                background-color: darken($color: white, $amount: 10);
+                background-color: lighten($color: $nielsen-blue, $amount: 20)
             }
         }
     }
-
-    li li.active {
-        background-color: $nielsen-blue;
-        color: white;
-
-        a,div {
-            &:hover {
-                background-color: darken($color: $nielsen-blue, $amount: 10);
-            }
-        }
-    }
-
-    // li li {
-    //     &:hover {
-    //         background-color: darken($color: white, $amount: 10);
-    //     }
-    // }
-
-    // li li.active {
-    //     color: white;
-    //     background-color: $nielsen-blue;
-
-    //     &:hover {
-    //         color: $nielsen-blue;
-    //         background-color: darken($color: $nielsen-blue, $amount: 10);
-    //     }
-    // }
 }
 
-.menu.header-menu.side.active {
-    visibility: visible;
+.side-menu-container {
+    // position: absolute;
+
+    .menu {
+        width: auto;
+        // visibility: hidden;
+        padding: 0;// 8px;
+        text-overflow: clip;
+        overflow: hidden;
+        color: $nielsen-blue;
+        background-color: white;
+        max-height: 0;
+
+        ul {
+            padding-inline-start: 20px;
+            list-style: none;
+            overflow: hidden;
+        }
+
+        li {
+            cursor: pointer;
+            user-select: none;
+            list-style-type: none;
+            display: block;
+
+            color: $nielsen-blue;
+            overflow: hidden;
+
+            div {
+                display: inline-block;
+            }
+
+            ul {
+                max-height: 0px;
+                transition: max-height $transition-duration;
+            }
+
+        }
+
+        li:not(.leaf) {
+            a:before,div:before {
+                content: '+';
+                display: inline-block;
+                margin-left: 0px;
+                margin-right: 8px;
+            }
+        }
+
+        li.leaf {
+            a:before,div:before {
+                content: '-';
+                display: inline-block;
+                margin-left: 0px;
+                margin-right: 8px;
+            }
+        }
+
+        li {
+            a,div {
+                &:hover {
+                    background-color: lighten($color: $nielsen-blue, $amount: 20);
+                }
+            }
+        }
+
+        li.active {
+            ul {
+                max-height: 100px;
+                transition: max-height $transition-duration;
+            }
+        }
+
+        li {
+            a,div {
+                &:hover {
+                    background-color: darken($color: white, $amount: 10);
+                }
+            }
+        }
+
+        li li.active {
+            background-color: $nielsen-blue;
+            color: white;
+
+            a,div {
+                &:hover {
+                    background-color: lighten($color: $nielsen-blue, $amount: 20);
+                }
+            }
+        }
+    }
+
+    .menu.active {
+        max-height: 100vh;
+        // visibility: visible;
+    }
 }
