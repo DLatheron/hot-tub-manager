@@ -44,6 +44,13 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     }
                 }
             }
+            .item:hover {
+                background-color: $light-theme-hilight-background-color;
+
+                >.icon {
+                    background-color: $light-theme-menu-icon-hilight-background-color;
+                }
+            }
             .item .menu {
                 background-color: $light-theme-background-color;
             }
@@ -117,7 +124,6 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     }
                 }
             }
-
             .item:hover {
                 background-color: $dark-theme-hilight-background-color;
 
@@ -125,7 +131,6 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     background-color: $dark-theme-menu-icon-hilight-background-color;
                 }
             }
-
             .item .menu {
                 background-color: $dark-theme-background-color;
             }
