@@ -2,6 +2,7 @@ import React from 'react';
 import { State, Store } from '@sambego/storybook-state';
 import { storiesOf } from '@storybook/react';
 import { BrowserRouter as Router } from "react-router-dom";
+import classNames from 'classnames';
 
 import MenuComponent, { Menu, ProfileItemComponent } from '../components/MenuComponent';
 import { ThemeContext, Themes } from '../components/ThemeContext';
@@ -73,7 +74,7 @@ const store = new Store({
     hideSideMenu: false,
     profileMenu,
     user: User,
-    theme: Themes.light,
+    theme: Themes.dark,
     locale: Locales['en-GB']
 });
 
@@ -103,10 +104,35 @@ const handleSideMenuClick = (menuItem) => {
 }
 
 const handleProfileMenuClick = (menuItem) => {
-    // Force refresh.
-    store.set({ profileMenu });
+    switch (menuItem.id) {
+        case 'logout':
+            store.set({ user: null })
+            break;
 
-    console.log(`Profile menu clicked ${menuItem.id}`);
+        case 'theme_light':
+            console.log('Theme = light');
+            store.set({ theme: Themes.light });
+            break;
+
+        case 'theme_dark':
+            console.log('Theme = dark');
+            store.set({ theme: Themes.dark });
+            break;
+
+        case 'en_GB':
+        case 'dt_DT':
+        console.log('Locale = ')
+            store.set({ locale: Locales[menuItem.id] })
+            break;
+
+        default:
+            // Force refresh.
+            store.set({ profileMenu });
+
+            console.log(`Profile menu clicked ${menuItem.id}`);
+            break;
+    }
+
     return true;
 }
 
@@ -162,7 +188,10 @@ storiesOf('MenuComponent', module)
                                 <LocaleContext.Provider value={state.locale}>
                                     <ThemeContext.Provider value={state.theme}>
                                         <UserContext.Provider value={state.user}>
-                                            <div className='app'>
+                                            <div className={classNames('app', state.theme.className)}
+                                                style={{
+                                                    backgroundColor: state.theme.color.background
+                                                }}>
                                                 <div className='header'>
                                                     <img className='logo' src='n-tab.png' alt='Nielsen logo' />
                                                     <div className='top-menu'>
@@ -215,7 +244,12 @@ storiesOf('MenuComponent', module)
                                                 {/* <ul className='menu top-bar header-menu'>
                                                     <li>Goodbye</li>
                                                 </ul> */}
-                                                <div className='body'>
+                                                <div
+                                                    className='body'
+                                                    style={{
+                                                        color: state.theme.color.text
+                                                    }}
+                                                >
                                                     <p>Body content goes here.</p>
                                                 </div>
                                                 <div className='footer'>

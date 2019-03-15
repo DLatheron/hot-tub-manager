@@ -1,6 +1,19 @@
 $nielsen-blue: #01adee;
+$nielsen-blue-hilight: lighten($color: $nielsen-blue, $amount: 20);
+
+$light-theme-background-color: white;
+$light-theme-menu-icon-background-color: #f0f0f0;
+$light-theme-hilight-background-color: darken($color: $light-theme-background-color, $amount: 10);
+$light-theme-menu-icon-hilight-background-color: darken($color: $light-theme-menu-icon-background-color, $amount: 10);
+
+$dark-theme-background-color: #333;
+$dark-theme-menu-icon-background-color: #282828;
+$dark-theme-hilight-background-color: lighten($color: $dark-theme-background-color, $amount: 10);
+$dark-theme-menu-icon-hilight-background-color: lighten($color: $dark-theme-menu-icon-background-color, $amount: 10);
+
 $max-height-transition-duration: 0.75s;
 $opacity-transition-duration: 1s;
+$profile-menu-max-height-transition-duration: 0.3s;
 
 .menu {
     .option {
@@ -13,6 +26,161 @@ $opacity-transition-duration: 1s;
     }
 }
 
+.theme-light {
+    .profile-menu {
+        background-color: $light-theme-background-color;
+
+        .menu {
+            .item {
+                .icon {
+                    background-color: $light-theme-menu-icon-background-color;
+                }
+
+                .item:hover {
+                    background-color: $light-theme-hilight-background-color;
+
+                    >.icon {
+                        background-color: $light-theme-menu-icon-hilight-background-color;
+                    }
+                }
+            }
+            .item .menu {
+                background-color: $light-theme-background-color;
+            }
+        }
+    }
+    .top-menu {
+        .menu {
+            .item {
+                &:hover {
+                    background-color: $light-theme-hilight-background-color;
+                }
+            }
+
+            .active {
+                color: white;
+                background-color: $nielsen-blue;
+
+                &:hover {
+                    background-color: $nielsen-blue-hilight
+                }
+            }
+        }
+    }
+    .side-menu-container {
+        background-color: $light-theme-background-color;
+
+        .menu {
+            .item {
+                .option {
+                    &:hover {
+                        background-color: $nielsen-blue-hilight;
+                    }
+                }
+            }
+            .item {
+                .option {
+                    &:hover {
+                        background-color: $light-theme-hilight-background-color;
+                    }
+                }
+            }
+            .item .item.active {
+                background-color: $nielsen-blue;
+                color: white;
+
+                .option {
+                    &:hover {
+                        background-color: $nielsen-blue-hilight;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.theme-dark {
+    .profile-menu {
+        background-color: $dark-theme-background-color;
+
+        .menu {
+            .item {
+                .icon {
+                    background-color: $dark-theme-menu-icon-background-color;
+                }
+
+                .item:hover {
+                    background-color: $dark-theme-hilight-background-color;
+
+                    >.icon {
+                        background-color: $dark-theme-menu-icon-hilight-background-color;
+                    }
+                }
+            }
+
+            .item:hover {
+                background-color: $dark-theme-hilight-background-color;
+
+                >.icon {
+                    background-color: $dark-theme-menu-icon-hilight-background-color;
+                }
+            }
+
+            .item .menu {
+                background-color: $dark-theme-background-color;
+            }
+        }
+    }
+    .top-menu {
+        .menu {
+            .item {
+                &:hover {
+                    background-color: $dark-theme-hilight-background-color;
+                }
+            }
+
+            .active {
+                color: white;
+                background-color: $nielsen-blue;
+
+                &:hover {
+                    background-color: $nielsen-blue-hilight
+                }
+            }
+        }
+    }
+    .side-menu-container {
+        background-color: $dark-theme-background-color;
+
+        .menu {
+            .item {
+                .option {
+                    &:hover {
+                        background-color: $nielsen-blue-hilight;
+                    }
+                }
+            }
+            .item {
+                .option {
+                    &:hover {
+                        background-color: $dark-theme-hilight-background-color;
+                    }
+                }
+            }
+            .item .item.active {
+                background-color: $nielsen-blue;
+                color: white;
+
+                .option {
+                    &:hover {
+                        background-color: $nielsen-blue-hilight;
+                    }
+                }
+            }
+        }
+    }
+}
+
 .profile-button {
     cursor: pointer;
     user-select: none;
@@ -21,15 +189,19 @@ $opacity-transition-duration: 1s;
 
     .profile-image {
         border-radius: 50%;
-        background-color: white;
         border: 2px solid $nielsen-blue;
+    }
+
+    &:hover {
+        .profile-image {
+            border-color: $nielsen-blue-hilight;
+        }
     }
 }
 
 .profile-menu {
     position: absolute;
     right: 0;
-    background-color: #f0f0f0;
     padding: 0;
 
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
@@ -39,39 +211,33 @@ $opacity-transition-duration: 1s;
         background-color: inherit;
         display: block;
         padding-inline-start: 0;
-        // border: 1px solid $nielsen-blue;
 
         height: auto;
 
         .item {
             display: grid;
-            grid-template-columns: 20px 1fr;
+            grid-template-columns: 48px 1fr;
             grid-template-areas: 'gutter menu-option';
             position: relative;
             cursor: pointer;
             user-select: none;
-            // display: block;
             list-style-type: none;
             color: $nielsen-blue;
-            // overflow: hidden;
-            padding: 8px 16px;
-
-            &:hover {
-                background-color: darken($color: #f0f0f0, $amount: 10);
-            }
 
             .icon {
-                grid-area: 'gutter';
+                grid-area: gutter;
+                padding: 10px 16px;
                 font-family: "Font Awesome 5 Free";
                 font-weight: 900;
-                margin: auto;
+                text-align: center;
             }
             .option {
-                grid-column: 2 / 3;
+                grid-column: menu-option;
+                margin: 8px 16px;
             }
         }
 
-        .menu-wrapper {
+        .menu-content {
             border: 1px solid $nielsen-blue;
         }
 
@@ -79,10 +245,10 @@ $opacity-transition-duration: 1s;
             position: absolute;
             top: 0;
             right: 100%;
-            background-color: #f0f0f0;
             padding: 0;
-            // border: 1px solid $nielsen-blue;
-            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: all $profile-menu-max-height-transition-duration;
             overflow: hidden;
 
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
@@ -91,32 +257,13 @@ $opacity-transition-duration: 1s;
 
         .item {
             &:hover {
-                // font-weight: bold;
-
                 .menu {
-                    max-height: 6em;
+                    opacity: 1;
+                    pointer-events: initial;
+                    transition: all $profile-menu-max-height-transition-duration;
                 }
             }
         }
-
-        // li:not(.leaf) {
-        //     .option:before {
-        //         background-color: beige;
-        //         width: 20px;
-        //         font-family: "Font Awesome 5 Free";
-        //         font-weight: 900;
-        //         content: "\f0d9";
-        //         // margin-left: -10px;
-        //         // margin-right: 10px;
-        //     }
-        // }
-
-        // li.leaf {
-        //     .option:before {
-        //         content: '\0020';
-        //         // margin-right: 8px;
-        //     }
-        // }
 
         .separator {
             border-bottom: 1px solid $nielsen-blue;
@@ -153,18 +300,9 @@ $opacity-transition-duration: 1s;
             color: $nielsen-blue;
             overflow: hidden;
 
-            &:hover {
-                background-color: darken($color: white, $amount: 10);
-            }
-        }
-
-        .active {
-            color: white;
-            background-color: $nielsen-blue;
-
-            &:hover {
-                background-color: lighten($color: $nielsen-blue, $amount: 20)
-            }
+            // &:hover {
+            //     background-color: white;//$background-color-hilight;
+            // }
         }
     }
 }
@@ -175,6 +313,10 @@ $opacity-transition-duration: 1s;
     grid-template-rows: 1fr;
     grid-template-areas: all;
 
+    >.menu {
+        opacity: 0;
+    }
+
     .menu {
         grid-area: side-all;
         width: auto;
@@ -182,8 +324,6 @@ $opacity-transition-duration: 1s;
         text-overflow: clip;
         overflow: hidden;
         color: $nielsen-blue;
-        background-color: white;
-        opacity: 0;
         pointer-events: none;
         transition: opacity $opacity-transition-duration;
 
@@ -203,7 +343,7 @@ $opacity-transition-duration: 1s;
             overflow: hidden;
 
             div {
-                display: inline-block;
+                display: block;
             }
 
             .menu {
@@ -231,37 +371,10 @@ $opacity-transition-duration: 1s;
             }
         }
 
-        .item {
-            .option {
-                &:hover {
-                    background-color: lighten($color: $nielsen-blue, $amount: 20);
-                }
-            }
-        }
-
         .item.active {
             .menu {
-                max-height: 100px;
+                max-height: 6em;
                 transition: max-height $max-height-transition-duration;
-            }
-        }
-
-        .item {
-            .option {
-                &:hover {
-                    background-color: darken($color: white, $amount: 10);
-                }
-            }
-        }
-
-        .item .item.active {
-            background-color: $nielsen-blue;
-            color: white;
-
-            .option {
-                &:hover {
-                    background-color: lighten($color: $nielsen-blue, $amount: 20);
-                }
             }
         }
     }

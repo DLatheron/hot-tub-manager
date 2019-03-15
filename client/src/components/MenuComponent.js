@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import _ from 'lodash';
 
 import { UserContext } from './UserContext';
+import { ThemeContext } from './ThemeContext';
 
 export class Menu {
     constructor(id, options = {}) {
@@ -160,8 +161,10 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
     const onClick = (subMenu) => (subMenu.actionFn || handleClick)(subMenu);
 
     return (
-        <ul className={classNames('menu', menu.classes, menu.active && 'active')}>
-            <div className='menu-wrapper'>
+        <div className={classNames('menu', menu.classes, menu.active && 'active')}>
+            <div
+                className='menu-content'
+            >
                 {
                     menu.subMenu.map(subMenu => {
                         let subItem;
@@ -178,7 +181,7 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
                         }
 
                         return (
-                            <li
+                            <div
                                 key={subMenu.id}
                                 className={classNames(
                                     'item',
@@ -193,12 +196,12 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
                                     handleClick={onClick}
                                 />
                                 {subItem}
-                            </li>
+                            </div>
                         );
                     })
                 }
             </div>
-        </ul>
+        </div>
     )
 }
 
