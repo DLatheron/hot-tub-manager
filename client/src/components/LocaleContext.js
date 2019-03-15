@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 
 const englishGB = 'en-GB';
 const german = 'dt-DT';
@@ -73,12 +74,18 @@ export const Formatters = {
     }
 };
 
+function translate(key) {
+    return _.get(this, key, key);
+}
+
 export const Locales = {
     [englishGB]: {
+        translate: translate.bind(Translations[englishGB]),
         translations: Translations[englishGB],
         formatters: Formatters[englishGB]
     },
     [german]: {
+        translate: translate.bind(Translations[german]),
         translations: Translations[german],
         formatters: Formatters[german]
     }

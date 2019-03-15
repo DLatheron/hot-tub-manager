@@ -1,6 +1,16 @@
 $nielsen-blue: #01adee;
 $transition-duration: 1s;
 
+.app.theme-light {
+    background: white;
+    color: black;
+}
+
+.app.theme-dark {
+    background: #333;
+    color: white;
+}
+
 .app {
     box-sizing: content-box;
 
@@ -41,7 +51,13 @@ $transition-duration: 1s;
         z-index: 2;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         transition: max-width $transition-duration;
+        position: relative;
         overflow: hidden;
+    }
+
+    .side-menu.hide {
+        max-width: 0px;
+        transition: max-width $transition-duration;
     }
 
     .body {

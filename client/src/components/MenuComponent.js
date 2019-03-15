@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import _ from 'lodash';
 
 import { UserContext } from './UserContext';
-import { ThemeContext } from './ThemeContext';
+import { LocaleContext } from './LocaleContext';
 
 export class Menu {
     constructor(id, options = {}) {
@@ -122,6 +122,7 @@ MenuItemComponent.propTypes = {
 };
 
 export function MenuItemComponent({ menu, handleClick }) {
+    const { translate } = useContext(LocaleContext);
     const icon = menu.icon && <div className='icon'>{menu.icon}</div>;
 
     if (menu.url) {
@@ -133,7 +134,7 @@ export function MenuItemComponent({ menu, handleClick }) {
                     to={menu.url || '#'}
                     onClick={() => handleClick(menu)}
                 >
-                    {menu.title}
+                    {translate(menu.title)}
                 </Link>
             </>
         );
@@ -145,7 +146,7 @@ export function MenuItemComponent({ menu, handleClick }) {
                     className='option'
                     onClick={() => handleClick(menu)}
                 >
-                    {menu.title}
+                    {translate(menu.title)}
                 </div>
             </>
         );
