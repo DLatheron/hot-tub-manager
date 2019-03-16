@@ -38,6 +38,15 @@ $transition-duration: 1s;
 
         .top-menu {
             grid-area: top-menu;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            overflow-x: scroll;
+            overflow-x: -moz-scrollbars-none;
+
+            #boks3::-webkit-scrollbar {
+                display: none;
+            }
         }
 
         .profile {

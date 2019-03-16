@@ -123,28 +123,10 @@ MenuItemComponent.propTypes = {
 };
 
 export function MenuItemComponent({ menu, children, handleClick }) {
-    // TODO: To refactor... make DRY.
-
     const { translate } = useContext(LocaleContext);
-    const icon = menu.icon &&
-        <>
-            <div className='iconBackground' />
-            <div className='icon'>{menu.icon}</div>
-        </>;
-
-    if (menu.url) {
-        return (
-            <div
-                key={menu.id}
-                className={classNames(
-                    'item',
-                    menu.active && 'active',
-                    menu.isLeaf() && 'leaf',
-                    menu.classes
-                )}
-            >
-                {icon}
-                <Link
+    const option = menu.option &&
+        menu.url
+            ?   <Link
                     className='option'
                     to={menu.url || '#'}
                     onClick={(event) => {
@@ -154,32 +136,37 @@ export function MenuItemComponent({ menu, children, handleClick }) {
                 >
                     {translate(menu.title)}
                 </Link>
-                {children}
-            </div>
-        );
-    } else {
-        return (
-            <div
-                key={menu.id}
-                className={classNames(
-                    'item',
-                    menu.active && 'active',
-                    menu.isLeaf() && 'leaf',
-                    menu.classes
-                )}
-                onClick={(event) => {
-                    event.stopPropagation();
-                    handleClick(menu);
-                }}
-            >
-                {icon}
-                <div className='option'>
+            :   <div className='option'>
                     {translate(menu.title)}
-                </div>
-                {children}
-            </div>
-        );
-    }
+                </div>;
+    const onClick = !menu.url
+        ?   event => {
+                event.stopPropagation();
+                handleClick(menu);
+            }
+        :   null;
+
+    return (
+        <div
+            className={classNames(
+                'item',
+                menu.active && 'active',
+                menu.isLeaf() && 'leaf',
+                menu.classes
+            )}
+            onClick={onClick}
+        >
+            {
+                menu.icon &&
+                    <>
+                        <div className='iconBackground' />
+                        <div className='icon'>{menu.icon}</div>
+                    </>
+            }
+            {option}
+            {children}
+        </div>
+    );
 }
 
 SubMenuComponent.propTypes = {
@@ -201,26 +188,21 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
             >
                 {
                     menu.subMenu.map(subMenu => {
-                        let subItem;
-
-                        if (subMenu.subMenu && !(subMenu.subMenu instanceof Menu)) {
-                            subItem = (
-                                <SubMenuComponent
-                                    className='menu'
-                                    menu={subMenu}
-                                    handleClick={handleClick}
-                                />
-                            );
-
-                        }
-
                         return (
                             <MenuItemComponent
+                                key={subMenu.id}
                                 className='item subMenu'
                                 menu={subMenu}
                                 handleClick={onClick}
                             >
-                                {subItem}
+                                {
+                                    subMenu.subMenu && !(subMenu.subMenu instanceof Menu) &&
+                                        <SubMenuComponent
+                                            className='menu'
+                                            menu={subMenu}
+                                            handleClick={handleClick}
+                                        />
+                                }
                             </MenuItemComponent>
                         );
                     })

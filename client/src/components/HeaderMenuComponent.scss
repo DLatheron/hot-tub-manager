@@ -301,8 +301,8 @@ $profile-menu-max-height-transition-duration: 0.3s;
 .top-menu {
     .menu {
         background-color: inherit;
-        display: inline-block;
-        padding-inline-start: 0;
+        display: block;
+        width: auto;
 
         .item {
             cursor: pointer;
