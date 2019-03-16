@@ -16,7 +16,9 @@ export class Menu {
         this.url = options.url;
         this.icon = options.icon;
         this.classes = options.classes;
-        this.active = false;
+        this.active = options.active || false;
+        this.selected = options.selected || false;
+        this.disabled = options.disabled || false;
     }
 
     isLeaf() {
@@ -33,6 +35,14 @@ export class Menu {
                 this.subMenu.forEach(subSubMenu => subSubMenu.iterateAll(iterationFn));
             }
         }
+    }
+
+    setProperty(id, propertySettingFn) {
+        this.iterateAll(menu => {
+            if (menu.id === id) {
+                propertySettingFn(menu);
+            }
+        });
     }
 
     iterateMenus(iterationFn) {
@@ -152,6 +162,8 @@ export function MenuItemComponent({ menu, children, handleClick }) {
                 'item',
                 menu.active && 'active',
                 menu.isLeaf() && 'leaf',
+                menu.selected && 'selected',
+                menu.disabled && 'disabled',
                 menu.classes
             )}
             onClick={onClick}

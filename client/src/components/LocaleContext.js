@@ -100,11 +100,13 @@ function translate(key) {
 
 export const Locales = {
     [englishGB]: {
+        countryCode: englishGB,
         translate: translate.bind(Translations[englishGB]),
         translations: Translations[englishGB],
         formatters: Formatters[englishGB]
     },
     [german]: {
+        countryCode: german,
         translate: translate.bind(Translations[german]),
         translations: Translations[german],
         formatters: Formatters[german]

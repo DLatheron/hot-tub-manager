@@ -31,7 +31,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
         background-color: $light-theme-background-color;
 
         .menu {
-            .item {
+            .item:not(.disabled) {
                 .iconBackground {
                     background-color: $light-theme-menu-icon-background-color;
 
@@ -40,11 +40,11 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     }
                 }
 
-                .item:hover {
+                .item:not(.disabled):hover {
                     background-color: $light-theme-hilight-background-color;
                 }
             }
-            .item:hover {
+            .item:not(.disabled):hover {
                 background-color: $light-theme-hilight-background-color;
 
                 >.iconBackground {
@@ -111,7 +111,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
         background-color: $dark-theme-background-color;
 
         .menu {
-            .item {
+            .item:not(.disabled) {
                 .iconBackground {
                     background-color: $dark-theme-menu-icon-background-color;
 
@@ -120,7 +120,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     }
                 }
 
-                .item:hover {
+                .item:not(.disabled):hover {
                     background-color: $dark-theme-hilight-background-color;
 
                     >.icon {
@@ -128,7 +128,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     }
                 }
             }
-            .item:hover {
+            .item:not(.disabled):hover {
                 background-color: $dark-theme-hilight-background-color;
 
                 >.iconBackground {
@@ -232,6 +232,8 @@ $profile-menu-max-height-transition-duration: 0.3s;
             user-select: none;
             list-style-type: none;
             color: $nielsen-blue;
+            font-weight: normal;
+            color: $nielsen-blue;
 
             .iconBackground {
                 grid-area: gutter;
@@ -251,6 +253,14 @@ $profile-menu-max-height-transition-duration: 0.3s;
                 grid-column: menu-option;
                 margin: 8px 16px;
             }
+
+            .selected {
+                font-weight: bold;
+            }
+
+            // .disabled {
+            //     color: grey;
+            // }
         }
 
         .menu-content {

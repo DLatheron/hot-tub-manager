@@ -111,17 +111,35 @@ const handleProfileMenuClick = (menuItem) => {
 
         case 'theme_light':
             console.log('Theme = light');
+
+            profileMenu.setProperty('theme_dark', menu => { menu.selected = menu.disabled = false } );
+            profileMenu.setProperty('theme_light', menu => { menu.selected = menu.disabled = true } );
+
+            store.set({ profileMenu });
             store.set({ theme: Themes.light });
             break;
 
         case 'theme_dark':
             console.log('Theme = dark');
+
+            profileMenu.setProperty('theme_light', menu => { menu.selected = menu.disabled = false } );
+            profileMenu.setProperty('theme_dark', menu => { menu.selected = menu.disabled = true } );
+
+            store.set({ profileMenu });
             store.set({ theme: Themes.dark });
             break;
 
         case 'en-GB':
         case 'dt-DT':
             console.log(`Locale = ${menuItem.id}`);
+
+            const currentLocale = store.state.locale.countryCode;
+            const newLocale = menuItem.id;
+
+            profileMenu.setProperty(currentLocale, menu => { menu.selected = menu.disabled = false } );
+            profileMenu.setProperty(newLocale, menu => { menu.selected = menu.disabled = true } );
+
+            store.set({ profileMenu });
             store.set({ locale: Locales[menuItem.id] });
             break;
 
