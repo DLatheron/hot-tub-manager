@@ -118,37 +118,66 @@ export function ProfileItemComponent({ menu, handleClick, children }) {
 
 MenuItemComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
+    children: PropTypes.element,
     handleClick: PropTypes.func.isRequired
 };
 
-export function MenuItemComponent({ menu, handleClick }) {
+export function MenuItemComponent({ menu, children, handleClick }) {
+    // TODO: To refactor... make DRY.
+
     const { translate } = useContext(LocaleContext);
-    const icon = menu.icon && <div className='icon'>{menu.icon}</div>;
+    const icon = menu.icon &&
+        <>
+            <div className='iconBackground' />
+            <div className='icon'>{menu.icon}</div>
+        </>;
 
     if (menu.url) {
         return (
-            <>
+            <div
+                key={menu.id}
+                className={classNames(
+                    'item',
+                    menu.active && 'active',
+                    menu.isLeaf() && 'leaf',
+                    menu.classes
+                )}
+            >
                 {icon}
                 <Link
                     className='option'
                     to={menu.url || '#'}
-                    onClick={() => handleClick(menu)}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        handleClick(menu);
+                    }}
                 >
                     {translate(menu.title)}
                 </Link>
-            </>
+                {children}
+            </div>
         );
     } else {
         return (
-            <>
+            <div
+                key={menu.id}
+                className={classNames(
+                    'item',
+                    menu.active && 'active',
+                    menu.isLeaf() && 'leaf',
+                    menu.classes
+                )}
+                onClick={(event) => {
+                    event.stopPropagation();
+                    handleClick(menu);
+                }}
+            >
                 {icon}
-                <div
-                    className='option'
-                    onClick={() => handleClick(menu)}
-                >
+                <div className='option'>
                     {translate(menu.title)}
                 </div>
-            </>
+                {children}
+            </div>
         );
     }
 }
@@ -162,7 +191,11 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
     const onClick = (subMenu) => (subMenu.actionFn || handleClick)(subMenu);
 
     return (
-        <div className={classNames('menu', menu.classes, menu.active && 'active')}>
+        <div className={
+            classNames('menu',
+            menu.classes, menu.active && 'active')
+            }
+        >
             <div
                 className='menu-content'
             >
@@ -182,22 +215,13 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
                         }
 
                         return (
-                            <div
-                                key={subMenu.id}
-                                className={classNames(
-                                    'item',
-                                    subMenu.active && 'active',
-                                    subMenu.isLeaf() && 'leaf',
-                                    subMenu.classes
-                                )}
+                            <MenuItemComponent
+                                className='item subMenu'
+                                menu={subMenu}
+                                handleClick={onClick}
                             >
-                                <MenuItemComponent
-                                    className='item subMenu'
-                                    menu={subMenu}
-                                    handleClick={onClick}
-                                />
                                 {subItem}
-                            </div>
+                            </MenuItemComponent>
                         );
                     })
                 }

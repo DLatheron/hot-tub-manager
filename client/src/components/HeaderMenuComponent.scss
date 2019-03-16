@@ -32,22 +32,22 @@ $profile-menu-max-height-transition-duration: 0.3s;
 
         .menu {
             .item {
-                .icon {
+                .iconBackground {
                     background-color: $light-theme-menu-icon-background-color;
+
+                    &:hover {
+                        background-color: $light-theme-menu-icon-hilight-background-color;
+                    }
                 }
 
                 .item:hover {
                     background-color: $light-theme-hilight-background-color;
-
-                    >.icon {
-                        background-color: $light-theme-menu-icon-hilight-background-color;
-                    }
                 }
             }
             .item:hover {
                 background-color: $light-theme-hilight-background-color;
 
-                >.icon {
+                >.iconBackground {
                     background-color: $light-theme-menu-icon-hilight-background-color;
                 }
             }
@@ -112,8 +112,12 @@ $profile-menu-max-height-transition-duration: 0.3s;
 
         .menu {
             .item {
-                .icon {
+                .iconBackground {
                     background-color: $dark-theme-menu-icon-background-color;
+
+                    &:hover {
+                        background-color: $dark-theme-menu-icon-hilight-background-color;
+                    }
                 }
 
                 .item:hover {
@@ -127,7 +131,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
             .item:hover {
                 background-color: $dark-theme-hilight-background-color;
 
-                >.icon {
+                >.iconBackground {
                     background-color: $dark-theme-menu-icon-hilight-background-color;
                 }
             }
@@ -229,9 +233,16 @@ $profile-menu-max-height-transition-duration: 0.3s;
             list-style-type: none;
             color: $nielsen-blue;
 
+            .iconBackground {
+                grid-area: gutter;
+                padding: 0;
+                margin: 0;
+                pointer-events: none;
+            }
+
             .icon {
                 grid-area: gutter;
-                padding: 10px 16px;
+                margin: auto;
                 font-family: "Font Awesome 5 Free";
                 font-weight: 900;
                 text-align: center;
