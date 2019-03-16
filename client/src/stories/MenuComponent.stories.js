@@ -56,16 +56,16 @@ const sideMenu = [
 ];
 
 const profileMenu = new Menu('profile', { classes: ['menu' ], subMenu: [
-    new Menu('toggle_locale', { title: 'Locale', icon: '\uf0d9', subMenu: [
-        new Menu('en-GB', { title: 'English', icon: 'GB' }),
-        new Menu('dt-DT', { title: 'German', icon: 'DT' }),
+    new Menu('toggle_locale', { title: 'menus.profile.language', icon: '\uf0d9', subMenu: [
+        new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB' }),
+        new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT' }),
     ]}),
-    new Menu('toggle_theme', { title: 'Theme', icon: '\uf0d9', subMenu: [
-        new Menu('theme_light', { title: 'Light', icon: '\uf185' }),
-        new Menu('theme_dark', { title: 'Dark', icon: '\uf186' }),
+    new Menu('toggle_theme', { title: 'menus.profile.theme', icon: '\uf0d9', subMenu: [
+        new Menu('theme_light', { title: 'menus.profile.light', icon: '\uf185' }),
+        new Menu('theme_dark', { title: 'menus.profile.dark', icon: '\uf186' }),
     ]}),
     new Menu('separator', { title: '', classes: ['separator'] }),
-    new Menu('logout', { title: 'Logout', icon: '\uf2f5' }),
+    new Menu('logout', { title: 'menus.profile.logout', icon: '\uf2f5' }),
 ]});
 
 const store = new Store({
@@ -137,6 +137,8 @@ const handleProfileMenuClick = (menuItem) => {
 }
 
 function MainMenu(props) {
+    const { translations } = props.locale;
+
     const sideBarRef = useRef(null);
 
     // HACK: To ensure we capture the width of the side panel exactly once, and only
@@ -238,10 +240,10 @@ function MainMenu(props) {
                             <div
                                 className='body'
                             >
-                                <p>Body content goes here.</p>
+                                <p>{translations.bodyContent}</p>
                             </div>
                             <div className='footer'>
-                                <p>Copyright message goes here...</p>
+                                <p>{translations.copyright}</p>
                             </div>
                         </div>
                     </UserContext.Provider>

@@ -30,9 +30,19 @@ export const Translations = {
                 kpis: 'KPIs',
                 milestones: 'Milestones',
                 simple: 'Simple'
+            },
+            profile: {
+                language: 'Language',
+                theme: 'Theme',
+                logout: 'Logout',
+                light: 'Light',
+                dark: 'Dark',
+                en_GB: 'English',
+                dt_DT: 'German'
             }
         },
-        copyright: '© Copyright 2019, Nielsen Media Inc, All Rights Reserved.'
+        copyright: '© Copyright 2019, Nielsen Media Inc, All Rights Reserved.',
+        bodyContent: 'Body content goes here.'
     },
     [german]: {
         menus: {
@@ -59,9 +69,19 @@ export const Translations = {
                 kpis: 'Leistungsindikatoren',
                 milestones: 'Meilensteine',
                 simple: 'Einfach'
+            },
+            profile: {
+                language: 'Sprache',
+                theme: 'Thema',
+                logout: 'Ausloggen',
+                light: 'Licht',
+                dark: 'Dunkel',
+                en_GB: 'Englisch',
+                dt_DT: 'Deutsche'
             }
         },
-        copyright: '© Copyright 2019, Nielsen Media Inc., Alle Rechte vorbehalten.'
+        copyright: '© Copyright 2019, Nielsen Media Inc., Alle Rechte vorbehalten.',
+        bodyContent: 'Körperlicher Inhalt geht hier.'
     }
 };
 
