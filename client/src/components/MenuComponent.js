@@ -134,27 +134,10 @@ MenuItemComponent.propTypes = {
 
 export function MenuItemComponent({ menu, children, handleClick }) {
     const { translate } = useContext(LocaleContext);
-    const option = menu.option &&
-        menu.url
-            ?   <Link
-                    className='option'
-                    to={menu.url || '#'}
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        handleClick(menu);
-                    }}
-                >
-                    {translate(menu.title)}
-                </Link>
-            :   <div className='option'>
-                    {translate(menu.title)}
-                </div>;
-    const onClick = !menu.url
-        ?   event => {
-                event.stopPropagation();
-                handleClick(menu);
-            }
-        :   null;
+    const onClick = (event) => {
+        event.stopPropagation();
+        handleClick(menu);
+    };
 
     return (
         <div
@@ -175,7 +158,19 @@ export function MenuItemComponent({ menu, children, handleClick }) {
                         <div className='icon'>{menu.icon}</div>
                     </>
             }
-            {option}
+            {
+                menu.option && menu.url
+                    ?   <Link
+                            className='option'
+                            to={menu.url || '#'}
+                            onClick={onClick}
+                        >
+                            {translate(menu.title)}
+                        </Link>
+                    :   <div className='option'>
+                            {translate(menu.title)}
+                        </div>
+            }
             {children}
         </div>
     );

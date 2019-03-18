@@ -92,7 +92,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     }
                 }
             }
-            .item .item.active {
+            .item.active.leaf {
                 background-color: $nielsen-blue;
                 color: white;
 
@@ -176,7 +176,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
                     }
                 }
             }
-            .item .item.active {
+            .item.active.leaf {
                 background-color: $nielsen-blue;
                 color: white;
 

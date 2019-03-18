@@ -42,11 +42,16 @@ $transition-duration: 1s;
             white-space: nowrap;
             overflow: hidden;
             overflow-x: scroll;
-            overflow-x: -moz-scrollbars-none;
+        }
 
-            #boks3::-webkit-scrollbar {
-                display: none;
-            }
+        .top-menu {
+            /* This is the magic bit for Firefox */
+            scrollbar-width: none;
+        }
+
+        .top-menu::-webkit-scrollbar {
+            /* This is the magic bit for WebKit */
+            display: none;
         }
 
         .profile {
