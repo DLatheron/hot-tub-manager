@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Link } from "react-router-dom";
 import classNames from 'classnames';
 import _ from 'lodash';
+import uuidv1 from  'uuid/v1';
 
 import { UserContext } from './UserContext';
 import { LocaleContext } from './LocaleContext';
@@ -44,6 +45,10 @@ export class Menu {
                 propertySettingFn(menu);
             }
         });
+    }
+
+    setSelected(id, value) {
+        this.setProperty(id, item => item.selected = value);
     }
 
     iterateMenus(iterationFn) {
@@ -103,6 +108,18 @@ export class Menu {
     }
 }
 
+export class Separator extends Menu {
+    constructor() {
+        super(
+            `separator_${uuidv1()}`,
+            {
+                classes: ['separator'],
+                disabled: true
+            }
+        );
+    }
+}
+
 ProfileItemComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
     handleClick: PropTypes.func.isRequired,
@@ -135,10 +152,14 @@ MenuItemComponent.propTypes = {
 
 export function MenuItemComponent({ menu, children, handleClick }) {
     const { translate } = useContext(LocaleContext);
-    const onClick = (event) => {
-        event.stopPropagation();
-        handleClick(menu);
-    };
+    const onClick = (!menu.disabled && !menu.selected)
+        ?   (event) => {
+                event.stopPropagation();
+                handleClick(menu);
+            }
+        :   (event) => {
+                event.stopPropagation();
+            };
 
     return (
         <div

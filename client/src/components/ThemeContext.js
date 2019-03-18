@@ -1,18 +1,20 @@
 import React from 'react';
 
+import scssTheme from './Themes.scss';
+
 export const Themes = {
     light: {
         className: 'theme-light',
         color: {
-            background: 'white',
-            text: 'black',
+            background: scssTheme.lightTheme_BackgroundColor,
+            text: scssTheme.lightTheme_TextColor,
         }
     },
     dark: {
         className: 'theme-dark',
         color: {
-            background: '#333',
-            text: 'white',
+            background: scssTheme.darkTheme_BackgroundColor,
+            text: scssTheme.darkTheme_TextColor,
         }
     }
 };

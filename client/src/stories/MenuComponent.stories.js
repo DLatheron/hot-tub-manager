@@ -4,16 +4,15 @@ import { storiesOf } from '@storybook/react';
 import { BrowserRouter as Router } from "react-router-dom";
 import classNames from 'classnames';
 
-import MenuComponent, { Menu, ProfileItemComponent } from '../components/MenuComponent';
+import MenuComponent, { Menu, Separator, ProfileItemComponent } from '../components/MenuComponent';
 import { ThemeContext, Themes } from '../components/ThemeContext';
 import { UserContext, User } from '../components/UserContext';
 import { LocaleContext, Locales } from '../components/LocaleContext';
 import '../components/App.scss';
-// import '../components/MenuComponent.scss';
 import '../components/HeaderMenuComponent.scss';
 import '../../node_modules/@fortawesome/free-solid-svg-icons/'
 
-const creativeMenu = new Menu('creative', { classes: ['menu'], subMenu: [
+const creativeMenu = new Menu('creative', { subMenu: [
     new Menu('creative_uas', { title: 'menus.creative.uas', subMenu: [
         new Menu('creative_uas_import', { title: 'menus.creative.import', url: '/iframe.html/creative/import' }),
         new Menu('creative_uas_adHarvesting', { title: 'menus.creative.harvesting', url: '/iframe.html/creative/harvesting' }),
@@ -22,31 +21,31 @@ const creativeMenu = new Menu('creative', { classes: ['menu'], subMenu: [
     ]})
 ]});
 
-const reportingMenu = new Menu('reporting', { classes: ['menu'], subMenu: [
-    new Menu('internal', { title: 'menus.reporting.internal', classes: [], subMenu: [
+const reportingMenu = new Menu('reporting', { subMenu: [
+    new Menu('internal', { title: 'menus.reporting.internal', subMenu: [
         new Menu('reporting_internal_dashboard', { title: 'menus.reporting.dashboard' }),
         new Menu('reporting_internal_kpis', { title: 'menus.reporting.kpis' }),
         new Menu('reporting_internal_milestones', { title: 'menus.reporting.milestones' })
     ]}),
-    new Menu('device-partner', { title: 'menus.reporting.devicePartner', classes: [], subMenu: [
+    new Menu('device-partner', { title: 'menus.reporting.devicePartner', subMenu: [
         new Menu('reporting_device-partner_dashboard', { title: 'menus.reporting.dashboard' }),
         new Menu('reporting_device-partner_kpis', { title: 'menus.reporting.kpis' }),
         new Menu('reporting_device-partner_milestones', { title: 'menus.reporting.milestones' })
     ]}),
 ]});
 
-const adminMenu = new Menu('admin', { classes: ['menu'], subMenu: [
+const adminMenu = new Menu('admin', { subMenu: [
     new Menu('admin_devices', { title: 'menus.headers.devices' }),
     new Menu('admin_channels', { title: 'menus.headers.channels' }),
     new Menu('admin_uas', { title: 'menus.creative.uas' })
 ]});
 
-const menu = new Menu('main', { classes: ['menu'], subMenu: [
-    new Menu('creative', { title: 'menus.headers.creative', classes: [] }),
-    new Menu('reporting', { title: 'menus.headers.reporting', classes: [] }),
-    new Menu('channels', { title: 'menus.headers.channels', classes: [] }),
-    new Menu('devices', { title: 'menus.headers.devices', classes: [] }),
-    new Menu('admin', { title: 'menus.headers.admin', classes: [] })
+const menu = new Menu('main', { subMenu: [
+    new Menu('creative', { title: 'menus.headers.creative' }),
+    new Menu('reporting', { title: 'menus.headers.reporting' }),
+    new Menu('channels', { title: 'menus.headers.channels' }),
+    new Menu('devices', { title: 'menus.headers.devices' }),
+    new Menu('admin', { title: 'menus.headers.admin' })
 ]});
 
 const sideMenu = [
@@ -55,16 +54,16 @@ const sideMenu = [
     adminMenu
 ];
 
-const profileMenu = new Menu('profile', { classes: ['menu' ], subMenu: [
+const profileMenu = new Menu('profile', { subMenu: [
     new Menu('toggle_locale', { title: 'menus.profile.language', icon: '\uf0d9', subMenu: [
         new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB', selectable: true }),
         new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT', selectable: true }),
     ]}),
     new Menu('toggle_theme', { title: 'menus.profile.theme', icon: '\uf0d9', subMenu: [
-        new Menu('theme_light', { title: 'menus.profile.light', icon: '\uf185', selectable: true }),
-        new Menu('theme_dark', { title: 'menus.profile.dark', icon: '\uf186', selectable: true }),
+        new Menu('theme-light', { title: 'menus.profile.light', icon: '\uf185', selectable: true }),
+        new Menu('theme-dark', { title: 'menus.profile.dark', icon: '\uf186', selectable: true }),
     ]}),
-    new Menu('separator', { title: '', classes: ['separator'] }),
+    new Separator(),
     new Menu('logout', { title: 'menus.profile.logout', icon: '\uf2f5' }),
 ]});
 
@@ -73,10 +72,14 @@ const store = new Store({
     sideMenu,
     hideSideMenu: false,
     profileMenu,
+    profileMenuOpen: false,
     user: User,
     theme: Themes.dark,
     locale: Locales['dt-DT']
 });
+
+profileMenu.setSelected(store.get('locale').countryCode, true);
+profileMenu.setSelected(store.get('theme').className, true);
 
 const handleClick = (menuItem) => {
     menu.setActiveItem(menuItem.id);
@@ -105,42 +108,54 @@ const handleSideMenuClick = (menuItem) => {
 
 const handleProfileMenuClick = (menuItem) => {
     switch (menuItem.id) {
-        case 'logout':
-            store.set({ user: null })
+        case 'profile':
+            if (!store.get('user')) {
+                store.set({ user: User });
+            } else {
+                store.set({ profileMenuOpen: !store.get('profileMenuOpen') });
+            }
             break;
 
-        case 'theme_light':
+        case 'logout':
+            store.set({ user: null })
+            store.set({ profileMenuOpen: false });
+            break;
+
+        case 'theme-light':
             console.log('Theme = light');
 
-            profileMenu.setProperty('theme_dark', menu => { menu.selected = menu.disabled = false } );
-            profileMenu.setProperty('theme_light', menu => { menu.selected = menu.disabled = true } );
+            profileMenu.setSelected('theme-dark', false);
+            profileMenu.setSelected('theme-light', true);
 
             store.set({ profileMenu });
             store.set({ theme: Themes.light });
+            // store.set({ profileMenuOpen: false });
             break;
 
-        case 'theme_dark':
+        case 'theme-dark':
             console.log('Theme = dark');
 
-            profileMenu.setProperty('theme_light', menu => { menu.selected = menu.disabled = false } );
-            profileMenu.setProperty('theme_dark', menu => { menu.selected = menu.disabled = true } );
+            profileMenu.setSelected('theme-light', false);
+            profileMenu.setSelected('theme-dark', true);
 
             store.set({ profileMenu });
             store.set({ theme: Themes.dark });
+            // store.set({ profileMenuOpen: false });
             break;
 
         case 'en-GB':
         case 'dt-DT':
             console.log(`Locale = ${menuItem.id}`);
 
-            const currentLocale = store.state.locale.countryCode;
+            const currentLocale = store.get('locale').countryCode;
             const newLocale = menuItem.id;
 
-            profileMenu.setProperty(currentLocale, menu => { menu.selected = menu.disabled = false } );
-            profileMenu.setProperty(newLocale, menu => { menu.selected = menu.disabled = true } );
+            profileMenu.setSelected(currentLocale, false);
+            profileMenu.setSelected(newLocale, true);
 
             store.set({ profileMenu });
             store.set({ locale: Locales[menuItem.id] });
+            // store.set({ profileMenuOpen: false });
             break;
 
         default:
@@ -203,7 +218,9 @@ function MainMenu(props) {
                                         menu={props.profileMenu}
                                         handleClick={handleProfileMenuClick}
                                     >
-                                        <div className='profile-menu'>
+                                        <div
+                                            className={classNames('profile-menu', props.profileMenuOpen && 'open')}
+                                        >
                                             <MenuComponent
                                                 menu={props.profileMenu}
                                                 handleClick={handleProfileMenuClick}

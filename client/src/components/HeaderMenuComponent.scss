@@ -1,19 +1,20 @@
-$nielsen-blue: #01adee;
+@import './Themes.scss';
+
 $nielsen-blue-hilight: lighten($color: $nielsen-blue, $amount: 20);
 
-$light-theme-background-color: white;
-$light-theme-menu-icon-background-color: #f0f0f0;
-$light-theme-hilight-background-color: darken($color: $light-theme-background-color, $amount: 10);
+$light-theme-menu-icon-background-color: darken($color: $lightTheme_BackgroundColor, $amount: 10);
+$light-theme-hilight-background-color: darken($color: $lightTheme_BackgroundColor, $amount: 10);
 $light-theme-menu-icon-hilight-background-color: darken($color: $light-theme-menu-icon-background-color, $amount: 10);
 
-$dark-theme-background-color: #333;
-$dark-theme-menu-icon-background-color: #282828;
-$dark-theme-hilight-background-color: lighten($color: $dark-theme-background-color, $amount: 10);
+$dark-theme-menu-icon-background-color: darken($color: $darkTheme_BackgroundColor, $amount: 5);
+$dark-theme-hilight-background-color: lighten($color: $darkTheme_BackgroundColor, $amount: 10);
 $dark-theme-menu-icon-hilight-background-color: lighten($color: $dark-theme-menu-icon-background-color, $amount: 10);
 
 $max-height-transition-duration: 0.75s;
 $opacity-transition-duration: 1s;
+
 $profile-menu-max-height-transition-duration: 0.3s;
+$profile-menu-opacity-transition-duration: 0.5s;
 
 .menu {
     .option {
@@ -28,7 +29,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
 
 .theme-light {
     .profile-menu {
-        background-color: $light-theme-background-color;
+        background-color: $lightTheme_BackgroundColor;
 
         .menu {
             .item:not(.disabled) {
@@ -52,7 +53,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
                 }
             }
             .item .menu {
-                background-color: $light-theme-background-color;
+                background-color: $lightTheme_BackgroundColor;
             }
         }
     }
@@ -75,7 +76,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
         }
     }
     .side-menu-container {
-        background-color: $light-theme-background-color;
+        background-color: $lightTheme_BackgroundColor;
 
         .menu {
             .item {
@@ -108,7 +109,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
 
 .theme-dark {
     .profile-menu {
-        background-color: $dark-theme-background-color;
+        background-color: $darkTheme_BackgroundColor;
 
         .menu {
             .item:not(.disabled) {
@@ -136,7 +137,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
                 }
             }
             .item .menu {
-                background-color: $dark-theme-background-color;
+                background-color: $darkTheme_BackgroundColor;
             }
         }
     }
@@ -159,7 +160,7 @@ $profile-menu-max-height-transition-duration: 0.3s;
         }
     }
     .side-menu-container {
-        background-color: $dark-theme-background-color;
+        background-color: $darkTheme_BackgroundColor;
 
         .menu {
             .item {
@@ -212,6 +213,8 @@ $profile-menu-max-height-transition-duration: 0.3s;
     position: absolute;
     right: 0;
     padding: 0;
+    opacity: 0;
+    transition: opacity $profile-menu-opacity-transition-duration;
 
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
@@ -317,6 +320,10 @@ $profile-menu-max-height-transition-duration: 0.3s;
         transition: max-height 1s;
     }
 }
+.profile-menu.open {
+    opacity: 1;
+    transition: opacity $profile-menu-opacity-transition-duration;
+}
 
 .top-menu {
     .menu {
@@ -391,7 +398,9 @@ $profile-menu-max-height-transition-duration: 0.3s;
 
         .item:not(.leaf) {
             .option:before {
-                content: '+';
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                content: '\f0d7';
                 display: inline-block;
                 margin-left: 0px;
                 margin-right: 8px;
@@ -400,7 +409,9 @@ $profile-menu-max-height-transition-duration: 0.3s;
 
         .item.leaf {
             .option:before {
-                content: '-';
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                content: '\f0da';
                 display: inline-block;
                 margin-left: 0px;
                 margin-right: 8px;
