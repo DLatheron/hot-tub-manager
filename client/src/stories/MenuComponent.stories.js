@@ -12,32 +12,47 @@ import '../components/App.scss';
 import '../components/HeaderMenuComponent.scss';
 import '../../node_modules/@fortawesome/free-solid-svg-icons/'
 
+const icons = {
+    none: '\u0020',
+    uas: '\uf03d',          // fa-video
+    channels: '\uf0cb',     // fa-list-ol
+    devices: '\uf26c',      // fa-tv
+    creative: '\uf1fc',     // fa-paint-brush
+    harvesting: '\uf565',   // fa-crop-alt
+    metadata: '\uf0ca',     // fa-list-ul
+    approval: '\uf0ae',     // fa-tasks
+    reports: '\uf080',      // fa-chart-bar
+    dashboard: '\uf3fd',    // fa-tachometer-alt
+    kpis: '\uf084',         // fa-key
+    milestones: '\uf140',   // fa-bullseye
+};
+
 const creativeMenu = new Menu('creative', { subMenu: [
-    new Menu('creative_uas', { title: 'menus.creative.uas', subMenu: [
-        new Menu('creative_uas_import', { title: 'menus.creative.import', url: '/iframe.html/creative/import' }),
-        new Menu('creative_uas_adHarvesting', { title: 'menus.creative.harvesting', url: '/iframe.html/creative/harvesting' }),
-        new Menu('creative_uas_metadataQueue', { title: 'menus.creative.metadata', url: '/iframe.html/creative/metadata' }),
-        new Menu('creative_uas_approvalQueue', { title: 'menus.creative.approval', url: '/iframe.html/creative/approval' })
+    new Menu('creative_uas', { title: 'menus.creative.uas', icon: icons.creative, subMenu: [
+        new Menu('creative_uas_import', { title: 'menus.creative.import', icon: icons.uas, url: '/iframe.html/creative/import' }),
+        new Menu('creative_uas_adHarvesting', { title: 'menus.creative.harvesting', icon: icons.harvesting, url: '/iframe.html/creative/harvesting' }),
+        new Menu('creative_uas_metadataQueue', { title: 'menus.creative.metadata', icon: icons.metadata, url: '/iframe.html/creative/metadata' }),
+        new Menu('creative_uas_approvalQueue', { title: 'menus.creative.approval', icon: icons.approval, url: '/iframe.html/creative/approval' })
     ]})
 ]});
 
 const reportingMenu = new Menu('reporting', { subMenu: [
-    new Menu('internal', { title: 'menus.reporting.internal', subMenu: [
-        new Menu('reporting_internal_dashboard', { title: 'menus.reporting.dashboard' }),
-        new Menu('reporting_internal_kpis', { title: 'menus.reporting.kpis' }),
-        new Menu('reporting_internal_milestones', { title: 'menus.reporting.milestones' })
+    new Menu('internal', { title: 'menus.reporting.internal', icon: icons.reports, subMenu: [
+        new Menu('reporting_internal_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard }),
+        new Menu('reporting_internal_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis }),
+        new Menu('reporting_internal_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones })
     ]}),
-    new Menu('device-partner', { title: 'menus.reporting.devicePartner', subMenu: [
-        new Menu('reporting_device-partner_dashboard', { title: 'menus.reporting.dashboard' }),
-        new Menu('reporting_device-partner_kpis', { title: 'menus.reporting.kpis' }),
-        new Menu('reporting_device-partner_milestones', { title: 'menus.reporting.milestones' })
+    new Menu('device-partner', { title: 'menus.reporting.devicePartner', icon: icons.reports, subMenu: [
+        new Menu('reporting_device-partner_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard }),
+        new Menu('reporting_device-partner_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis }),
+        new Menu('reporting_device-partner_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones })
     ]}),
 ]});
 
 const adminMenu = new Menu('admin', { subMenu: [
-    new Menu('admin_devices', { title: 'menus.headers.devices' }),
-    new Menu('admin_channels', { title: 'menus.headers.channels' }),
-    new Menu('admin_uas', { title: 'menus.creative.uas' })
+    new Menu('admin_devices', { title: 'menus.headers.devices', icon: icons.devices }),
+    new Menu('admin_channels', { title: 'menus.headers.channels', icon: icons.channels }),
+    new Menu('admin_uas', { title: 'menus.creative.uas', icon: icons.uas })
 ]});
 
 const menu = new Menu('main', { subMenu: [

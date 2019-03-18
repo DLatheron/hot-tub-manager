@@ -165,8 +165,8 @@ export function MenuItemComponent({ menu, children, handleClick }) {
         <div
             className={classNames(
                 'item',
-                menu.active && 'active',
-                menu.isLeaf() && 'leaf',
+                menu.active ? 'active' : 'inactive',
+                menu.isLeaf() ? 'leaf' : 'subMenu',
                 menu.selected && 'selected',
                 menu.selectable && 'selectable',
                 menu.disabled && 'disabled',

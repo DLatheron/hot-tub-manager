@@ -32,7 +32,7 @@ $profile-menu-opacity-transition-duration: 0.5s;
         background-color: $lightTheme_BackgroundColor;
 
         .menu {
-            .item:not(.disabled) {
+            .item:not(.disabled):not(.selected) {
                 .iconBackground {
                     background-color: $light-theme-menu-icon-background-color;
 
@@ -41,11 +41,11 @@ $profile-menu-opacity-transition-duration: 0.5s;
                     }
                 }
 
-                .item:not(.disabled):hover {
+                .item:not(.disabled):not(.selected):hover {
                     background-color: $light-theme-hilight-background-color;
                 }
             }
-            .item:not(.disabled):hover {
+            .item:not(.disabled):not(.selected):hover {
                 background-color: $light-theme-hilight-background-color;
 
                 >.iconBackground {
@@ -80,26 +80,30 @@ $profile-menu-opacity-transition-duration: 0.5s;
 
         .menu {
             .item {
-                .option {
-                    &:hover {
-                        background-color: $nielsen-blue-hilight;
-                    }
-                }
-            }
-            .item {
-                .option {
-                    &:hover {
-                        background-color: $light-theme-hilight-background-color;
-                    }
+                background-color: $lightTheme_BackgroundColor;
+
+                &:hover {
+                    background-color: $light-theme-hilight-background-color;
                 }
             }
             .item.active.leaf {
                 background-color: $nielsen-blue;
                 color: white;
 
-                .option {
+                &:hover {
+                    background-color: $nielsen-blue-hilight;
+                }
+            }
+            .item.active.subMenu {
+                background-color: $lightTheme_BackgroundColor;
+
+                .menu {
+                    background-color: $lightTheme_BackgroundColor;
+                }
+
+                .menu-content {
                     &:hover {
-                        background-color: $nielsen-blue-hilight;
+                        background-color: $light-theme-hilight-background-color;
                     }
                 }
             }
@@ -164,26 +168,30 @@ $profile-menu-opacity-transition-duration: 0.5s;
 
         .menu {
             .item {
-                .option {
-                    &:hover {
-                        background-color: $nielsen-blue-hilight;
-                    }
-                }
-            }
-            .item {
-                .option {
-                    &:hover {
-                        background-color: $dark-theme-hilight-background-color;
-                    }
+                background-color: $darkTheme_BackgroundColor;
+
+                &:hover {
+                    background-color: $dark-theme-hilight-background-color;
                 }
             }
             .item.active.leaf {
                 background-color: $nielsen-blue;
                 color: white;
 
-                .option {
+                &:hover {
+                    background-color: $nielsen-blue-hilight;
+                }
+            }
+            .item.active.subMenu {
+                background-color: $darkTheme_BackgroundColor;
+
+                .menu {
+                    background-color: $darkTheme_BackgroundColor;
+                }
+
+                .menu-content {
                     &:hover {
-                        background-color: $nielsen-blue-hilight;
+                        background-color: $dark-theme-hilight-background-color;
                     }
                 }
             }
@@ -394,26 +402,50 @@ $profile-menu-opacity-transition-duration: 0.5s;
                 transition: max-height $max-height-transition-duration;
             }
 
-        }
+            .iconBackground {
+                display: inline;
+            }
 
-        .item:not(.leaf) {
-            .option:before {
+            .icon {
+                display: inline;
                 font-family: "Font Awesome 5 Free";
                 font-weight: 900;
-                content: '\f0d7';
+            }
+
+            .option {
+                display: inline;
+            }
+        }
+
+        .item.subMenu {
+            >.icon:before {
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                content: '\f0fe';   // plus-square.
                 display: inline-block;
-                margin-left: 0px;
+                margin-left: 8px;
+                margin-right: 8px;
+            }
+        }
+
+        .item.active.subMenu {
+            >.icon:before {
+                font-family: "Font Awesome 5 Free";
+                font-weight: 900;
+                content: '\f146';   // minus-square.
+                display: inline-block;
+                margin-left: 8px;
                 margin-right: 8px;
             }
         }
 
         .item.leaf {
-            .option:before {
+            >.icon:before {
                 font-family: "Font Awesome 5 Free";
                 font-weight: 900;
-                content: '\f0da';
+                content: '\f0da';   // caret-right.
                 display: inline-block;
-                margin-left: 0px;
+                margin-left: 8px;
                 margin-right: 8px;
             }
         }
