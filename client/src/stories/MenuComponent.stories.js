@@ -57,12 +57,12 @@ const sideMenu = [
 
 const profileMenu = new Menu('profile', { classes: ['menu' ], subMenu: [
     new Menu('toggle_locale', { title: 'menus.profile.language', icon: '\uf0d9', subMenu: [
-        new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB' }),
-        new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT' }),
+        new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB', selectable: true }),
+        new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT', selectable: true }),
     ]}),
     new Menu('toggle_theme', { title: 'menus.profile.theme', icon: '\uf0d9', subMenu: [
-        new Menu('theme_light', { title: 'menus.profile.light', icon: '\uf185' }),
-        new Menu('theme_dark', { title: 'menus.profile.dark', icon: '\uf186' }),
+        new Menu('theme_light', { title: 'menus.profile.light', icon: '\uf185', selectable: true }),
+        new Menu('theme_dark', { title: 'menus.profile.dark', icon: '\uf186', selectable: true }),
     ]}),
     new Menu('separator', { title: '', classes: ['separator'] }),
     new Menu('logout', { title: 'menus.profile.logout', icon: '\uf2f5' }),

@@ -18,6 +18,7 @@ export class Menu {
         this.classes = options.classes;
         this.active = options.active || false;
         this.selected = options.selected || false;
+        this.selectable = options.selectable || false;
         this.disabled = options.disabled || false;
     }
 
@@ -146,6 +147,7 @@ export function MenuItemComponent({ menu, children, handleClick }) {
                 menu.active && 'active',
                 menu.isLeaf() && 'leaf',
                 menu.selected && 'selected',
+                menu.selectable && 'selectable',
                 menu.disabled && 'disabled',
                 menu.classes
             )}

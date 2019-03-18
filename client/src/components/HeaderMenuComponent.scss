@@ -254,13 +254,23 @@ $profile-menu-max-height-transition-duration: 0.3s;
                 margin: 8px 16px;
             }
 
-            .selected {
-                font-weight: bold;
+            .selectable {
+                .option:before {
+                    font-family: "Font Awesome 5 Free";
+                    font-weight: 900;
+                    padding-right: 24px;
+                    content: ''
+                }
             }
 
-            // .disabled {
-            //     color: grey;
-            // }
+            .selected {
+                .option:before {
+                    font-family: "Font Awesome 5 Free";
+                    font-weight: 900;
+                    padding-right: 8px;
+                    content: '\f00c'
+                }
+            }
         }
 
         .menu-content {
