@@ -16,6 +16,10 @@ $opacity-transition-duration: 1s;
 $profile-menu-max-height-transition-duration: 0.3s;
 $profile-menu-opacity-transition-duration: 0.5s;
 
+$icon-font: "Font Awesome 5 Free";
+$icon-font-weight: bold;
+$icon-font-size: 16px;
+
 .menu {
     .option {
         color: inherit;
@@ -256,29 +260,32 @@ $profile-menu-opacity-transition-duration: 0.5s;
             .icon {
                 grid-area: gutter;
                 margin: auto;
-                font-family: "Font Awesome 5 Free";
-                font-weight: 900;
+                font-family: $icon-font;
+                font-weight: $icon-font-weight;
+                font-size: $icon-font-size;
                 text-align: center;
             }
             .option {
                 grid-column: menu-option;
-                margin: 8px 16px;
+                margin: 8px 8px;
             }
 
             .selectable {
                 .option:before {
-                    font-family: "Font Awesome 5 Free";
-                    font-weight: 900;
-                    padding-right: 24px;
+                    font-family: $icon-font;
+                    font-weight: $icon-font-weight;
+                    font-size: $icon-font-size;
+                    padding-right: 26px;
                     content: ''
                 }
             }
 
             .selected {
                 .option:before {
-                    font-family: "Font Awesome 5 Free";
-                    font-weight: 900;
-                    padding-right: 8px;
+                    font-family: $icon-font;
+                    font-weight: $icon-font-weight;
+                    font-size: $icon-font-size;
+                    padding-right: 10px;
                     content: '\f00c'
                 }
             }
@@ -389,6 +396,7 @@ $profile-menu-opacity-transition-duration: 0.5s;
             user-select: none;
             list-style-type: none;
             display: block;
+            padding: 4px;
 
             color: $nielsen-blue;
             overflow: hidden;
@@ -408,8 +416,9 @@ $profile-menu-opacity-transition-duration: 0.5s;
 
             .icon {
                 display: inline;
-                font-family: "Font Awesome 5 Free";
-                font-weight: 900;
+                font-family: $icon-font;
+                font-weight: $icon-font-weight;
+                font-size: $icon-font-size;
             }
 
             .option {
@@ -419,8 +428,9 @@ $profile-menu-opacity-transition-duration: 0.5s;
 
         .item.subMenu {
             >.icon:before {
-                font-family: "Font Awesome 5 Free";
+                font-family: $icon-font;
                 font-weight: 900;
+                font-size: $icon-font-size;
                 content: '\f0fe';   // plus-square.
                 display: inline-block;
                 margin-left: 8px;
@@ -430,8 +440,9 @@ $profile-menu-opacity-transition-duration: 0.5s;
 
         .item.active.subMenu {
             >.icon:before {
-                font-family: "Font Awesome 5 Free";
+                font-family: $icon-font;
                 font-weight: 900;
+                font-size: $icon-font-size;
                 content: '\f146';   // minus-square.
                 display: inline-block;
                 margin-left: 8px;
@@ -441,8 +452,9 @@ $profile-menu-opacity-transition-duration: 0.5s;
 
         .item.leaf {
             >.icon:before {
-                font-family: "Font Awesome 5 Free";
+                font-family: $icon-font;
                 font-weight: 900;
+                font-size: $icon-font-size;
                 content: '\f0da';   // caret-right.
                 display: inline-block;
                 margin-left: 8px;
