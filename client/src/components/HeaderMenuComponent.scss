@@ -63,13 +63,13 @@ $icon-font-size: 16px;
     }
     .top-menu {
         .menu {
-            .item:not(.active) {
+            .item:not(.selected) {
                 &:hover {
                     background-color: $light-theme-hilight-background-color;
                 }
             }
 
-            .item.active {
+            .item.selected {
                 color: white;
                 background-color: $nielsen-blue;
 
@@ -128,13 +128,13 @@ $icon-font-size: 16px;
     }
     .top-menu {
         .menu {
-            .item:not(.active) {
+            .item:not(.selected) {
                 &:hover {
                     background-color: $dark-theme-hilight-background-color;
                 }
             }
 
-            .item.active {
+            .item.selected {
                 color: white;
                 background-color: $nielsen-blue;
 
@@ -145,7 +145,7 @@ $icon-font-size: 16px;
         }
     }
     .side-menu-container {
-        background-color: $dark-theme-hilight-background-color;
+        background-color: $darkTheme_BackgroundColor;
 
         .item-content:not(.selected) {
             background-color: $darkTheme_BackgroundColor;
@@ -408,9 +408,19 @@ $icon-font-size: 16px;
         margin: 4px;
         overflow: hidden;
         color: $nielsen-blue;
+    }
+
+    >.menu.hidden {
         pointer-events: none;
 
         opacity: 0;
+        transition: opacity $opacity-transition-duration;
+    }
+
+    >.menu.visible {
+        pointer-events: initial;
+
+        opacity: 1;
         transition: opacity $opacity-transition-duration;
     }
 
@@ -438,11 +448,5 @@ $icon-font-size: 16px;
                 transition: max-height $max-height-transition-duration;
             }
         }
-    }
-
-    >.menu.active {
-        opacity: 1;
-        pointer-events: initial;
-        transition: opacity $opacity-transition-duration;
     }
 }

@@ -30,38 +30,38 @@ const icons = {
 
 const creativeMenu = new Menu('creative', { defaultActive: 'creative_uas', subMenu: [
     new Menu('creative_uas', { title: 'menus.creative.uas', icon: icons.creative, subMenu: [
-        new Menu('creative_uas_import', { title: 'menus.creative.import', icon: icons.uas, selectProp: 'page', url: '/iframe.html/creative/import' }),
-        new Menu('creative_uas_adHarvesting', { title: 'menus.creative.harvesting', icon: icons.harvesting, selectProp: 'page', url: '/iframe.html/creative/harvesting' }),
-        new Menu('creative_uas_metadataQueue', { title: 'menus.creative.metadata', icon: icons.metadata, selectProp: 'page', url: '/iframe.html/creative/metadata' }),
-        new Menu('creative_uas_approvalQueue', { title: 'menus.creative.approval', icon: icons.approval, selectProp: 'page', url: '/iframe.html/creative/approval' })
+        new Menu('creative_uas_import', { title: 'menus.creative.import', icon: icons.uas, selectProps: 'page', url: '/iframe.html/creative/import' }),
+        new Menu('creative_uas_adHarvesting', { title: 'menus.creative.harvesting', icon: icons.harvesting, selectProps: 'page', url: '/iframe.html/creative/harvesting' }),
+        new Menu('creative_uas_metadataQueue', { title: 'menus.creative.metadata', icon: icons.metadata, selectProps: 'page', url: '/iframe.html/creative/metadata' }),
+        new Menu('creative_uas_approvalQueue', { title: 'menus.creative.approval', icon: icons.approval, selectProps: 'page', url: '/iframe.html/creative/approval' })
     ]})
 ]});
 
 const reportingMenu = new Menu('reporting', { defaultActive: 'internal', subMenu: [
-    new Menu('internal', { title: 'menus.reporting.internal', icon: icons.reports, subMenu: [
-        new Menu('reporting_internal_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard, selectProp: 'page' }),
-        new Menu('reporting_internal_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis, selectProp: 'page' }),
-        new Menu('reporting_internal_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones, selectProp: 'page' })
+    new Menu('reporting_internal', { title: 'menus.reporting.internal', icon: icons.reports, subMenu: [
+        new Menu('reporting_internal_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard, selectProps: 'page' }),
+        new Menu('reporting_internal_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis, selectProps: 'page' }),
+        new Menu('reporting_internal_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones, selectProps: 'page' })
     ]}),
-    new Menu('device-partner', { title: 'menus.reporting.devicePartner', icon: icons.reports, subMenu: [
-        new Menu('reporting_device-partner_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard, selectProp: 'page' }),
-        new Menu('reporting_device-partner_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis, selectProp: 'page' }),
-        new Menu('reporting_device-partner_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones, selectProp: 'page' })
+    new Menu('reporting_device-partner', { title: 'menus.reporting.devicePartner', icon: icons.reports, subMenu: [
+        new Menu('reporting_device-partner_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard, selectProps: 'page' }),
+        new Menu('reporting_device-partner_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis, selectProps: 'page' }),
+        new Menu('reporting_device-partner_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones, selectProps: 'page' })
     ]}),
 ]});
 
 const adminMenu = new Menu('admin', { subMenu: [
-    new Menu('admin_devices', { title: 'menus.headers.devices', icon: icons.devices, selectProp: 'page' }),
-    new Menu('admin_channels', { title: 'menus.headers.channels', icon: icons.channels, selectProp: 'page' }),
-    new Menu('admin_uas', { title: 'menus.creative.uas', icon: icons.uas, selectProp: 'page' })
+    new Menu('admin_devices', { title: 'menus.headers.devices', icon: icons.devices, selectProps: 'page' }),
+    new Menu('admin_channels', { title: 'menus.headers.channels', icon: icons.channels, selectProps: 'page' }),
+    new Menu('admin_uas', { title: 'menus.creative.uas', icon: icons.uas, selectProps: 'page' })
 ]});
 
 const menu = new Menu('main', { subMenu: [
-    new Menu('creative', { title: 'menus.headers.creative' }),
-    new Menu('reporting', { title: 'menus.headers.reporting' }),
-    new Menu('channels', { title: 'menus.headers.channels', selectProp: 'page' }),
-    new Menu('devices', { title: 'menus.headers.devices', selectProp: 'page' }),
-    new Menu('admin', { title: 'menus.headers.admin' })
+    new Menu('creative', { title: 'menus.headers.creative', selectProps: 'header' }),
+    new Menu('reporting', { title: 'menus.headers.reporting', selectProps: 'header' }),
+    new Menu('channels', { title: 'menus.headers.channels', selectProps: ['header', 'page'] }),
+    new Menu('devices', { title: 'menus.headers.devices', selectProps: ['header', 'page'] }),
+    new Menu('admin', { title: 'menus.headers.admin', selectProps: 'header' })
 ]});
 
 const sideMenu = [
@@ -72,12 +72,12 @@ const sideMenu = [
 
 const profileMenu = new Menu('profile', { subMenu: [
     new Menu('toggle_locale', { title: 'menus.profile.language', icon: '\uf0d9', subMenu: [
-        new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB', selectProp: 'locale', selectable: true }),
-        new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT', selectProp: 'locale', selectable: true }),
+        new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB', selectProps: 'locale', selectable: true }),
+        new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT', selectProps: 'locale', selectable: true }),
     ]}),
     new Menu('toggle_theme', { title: 'menus.profile.theme', icon: '\uf0d9', subMenu: [
-        new Menu('light', { title: 'menus.profile.light', icon: '\uf185', selectProp: 'theme', selectable: true }),
-        new Menu('dark', { title: 'menus.profile.dark', icon: '\uf186', selectProp: 'theme', selectable: true }),
+        new Menu('light', { title: 'menus.profile.light', icon: '\uf185', selectProps: 'theme', selectable: true }),
+        new Menu('dark', { title: 'menus.profile.dark', icon: '\uf186', selectProps: 'theme', selectable: true }),
     ]}),
     new Separator(),
     new Menu('logout', { title: 'menus.profile.logout', icon: '\uf2f5' }),
@@ -85,59 +85,46 @@ const profileMenu = new Menu('profile', { subMenu: [
 
 const store = new Store({
     menu,
-    defaultMenuId: 'creative',
+    // defaultMenuId: 'creative',
     selections: {
+        header: 'creative',
         theme: 'light',
         locale: 'en-GB'
     },
+    active: {},
     disabled: { reporting_internal_kpis: true },
-    initiallyOpen: {},
+    initiallyOpen: {
+        'creative_uas': true,
+        'reporting_internal': true,
+        // 'reporting_device-partner': true
+    },
     lastSelection: {},
     sideMenu,
-    hideSideMenu: false,    // TODO: Could happen automatically when no sidemenu is 'active'.
     profileMenu,
     profileMenuOpen: false,
     user: User
 });
 
 const setMenu = (id) => {
-    menu.setActiveItem(id);
-    sideMenu.forEach(menu => menu.setActiveItem(id));
-
-    // Force refresh.
-    store.set({ menu });
-    store.set({ sideMenu });
-
-    const noMenu = sideMenu.every(menu => !menu.active);
-    store.set({ hideSideMenu: noMenu });
-    if (!noMenu) {
-        const currentSideMenu = sideMenu.find(menu => menu.id === id);
-        const lastSelectionId = store.get('lastSelection')[id];
-        if (lastSelectionId) {
-            currentSideMenu.setActiveItem(lastSelectionId, false);
-        } else if (currentSideMenu.defaultActive) {
-            currentSideMenu.setActiveItem(currentSideMenu.defaultActive);
-        }
-    }
+    store.set({ selections: { ...store.get('selections'), header: id }});
 };
 
 // Set the default menu.
-if (store.get('defaultMenuId')) {
-    const defaultMenuId = store.get('defaultMenuId');
-
-    setMenu(defaultMenuId);
+if (store.get('selections').header) {
+    setMenu(store.get('selections').header);
 }
 
-const handleClick = (menuItem) => {
+const handleHeaderMenuClick = (menuItem) => {
     setMenu(menuItem.id);
 
     console.log(`Clicked ${menuItem.id}`);
 
-    if (menuItem.selectProp) {
+    const selectPropsObj = menuItem.getSelectPropObject();
+    if (selectPropsObj) {
         store.set({
             selections: {
                 ...store.get('selections'),
-                [menuItem.selectProp]: menuItem.id
+                ...selectPropsObj
             }
         });
     }
@@ -146,28 +133,24 @@ const handleClick = (menuItem) => {
 }
 
 const handleSideMenuClick = (menuItem) => {
-    sideMenu.forEach(menu => menu.setActiveItem(menuItem.id));
-
-    const currentSideMenu = sideMenu.find(menu => menu.active);
+    const currentSideMenuId = store.get('selections').header;
 
     store.set({
         lastSelection: {
             ...store.get('lastSelection'),
-            [currentSideMenu.id]: menuItem.id
+            [currentSideMenuId]: menuItem.id
         }
     });
 
-    if (menuItem.selectProp) {
+    const selectPropsObj = menuItem.getSelectPropObject();
+    if (selectPropsObj) {
         store.set({
             selections: {
                 ...store.get('selections'),
-                [menuItem.selectProp]: menuItem.id
+                ...selectPropsObj
             }
         });
     }
-
-    // Force refresh.
-    store.set({ sideMenu });
 
     console.log(`Side clicked ${menuItem.id}`);
     return true;
@@ -189,19 +172,16 @@ const handleProfileMenuClick = (menuItem) => {
             break;
 
         default:
-            // Force refresh.
-            store.set({ profileMenu });
-
             console.log(`Profile menu clicked ${menuItem.id}`);
             break;
     }
 
-    if (menuItem.selectProp) {
-        console.log(`Set to ${menuItem.id}`);
+    const selectPropsObj = menuItem.getSelectPropObject();
+    if (selectPropsObj) {
         store.set({
             selections: {
                 ...store.get('selections'),
-                [menuItem.selectProp]: menuItem.id
+                ...selectPropsObj
             }
         });
     }
@@ -216,6 +196,8 @@ function MainMenu(props) {
 
     const sideBarRef = useRef(null);
     const { width } = useComponentSize(sideBarRef);
+
+    const hideSideMenu = !sideMenu.find(menuItem => menuItem.id === props.selections.header);
 
     return (
         <Router>
@@ -235,7 +217,7 @@ function MainMenu(props) {
                                         selections={props.selections}
                                         disabled={props.disabled}
                                         initiallyOpen={props.initiallyOpen}
-                                        handleClick={handleClick}
+                                        handleClick={handleHeaderMenuClick}
                                     />
                                 </div>
                                 <div className='profile'>
@@ -287,9 +269,12 @@ function MainMenu(props) {
                             </div>
 
                             <div
-                                className={classNames('side-menu', props.hideSideMenu && 'hide')}
+                                className={classNames(
+                                    'side-menu',
+                                    hideSideMenu && 'hide'
+                                )}
                                 style={{
-                                    maxWidth: props.hideSideMenu ? 0 : width
+                                    maxWidth: hideSideMenu ? 0 : width
                                 }}
                             >
                                 <div
@@ -301,6 +286,7 @@ function MainMenu(props) {
                                             <MenuComponent
                                                 key={menu.id}
                                                 menu={menu}
+                                                isVisible={menu.id === props.selections.header}
                                                 selections={props.selections}
                                                 disabled={props.disabled}
                                                 initiallyOpen={props.initiallyOpen}

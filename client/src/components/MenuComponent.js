@@ -18,7 +18,7 @@ export class Menu {
         this.icon = options.icon;
         this.classes = options.classes;
         this.active = options.active || false;
-        this.selectProp = options.selectProp;
+        this.selectProps = options.selectProps;
         this.defaultActive = options.defaultActive;
     }
 
@@ -99,6 +99,21 @@ export class Menu {
             }
         }
     }
+
+    getSelectPropObject() {
+        if (this.selectProps) {
+            return _.castArray(this.selectProps).reduce((results, selectProp) => {
+                results[selectProp] = this.id;
+                return results;
+            }, {});
+        }
+
+        return undefined;
+    }
+
+    firstSelectProp() {
+        return _.castArray(this.selectProps)[0];
+    }
 }
 
 export class Separator extends Menu {
@@ -155,7 +170,7 @@ export function MenuItemComponent({ menu, isSelected, isDisabled, isOpen, childr
             className={classNames(
                 'item',
                 isOpen ? 'open' : 'closed',
-                menu.active ? 'active' : 'inactive',
+                // menu.active ? 'active' : 'inactive',
                 menu.isLeaf() ? 'leaf' : 'hasSubMenu',
                 (isSelected === menu.id) && 'selected',
                 (isSelected !== undefined) && 'selectable',
@@ -197,6 +212,7 @@ export function MenuItemComponent({ menu, isSelected, isDisabled, isOpen, childr
 }
 
 SubMenuComponent.propTypes = {
+    className: PropTypes.string,
     menu: PropTypes.instanceOf(Menu).isRequired,
     selections: PropTypes.object.isRequired,
     disabled: PropTypes.object.isRequired,
@@ -204,13 +220,14 @@ SubMenuComponent.propTypes = {
     handleClick: PropTypes.func.isRequired
 };
 
-export function SubMenuComponent({ menu, selections, disabled, open, handleClick }) {
+export function SubMenuComponent({ className, menu, selections, disabled, open, handleClick }) {
     return (
         <div
             className={classNames(
                 'menu',
+                className,
                 menu.classes,
-                menu.active && 'active',
+                // menu.active && 'active',
                 open[menu.id] ? 'open' : 'closed'
             )}
         >
@@ -223,7 +240,7 @@ export function SubMenuComponent({ menu, selections, disabled, open, handleClick
                             <MenuItemComponent
                                 key={subMenu.id}
                                 menu={subMenu}
-                                isSelected={selections[subMenu.selectProp]}
+                                isSelected={selections[subMenu.firstSelectProp()]}
                                 disabled={disabled[subMenu.id]}
                                 isOpen={open[subMenu.id]}
                                 handleClick={handleClick}
@@ -249,13 +266,14 @@ export function SubMenuComponent({ menu, selections, disabled, open, handleClick
 
 MenuComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
+    isVisible: PropTypes.bool,
     selections: PropTypes.object,
     initiallyOpen: PropTypes.object,
     disabled: PropTypes.object,
     handleClick: PropTypes.func.isRequired
 };
 
-export default function MenuComponent({ menu, selections= {}, disabled = {}, initiallyOpen = {}, handleClick }) {
+export default function MenuComponent({ menu, isVisible = true, selections= {}, disabled = {}, initiallyOpen = {}, handleClick }) {
     const [open, setOpen] = useState(initiallyOpen);
 
     const _handleClick = (event, menuItem) => {
@@ -286,7 +304,7 @@ export default function MenuComponent({ menu, selections= {}, disabled = {}, ini
                         menu.map(subMenu => (
                             <SubMenuComponent
                                 key={subMenu.id}
-                                className='menu open'
+                                className={classNames(isVisible ? 'visible' : 'hidden')}
                                 menu={subMenu}
                                 selections={selections}
                                 disabled={disabled}
@@ -296,7 +314,7 @@ export default function MenuComponent({ menu, selections= {}, disabled = {}, ini
                         ))
                     :
                         <SubMenuComponent
-                            className='menu open'
+                            className={classNames(isVisible ? 'visible' : 'hidden')}
                             menu={menu}
                             selections={selections}
                             disabled={disabled}
