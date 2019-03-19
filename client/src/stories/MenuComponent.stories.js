@@ -3,6 +3,7 @@ import { State, Store } from '@sambego/storybook-state';
 import { storiesOf } from '@storybook/react';
 import { BrowserRouter as Router } from "react-router-dom";
 import classNames from 'classnames';
+import useComponentSize from '@rehooks/component-size'
 
 import MenuComponent, { Menu, Separator, ProfileItemComponent } from '../components/MenuComponent';
 import { ThemeContext, Themes } from '../components/ThemeContext';
@@ -27,39 +28,39 @@ const icons = {
     milestones: '\uf140',   // fa-bullseye
 };
 
-const creativeMenu = new Menu('creative', { subMenu: [
+const creativeMenu = new Menu('creative', { defaultActive: 'creative_uas', subMenu: [
     new Menu('creative_uas', { title: 'menus.creative.uas', icon: icons.creative, subMenu: [
-        new Menu('creative_uas_import', { title: 'menus.creative.import', icon: icons.uas, url: '/iframe.html/creative/import' }),
-        new Menu('creative_uas_adHarvesting', { title: 'menus.creative.harvesting', icon: icons.harvesting, url: '/iframe.html/creative/harvesting' }),
-        new Menu('creative_uas_metadataQueue', { title: 'menus.creative.metadata', icon: icons.metadata, url: '/iframe.html/creative/metadata' }),
-        new Menu('creative_uas_approvalQueue', { title: 'menus.creative.approval', icon: icons.approval, url: '/iframe.html/creative/approval' })
+        new Menu('creative_uas_import', { title: 'menus.creative.import', icon: icons.uas, selectProp: 'page', url: '/iframe.html/creative/import' }),
+        new Menu('creative_uas_adHarvesting', { title: 'menus.creative.harvesting', icon: icons.harvesting, selectProp: 'page', url: '/iframe.html/creative/harvesting' }),
+        new Menu('creative_uas_metadataQueue', { title: 'menus.creative.metadata', icon: icons.metadata, selectProp: 'page', url: '/iframe.html/creative/metadata' }),
+        new Menu('creative_uas_approvalQueue', { title: 'menus.creative.approval', icon: icons.approval, selectProp: 'page', url: '/iframe.html/creative/approval' })
     ]})
 ]});
 
-const reportingMenu = new Menu('reporting', { subMenu: [
+const reportingMenu = new Menu('reporting', { defaultActive: 'internal', subMenu: [
     new Menu('internal', { title: 'menus.reporting.internal', icon: icons.reports, subMenu: [
-        new Menu('reporting_internal_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard }),
-        new Menu('reporting_internal_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis }),
-        new Menu('reporting_internal_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones })
+        new Menu('reporting_internal_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard, selectProp: 'page' }),
+        new Menu('reporting_internal_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis, selectProp: 'page' }),
+        new Menu('reporting_internal_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones, selectProp: 'page' })
     ]}),
     new Menu('device-partner', { title: 'menus.reporting.devicePartner', icon: icons.reports, subMenu: [
-        new Menu('reporting_device-partner_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard }),
-        new Menu('reporting_device-partner_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis }),
-        new Menu('reporting_device-partner_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones })
+        new Menu('reporting_device-partner_dashboard', { title: 'menus.reporting.dashboard', icon: icons.dashboard, selectProp: 'page' }),
+        new Menu('reporting_device-partner_kpis', { title: 'menus.reporting.kpis', icon: icons.kpis, selectProp: 'page' }),
+        new Menu('reporting_device-partner_milestones', { title: 'menus.reporting.milestones', icon: icons.milestones, selectProp: 'page' })
     ]}),
 ]});
 
 const adminMenu = new Menu('admin', { subMenu: [
-    new Menu('admin_devices', { title: 'menus.headers.devices', icon: icons.devices }),
-    new Menu('admin_channels', { title: 'menus.headers.channels', icon: icons.channels }),
-    new Menu('admin_uas', { title: 'menus.creative.uas', icon: icons.uas })
+    new Menu('admin_devices', { title: 'menus.headers.devices', icon: icons.devices, selectProp: 'page' }),
+    new Menu('admin_channels', { title: 'menus.headers.channels', icon: icons.channels, selectProp: 'page' }),
+    new Menu('admin_uas', { title: 'menus.creative.uas', icon: icons.uas, selectProp: 'page' })
 ]});
 
 const menu = new Menu('main', { subMenu: [
     new Menu('creative', { title: 'menus.headers.creative' }),
     new Menu('reporting', { title: 'menus.headers.reporting' }),
-    new Menu('channels', { title: 'menus.headers.channels' }),
-    new Menu('devices', { title: 'menus.headers.devices' }),
+    new Menu('channels', { title: 'menus.headers.channels', selectProp: 'page' }),
+    new Menu('devices', { title: 'menus.headers.devices', selectProp: 'page' }),
     new Menu('admin', { title: 'menus.headers.admin' })
 ]});
 
@@ -71,12 +72,12 @@ const sideMenu = [
 
 const profileMenu = new Menu('profile', { subMenu: [
     new Menu('toggle_locale', { title: 'menus.profile.language', icon: '\uf0d9', subMenu: [
-        new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB', selectable: true }),
-        new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT', selectable: true }),
+        new Menu('en-GB', { title: 'menus.profile.en_GB', icon: 'GB', selectProp: 'locale', selectable: true }),
+        new Menu('dt-DT', { title: 'menus.profile.dt_DT', icon: 'DT', selectProp: 'locale', selectable: true }),
     ]}),
     new Menu('toggle_theme', { title: 'menus.profile.theme', icon: '\uf0d9', subMenu: [
-        new Menu('theme-light', { title: 'menus.profile.light', icon: '\uf185', selectable: true }),
-        new Menu('theme-dark', { title: 'menus.profile.dark', icon: '\uf186', selectable: true }),
+        new Menu('light', { title: 'menus.profile.light', icon: '\uf185', selectProp: 'theme', selectable: true }),
+        new Menu('dark', { title: 'menus.profile.dark', icon: '\uf186', selectProp: 'theme', selectable: true }),
     ]}),
     new Separator(),
     new Menu('logout', { title: 'menus.profile.logout', icon: '\uf2f5' }),
@@ -84,21 +85,24 @@ const profileMenu = new Menu('profile', { subMenu: [
 
 const store = new Store({
     menu,
+    defaultMenuId: 'creative',
+    selections: {
+        theme: 'light',
+        locale: 'en-GB'
+    },
+    disabled: {},
+    open: {},
+    lastSelection: {},
     sideMenu,
-    hideSideMenu: false,
+    hideSideMenu: false,    // TODO: Could happen automatically when no sidemenu is 'active'.
     profileMenu,
     profileMenuOpen: false,
-    user: User,
-    theme: Themes.dark,
-    locale: Locales['dt-DT']
+    user: User
 });
 
-profileMenu.setSelected(store.get('locale').countryCode, true);
-profileMenu.setSelected(store.get('theme').className, true);
-
-const handleClick = (menuItem) => {
-    menu.setActiveItem(menuItem.id);
-    sideMenu.forEach(menu => menu.setActiveItem(menuItem.id));
+const setMenu = (id) => {
+    menu.setActiveItem(id);
+    sideMenu.forEach(menu => menu.setActiveItem(id));
 
     // Force refresh.
     store.set({ menu });
@@ -106,13 +110,61 @@ const handleClick = (menuItem) => {
 
     const noMenu = sideMenu.every(menu => !menu.active);
     store.set({ hideSideMenu: noMenu });
+    if (!noMenu) {
+        const currentSideMenu = sideMenu.find(menu => menu.id === id);
+        const lastSelectionId = store.get('lastSelection')[id];
+        if (lastSelectionId) {
+            currentSideMenu.setActiveItem(lastSelectionId, false);
+        } else if (currentSideMenu.defaultActive) {
+            currentSideMenu.setActiveItem(currentSideMenu.defaultActive);
+        }
+    }
+};
+
+// Set the default menu.
+if (store.get('defaultMenuId')) {
+    const defaultMenuId = store.get('defaultMenuId');
+
+    setMenu(defaultMenuId);
+}
+
+const handleClick = (menuItem) => {
+    setMenu(menuItem.id);
 
     console.log(`Clicked ${menuItem.id}`);
+
+    if (menuItem.selectProp) {
+        store.set({
+            selections: {
+                ...store.get('selections'),
+                [menuItem.selectProp]: menuItem.id
+            }
+        });
+    }
+
     return true;
 }
 
 const handleSideMenuClick = (menuItem) => {
     sideMenu.forEach(menu => menu.setActiveItem(menuItem.id));
+
+    const currentSideMenu = sideMenu.find(menu => menu.active);
+
+    store.set({
+        lastSelection: {
+            ...store.get('lastSelection'),
+            [currentSideMenu.id]: menuItem.id
+        }
+    });
+
+    if (menuItem.selectProp) {
+        store.set({
+            selections: {
+                ...store.get('selections'),
+                [menuItem.selectProp]: menuItem.id
+            }
+        });
+    }
 
     // Force refresh.
     store.set({ sideMenu });
@@ -136,43 +188,6 @@ const handleProfileMenuClick = (menuItem) => {
             store.set({ profileMenuOpen: false });
             break;
 
-        case 'theme-light':
-            console.log('Theme = light');
-
-            profileMenu.setSelected('theme-dark', false);
-            profileMenu.setSelected('theme-light', true);
-
-            store.set({ profileMenu });
-            store.set({ theme: Themes.light });
-            // store.set({ profileMenuOpen: false });
-            break;
-
-        case 'theme-dark':
-            console.log('Theme = dark');
-
-            profileMenu.setSelected('theme-light', false);
-            profileMenu.setSelected('theme-dark', true);
-
-            store.set({ profileMenu });
-            store.set({ theme: Themes.dark });
-            // store.set({ profileMenuOpen: false });
-            break;
-
-        case 'en-GB':
-        case 'dt-DT':
-            console.log(`Locale = ${menuItem.id}`);
-
-            const currentLocale = store.get('locale').countryCode;
-            const newLocale = menuItem.id;
-
-            profileMenu.setSelected(currentLocale, false);
-            profileMenu.setSelected(newLocale, true);
-
-            store.set({ profileMenu });
-            store.set({ locale: Locales[menuItem.id] });
-            // store.set({ profileMenuOpen: false });
-            break;
-
         default:
             // Force refresh.
             store.set({ profileMenu });
@@ -181,48 +196,45 @@ const handleProfileMenuClick = (menuItem) => {
             break;
     }
 
+    if (menuItem.selectProp) {
+        console.log(`Set to ${menuItem.id}`);
+        store.set({
+            selections: {
+                ...store.get('selections'),
+                [menuItem.selectProp]: menuItem.id
+            }
+        });
+    }
+
     return true;
 }
 
 function MainMenu(props) {
-    const { translations } = props.locale;
+    const theme = Themes[props.selections['theme']];
+    const locale = Locales[props.selections['locale']];
+    const { translations } = locale;
 
     const sideBarRef = useRef(null);
-
-    // HACK: To ensure we capture the width of the side panel exactly once, and only
-    //       set the style - once we have it set.
-    let [maxSideMenuWidth, setMaxSideMenuWidth] = useState();
-    const [lastLocale, setLastLocale] = useState(props.locale);
-
-    useEffect(() => {
-        if (maxSideMenuWidth !== sideBarRef.current.clientWidth) {
-            setMaxSideMenuWidth(sideBarRef.current.clientWidth);
-        }
-    });
-
-    if (lastLocale !== props.locale) {
-        setMaxSideMenuWidth(undefined);
-        setLastLocale(props.locale);
-    }
-
-    const style = { maxWidth: props.hideSideMenu ? 0 : maxSideMenuWidth };
-    const subStyle = { width: maxSideMenuWidth };
+    const { width } = useComponentSize(sideBarRef);
 
     return (
         <Router>
-            <LocaleContext.Provider value={props.locale}>
-                <ThemeContext.Provider value={props.theme}>
+            <LocaleContext.Provider value={locale}>
+                <ThemeContext.Provider value={theme}>
                     <UserContext.Provider value={props.user}>
                         <div
-                            className={classNames('app', props.theme.className)}
+                            className={classNames('app', theme.className)}
                             style={{
-                                backgroundColor: props.theme.color.background
+                                backgroundColor: theme.color.background
                             }}>
                             <div className='header'>
                                 <img className='logo' src='n-tab.png' alt='Nielsen logo' />
                                 <div className='top-menu'>
                                     <MenuComponent
                                         menu={props.menu}
+                                        selections={props.selections}
+                                        disabled={props.disabled}
+                                        open={props.open}
                                         handleClick={handleClick}
                                     />
                                 </div>
@@ -238,6 +250,9 @@ function MainMenu(props) {
                                         >
                                             <MenuComponent
                                                 menu={props.profileMenu}
+                                                selections={props.selections}
+                                                disabled={props.disabled}
+                                                open={props.open}
                                                 handleClick={handleProfileMenuClick}
                                             />
                                         </div>
@@ -261,6 +276,9 @@ function MainMenu(props) {
                                             <MenuComponent
                                                 key={menu.id}
                                                 menu={menu}
+                                                selections={props.selections}
+                                                disabled={props.disabled}
+                                                open={props.open}
                                                 handleClick={handleSideMenuClick}
                                             />
                                         ))
@@ -270,17 +288,22 @@ function MainMenu(props) {
 
                             <div
                                 className={classNames('side-menu', props.hideSideMenu && 'hide')}
-                                style={style}
+                                style={{
+                                    maxWidth: props.hideSideMenu ? 0 : width
+                                }}
                             >
                                 <div
                                     className='side-menu-container'
-                                    style={subStyle}
+                                    style={{ width }}
                                 >
                                     {
                                         props.sideMenu.map(menu => (
                                             <MenuComponent
                                                 key={menu.id}
                                                 menu={menu}
+                                                selections={props.selections}
+                                                disabled={props.disabled}
+                                                open={props.open}
                                                 handleClick={handleSideMenuClick}
                                             />
                                         ))

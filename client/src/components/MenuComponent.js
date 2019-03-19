@@ -18,9 +18,8 @@ export class Menu {
         this.icon = options.icon;
         this.classes = options.classes;
         this.active = options.active || false;
-        this.selected = options.selected || false;
-        this.selectable = options.selectable || false;
-        this.disabled = options.disabled || false;
+        this.selectProp = options.selectProp;
+        this.defaultActive = options.defaultActive;
     }
 
     isLeaf() {
@@ -37,18 +36,6 @@ export class Menu {
                 this.subMenu.forEach(subSubMenu => subSubMenu.iterateAll(iterationFn));
             }
         }
-    }
-
-    setProperty(id, propertySettingFn) {
-        this.iterateAll(menu => {
-            if (menu.id === id) {
-                propertySettingFn(menu);
-            }
-        });
-    }
-
-    setSelected(id, value) {
-        this.setProperty(id, item => item.selected = value);
     }
 
     iterateMenus(iterationFn) {
@@ -93,14 +80,20 @@ export class Menu {
         return null;
     }
 
-    setActiveItem(id) {
+    setActiveItem(id, makeLeafActive = true) {
         this.iterateAll(menu => menu.active = false);
 
         const hierarchy = this.getHierarchy(id);
         if (hierarchy) {
-            hierarchy.forEach(menuItem => menuItem.active = true);
-
             const lastIndex = hierarchy.length - 1;
+
+            hierarchy.forEach((menuItem) => {
+                if (makeLeafActive || !menuItem.isLeaf()) {
+                    menuItem.active = true;
+                    console.log(`menuItem ${makeLeafActive} -> ${menuItem.id} (${menuItem.isLeaf()}) = ${menuItem.active}`);
+                }
+            });
+
             if (hierarchy[lastIndex].subMenu instanceof Menu) {
                 hierarchy[lastIndex].subMenu.active = true;
             }
@@ -146,11 +139,13 @@ export function ProfileItemComponent({ menu, handleClick, children }) {
 
 MenuItemComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
+    selections: PropTypes.object.isRequired,
+    disabled: PropTypes.object.isRequired,
     children: PropTypes.element,
     handleClick: PropTypes.func.isRequired
 };
 
-export function MenuItemComponent({ menu, children, handleClick }) {
+export function MenuItemComponent({ menu, selections, disabled, children, handleClick }) {
     const { translate } = useContext(LocaleContext);
     const onClick = (!menu.disabled && !menu.selected)
         ?   (event) => {
@@ -167,9 +162,9 @@ export function MenuItemComponent({ menu, children, handleClick }) {
                 'item',
                 menu.active ? 'active' : 'inactive',
                 menu.isLeaf() ? 'leaf' : 'subMenu',
-                menu.selected && 'selected',
-                menu.selectable && 'selectable',
-                menu.disabled && 'disabled',
+                (selections[menu.selectProp] === menu.id) && 'selected',
+                (selections[menu.selectProp] !== undefined) && 'selectable',
+                (selections[menu.id]) && 'disabled',
                 menu.classes
             )}
             onClick={onClick}
@@ -201,10 +196,12 @@ export function MenuItemComponent({ menu, children, handleClick }) {
 
 SubMenuComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
+    selections: PropTypes.object.isRequired,
+    disabled: PropTypes.object.isRequired,
     handleClick: PropTypes.func
 };
 
-export function SubMenuComponent({ menu, handleClick = () => {} }) {
+export function SubMenuComponent({ menu, selections, disabled, handleClick = () => {} }) {
     const onClick = (subMenu) => (subMenu.actionFn || handleClick)(subMenu);
 
     return (
@@ -223,6 +220,8 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
                                 key={subMenu.id}
                                 className='item subMenu'
                                 menu={subMenu}
+                                selections={selections}
+                                disabled={disabled}
                                 handleClick={onClick}
                             >
                                 {
@@ -230,6 +229,8 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
                                         <SubMenuComponent
                                             className='menu'
                                             menu={subMenu}
+                                            selections={selections}
+                                            disabled={disabled}
                                             handleClick={handleClick}
                                         />
                                 }
@@ -244,10 +245,12 @@ export function SubMenuComponent({ menu, handleClick = () => {} }) {
 
 MenuComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
+    selections: PropTypes.object,
+    disabled: PropTypes.object,
     handleClick: PropTypes.func.isRequired
 };
 
-export default function MenuComponent({ menu, handleClick }) {
+export default function MenuComponent({ menu, selections= {}, disabled = {}, handleClick }) {
     return (
         <>
             {
@@ -258,6 +261,8 @@ export default function MenuComponent({ menu, handleClick }) {
                                 key={subMenu.id}
                                 className='menu'
                                 menu={subMenu}
+                                selections={selections}
+                                disabled={disabled}
                                 handleClick={handleClick}
                             />
                         ))
@@ -265,16 +270,11 @@ export default function MenuComponent({ menu, handleClick }) {
                         <SubMenuComponent
                             className='menu'
                             menu={menu}
+                            selections={selections}
+                            disabled={disabled}
+
                             handleClick={handleClick}
                         />
-                // menu.iterateMenus(subMenus =>
-                //     <SubMenuComponent
-                //         key={subMenus.id}
-                //         className='menu'
-                //         menu={subMenus}
-                //         handleClick={handleClick}
-                //     />
-                // )
             }
         </>
     );
