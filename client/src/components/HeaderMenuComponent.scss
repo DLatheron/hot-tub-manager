@@ -36,28 +36,37 @@ $icon-font-size: 16px;
         background-color: $lightTheme_BackgroundColor;
 
         .menu {
-            .item:not(.disabled):not(.selected) {
-                .iconBackground {
-                    background-color: $light-theme-menu-icon-background-color;
+            .item:not(.selected) {
+                .item-content {
+                    background-color: $lightTheme_BackgroundColor;
 
                     &:hover {
-                        background-color: $light-theme-menu-icon-hilight-background-color;
+                        background-color: $light-theme-hilight-background-color;
+
+                        .iconBackground {
+                            background-color: $light-theme-menu-icon-hilight-background-color;
+                        }
+                    }
+
+                    .iconBackground {
+                        background-color: $light-theme-menu-icon-background-color;
                     }
                 }
-
-                .item:not(.disabled):not(.selected):hover {
-                    background-color: $light-theme-hilight-background-color;
-                }
             }
-            .item:not(.disabled):not(.selected):hover {
-                background-color: $light-theme-hilight-background-color;
+            .item.selected {
+                .item-content {
+                    &:hover {
+                        background-color: $lightTheme_BackgroundColor;
 
-                >.iconBackground {
-                    background-color: $light-theme-menu-icon-hilight-background-color;
+                        .iconBackground {
+                            background-color: $light-theme-menu-icon-background-color;
+                        }
+                    }
+
+                    .iconBackground {
+                        background-color: $light-theme-menu-icon-background-color;
+                    }
                 }
-            }
-            .item .menu {
-                background-color: $lightTheme_BackgroundColor;
             }
         }
     }
@@ -97,32 +106,37 @@ $icon-font-size: 16px;
         background-color: $darkTheme_BackgroundColor;
 
         .menu {
-            .item:not(.disabled) {
-                .iconBackground {
-                    background-color: $dark-theme-menu-icon-background-color;
+            .item:not(.selected) {
+                .item-content {
+                    background-color: $darkTheme_BackgroundColor;
 
                     &:hover {
-                        background-color: $dark-theme-menu-icon-hilight-background-color;
+                        background-color: $dark-theme-hilight-background-color;
+
+                        .iconBackground {
+                            background-color: $dark-theme-menu-icon-hilight-background-color;
+                        }
                     }
-                }
 
-                .item:not(.disabled):hover {
-                    background-color: $dark-theme-hilight-background-color;
-
-                    >.icon {
-                        background-color: $dark-theme-menu-icon-hilight-background-color;
+                    .iconBackground {
+                        background-color: $dark-theme-menu-icon-background-color;
                     }
                 }
             }
-            .item:not(.disabled):hover {
-                background-color: $dark-theme-hilight-background-color;
+            .item.selected {
+                .item-content {
+                    &:hover {
+                        background-color: $darkTheme_BackgroundColor;
 
-                >.iconBackground {
-                    background-color: $dark-theme-menu-icon-hilight-background-color;
+                        .iconBackground {
+                            background-color: $dark-theme-menu-icon-background-color;
+                        }
+                    }
+
+                    .iconBackground {
+                        background-color: $dark-theme-menu-icon-background-color;
+                    }
                 }
-            }
-            .item .menu {
-                background-color: $darkTheme_BackgroundColor;
             }
         }
     }
@@ -185,6 +199,34 @@ $icon-font-size: 16px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
 
+    .item-content {
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        grid-template-areas: 'item-icon item-title';
+        height: 40px;
+
+        .iconBackground {
+            grid-area: item-icon;
+            display: inline;
+        }
+
+        .icon {
+            grid-area: item-icon;
+            font-family: $icon-font;
+            font-weight: $icon-font-weight;
+            font-size: $icon-font-size;
+            display: inline;
+            margin: auto;
+        }
+
+        .option {
+            grid-area: item-title;
+            display: inline;
+            margin: auto;
+            padding: 8px;
+        }
+    }
+
     .menu {
         background-color: inherit;
         display: block;
@@ -193,9 +235,6 @@ $icon-font-size: 16px;
         height: auto;
 
         .item {
-            display: grid;
-            grid-template-columns: 48px 1fr;
-            grid-template-areas: 'gutter menu-option';
             position: relative;
             cursor: pointer;
             user-select: none;
@@ -204,25 +243,25 @@ $icon-font-size: 16px;
             font-weight: normal;
             color: $nielsen-blue;
 
-            .iconBackground {
-                grid-area: gutter;
-                padding: 0;
-                margin: 0;
-                pointer-events: none;
-            }
+            // .iconBackground {
+            //     grid-area: gutter;
+            //     padding: 0;
+            //     margin: 0;
+            //     pointer-events: none;
+            // }
 
-            .icon {
-                grid-area: gutter;
-                margin: auto;
-                font-family: $icon-font;
-                font-weight: $icon-font-weight;
-                font-size: $icon-font-size;
-                text-align: center;
-            }
-            .option {
-                grid-column: menu-option;
-                margin: 8px 8px;
-            }
+            // .icon {
+            //     grid-area: gutter;
+            //     margin: auto;
+            //     font-family: $icon-font;
+            //     font-weight: $icon-font-weight;
+            //     font-size: $icon-font-size;
+            //     text-align: center;
+            // }
+            // .option {
+            //     grid-column: menu-option;
+            //     margin: 8px 8px;
+            // }
 
             .selectable {
                 .option:before {
@@ -258,6 +297,7 @@ $icon-font-size: 16px;
             pointer-events: none;
             transition: all $profile-menu-max-height-transition-duration;
             overflow: hidden;
+            font-weight: bold;
 
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
             z-index: 1;
@@ -274,7 +314,7 @@ $icon-font-size: 16px;
         }
 
         .separator {
-            border-bottom: 1px solid $nielsen-blue;
+            border-top: 1px solid $nielsen-blue;
             padding: 0;
             height: 0;
 
@@ -282,11 +322,6 @@ $icon-font-size: 16px;
                 visibility: collapse;
             }
         }
-    }
-
-    .active {
-        max-height: 6em;
-        transition: max-height 1s;
     }
 }
 .profile-menu.open {
@@ -439,7 +474,7 @@ $icon-font-size: 16px;
             color: $nielsen-blue;
             overflow: hidden;
 
-            .menu.closed {
+            .menu:not(.open) {
                 max-height: 0px;
                 transition: max-height $max-height-transition-duration;
             }

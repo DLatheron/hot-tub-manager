@@ -9,95 +9,21 @@ import { UserContext } from './UserContext';
 import { LocaleContext } from './LocaleContext';
 
 export class Menu {
-    constructor(id, options = {}) {
+    constructor(id, { title, subMenu, actionFn, url, icon, classes, selectProps, defaultActive } = {}) {
         this.id = id;
-        this.title = options.title;
-        this.subMenu = options.subMenu;
-        this.actionFn = options.actionFn;
-        this.url = options.url;
-        this.icon = options.icon;
-        this.classes = options.classes;
-        this.active = options.active || false;
-        this.selectProps = options.selectProps;
-        this.defaultActive = options.defaultActive;
+
+        this.title = title;
+        this.subMenu = subMenu;
+        this.actionFn = actionFn;
+        this.url = url;
+        this.icon = icon;
+        this.classes = classes;
+        this.selectProps = selectProps;
+        this.defaultActive = defaultActive;
     }
 
     isLeaf() {
         return !this.subMenu;
-    }
-
-    iterateAll(iterationFn) {
-        iterationFn(this);
-
-        if (this.subMenu) {
-            if (this.subMenu instanceof Menu) {
-                this.subMenu.iterateAll(iterationFn);
-            } else {
-                this.subMenu.forEach(subSubMenu => subSubMenu.iterateAll(iterationFn));
-            }
-        }
-    }
-
-    iterateMenus(iterationFn) {
-        const menusToRender = [iterationFn(this)];
-
-        function _iterateMenus(menu) {
-            if (menu.subMenu) {
-                if (menu.subMenu instanceof Menu) {
-                    menusToRender.push(iterationFn(menu.subMenu));
-                } else {
-                    menu.subMenu.forEach(subSubMenu => _iterateMenus(subSubMenu));
-                }
-            }
-        }
-
-        _iterateMenus(this);
-
-        return menusToRender;
-    }
-
-    getHierarchy(id) {
-        if (this.id === id) {
-            return [this];
-        }
-
-        if (this.subMenu) {
-            if (this.subMenu instanceof Menu) {
-                const results = this.subMenu.getHierarchy(id);
-                if (results) {
-                    return [this, ...results];
-                }
-            } else {
-                for (let i = 0; i < this.subMenu.length; ++i) {
-                    const results = this.subMenu[i].getHierarchy(id);
-                    if (results) {
-                        return [this, ...results];
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    setActiveItem(id, makeLeafActive = true) {
-        this.iterateAll(menu => menu.active = false);
-
-        const hierarchy = this.getHierarchy(id);
-        if (hierarchy) {
-            const lastIndex = hierarchy.length - 1;
-
-            hierarchy.forEach((menuItem) => {
-                if (makeLeafActive || !menuItem.isLeaf()) {
-                    menuItem.active = true;
-                    console.log(`menuItem ${makeLeafActive} -> ${menuItem.id} (${menuItem.isLeaf()}) = ${menuItem.active}`);
-                }
-            });
-
-            if (hierarchy[lastIndex].subMenu instanceof Menu) {
-                hierarchy[lastIndex].subMenu.active = true;
-            }
-        }
     }
 
     getSelectPropObject() {
@@ -155,13 +81,20 @@ export function ProfileItemComponent({ menu, handleClick, children }) {
 MenuItemComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
     isSelected: PropTypes.bool,
-    isDisabled: PropTypes.bool.isRequired,
-    isOpen: PropTypes.bool.isRequired,
+    isDisabled: PropTypes.bool,
+    isOpen: PropTypes.bool,
     children: PropTypes.element,
     handleClick: PropTypes.func.isRequired
 };
 
-export function MenuItemComponent({ menu, isSelected, isDisabled, isOpen, children, handleClick }) {
+export function MenuItemComponent({
+    menu,
+    isSelected = false,
+    isDisabled = false,
+    isOpen = false,
+    children,
+    handleClick
+}) {
     const { translate } = useContext(LocaleContext);
     const title = translate(menu.title);
 
@@ -170,7 +103,6 @@ export function MenuItemComponent({ menu, isSelected, isDisabled, isOpen, childr
             className={classNames(
                 'item',
                 isOpen ? 'open' : 'closed',
-                // menu.active ? 'active' : 'inactive',
                 menu.isLeaf() ? 'leaf' : 'hasSubMenu',
                 (isSelected === menu.id) && 'selected',
                 (isSelected !== undefined) && 'selectable',
@@ -216,19 +148,25 @@ SubMenuComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
     selections: PropTypes.object.isRequired,
     disabled: PropTypes.object.isRequired,
-    open: PropTypes.object.isRequired,
+    open: PropTypes.object,
     handleClick: PropTypes.func.isRequired
 };
 
-export function SubMenuComponent({ className, menu, selections, disabled, open, handleClick }) {
+export function SubMenuComponent({
+    className,
+    menu,
+    selections,
+    disabled,
+    open = false,
+    handleClick
+}) {
     return (
         <div
             className={classNames(
                 'menu',
                 className,
                 menu.classes,
-                // menu.active && 'active',
-                open[menu.id] ? 'open' : 'closed'
+                open[menu.id] && 'open'
             )}
         >
             <div
@@ -273,7 +211,14 @@ MenuComponent.propTypes = {
     handleClick: PropTypes.func.isRequired
 };
 
-export default function MenuComponent({ menu, isVisible = true, selections= {}, disabled = {}, initiallyOpen = {}, handleClick }) {
+export default function MenuComponent({
+    menu,
+    isVisible = true,
+    selections = {},
+    initiallyOpen = {},
+    disabled = {},
+    handleClick
+}) {
     const [open, setOpen] = useState(initiallyOpen);
 
     const _handleClick = (event, menuItem) => {

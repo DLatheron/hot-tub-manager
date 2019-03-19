@@ -91,7 +91,6 @@ const store = new Store({
         theme: 'light',
         locale: 'en-GB'
     },
-    active: {},
     disabled: { reporting_internal_kpis: true },
     initiallyOpen: {
         'creative_uas': true,
