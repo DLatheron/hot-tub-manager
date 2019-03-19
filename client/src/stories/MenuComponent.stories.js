@@ -90,8 +90,8 @@ const store = new Store({
         theme: 'light',
         locale: 'en-GB'
     },
-    disabled: {},
-    open: {},
+    disabled: { reporting_internal_kpis: true },
+    initiallyOpen: {},
     lastSelection: {},
     sideMenu,
     hideSideMenu: false,    // TODO: Could happen automatically when no sidemenu is 'active'.
@@ -234,7 +234,7 @@ function MainMenu(props) {
                                         menu={props.menu}
                                         selections={props.selections}
                                         disabled={props.disabled}
-                                        open={props.open}
+                                        initiallyOpen={props.initiallyOpen}
                                         handleClick={handleClick}
                                     />
                                 </div>
@@ -252,7 +252,7 @@ function MainMenu(props) {
                                                 menu={props.profileMenu}
                                                 selections={props.selections}
                                                 disabled={props.disabled}
-                                                open={props.open}
+                                                initiallyOpen={props.initiallyOpen}
                                                 handleClick={handleProfileMenuClick}
                                             />
                                         </div>
@@ -278,7 +278,7 @@ function MainMenu(props) {
                                                 menu={menu}
                                                 selections={props.selections}
                                                 disabled={props.disabled}
-                                                open={props.open}
+                                                initiallyOpen={props.initiallyOpen}
                                                 handleClick={handleSideMenuClick}
                                             />
                                         ))
@@ -303,7 +303,7 @@ function MainMenu(props) {
                                                 menu={menu}
                                                 selections={props.selections}
                                                 disabled={props.disabled}
-                                                open={props.open}
+                                                initiallyOpen={props.initiallyOpen}
                                                 handleClick={handleSideMenuClick}
                                             />
                                         ))

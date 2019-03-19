@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from "react-router-dom";
 import classNames from 'classnames';
@@ -139,56 +139,58 @@ export function ProfileItemComponent({ menu, handleClick, children }) {
 
 MenuItemComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
-    selections: PropTypes.object.isRequired,
-    disabled: PropTypes.object.isRequired,
+    isSelected: PropTypes.bool,
+    isDisabled: PropTypes.bool.isRequired,
+    isOpen: PropTypes.bool.isRequired,
     children: PropTypes.element,
     handleClick: PropTypes.func.isRequired
 };
 
-export function MenuItemComponent({ menu, selections, disabled, children, handleClick }) {
+export function MenuItemComponent({ menu, isSelected, isDisabled, isOpen, children, handleClick }) {
     const { translate } = useContext(LocaleContext);
-    const onClick = (!menu.disabled && !menu.selected)
-        ?   (event) => {
-                event.stopPropagation();
-                handleClick(menu);
-            }
-        :   (event) => {
-                event.stopPropagation();
-            };
+    const title = translate(menu.title);
 
     return (
         <div
             className={classNames(
                 'item',
+                isOpen ? 'open' : 'closed',
                 menu.active ? 'active' : 'inactive',
-                menu.isLeaf() ? 'leaf' : 'subMenu',
-                (selections[menu.selectProp] === menu.id) && 'selected',
-                (selections[menu.selectProp] !== undefined) && 'selectable',
-                (selections[menu.id]) && 'disabled',
+                menu.isLeaf() ? 'leaf' : 'hasSubMenu',
+                (isSelected === menu.id) && 'selected',
+                (isSelected !== undefined) && 'selectable',
+                isDisabled && 'disabled',
                 menu.classes
             )}
-            onClick={onClick}
+            onClick={(event) => handleClick(event, menu)}
         >
-            {
-                menu.icon &&
-                    <>
-                        <div className='iconBackground' />
-                        <div className='icon'>{menu.icon}</div>
-                    </>
-            }
-            {
-                menu.option && menu.url
-                    ?   <Link
-                            className='option'
-                            to={menu.url || '#'}
-                            onClick={onClick}
-                        >
-                            {translate(menu.title)}
-                        </Link>
-                    :   <div className='option'>
-                            {translate(menu.title)}
-                        </div>
-            }
+            <div
+                className={classNames(
+                    'item-content',
+                    (isSelected === menu.id) && 'selected',
+                )}
+            >
+                {
+                    menu.icon &&
+                        <>
+                            <div className='iconBackground' />
+                            <div className='icon'>{menu.icon}</div>
+                        </>
+                }
+                {
+                    menu.option && menu.url
+                        ?   <Link
+                                className='option'
+                                to={menu.url || '#'}
+                                onClick={(event) => handleClick(event, menu)}
+                            >
+                                {title}
+                            </Link>
+                        :   <div className='option'>
+                                {title}
+                            </div>
+                }
+            </div>
             {children}
         </div>
     );
@@ -198,17 +200,19 @@ SubMenuComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
     selections: PropTypes.object.isRequired,
     disabled: PropTypes.object.isRequired,
-    handleClick: PropTypes.func
+    open: PropTypes.object.isRequired,
+    handleClick: PropTypes.func.isRequired
 };
 
-export function SubMenuComponent({ menu, selections, disabled, handleClick = () => {} }) {
-    const onClick = (subMenu) => (subMenu.actionFn || handleClick)(subMenu);
-
+export function SubMenuComponent({ menu, selections, disabled, open, handleClick }) {
     return (
-        <div className={
-            classNames('menu',
-            menu.classes, menu.active && 'active')
-            }
+        <div
+            className={classNames(
+                'menu',
+                menu.classes,
+                menu.active && 'active',
+                open[menu.id] ? 'open' : 'closed'
+            )}
         >
             <div
                 className='menu-content'
@@ -218,19 +222,19 @@ export function SubMenuComponent({ menu, selections, disabled, handleClick = () 
                         return (
                             <MenuItemComponent
                                 key={subMenu.id}
-                                className='item subMenu'
                                 menu={subMenu}
-                                selections={selections}
-                                disabled={disabled}
-                                handleClick={onClick}
+                                isSelected={selections[subMenu.selectProp]}
+                                disabled={disabled[subMenu.id]}
+                                isOpen={open[subMenu.id]}
+                                handleClick={handleClick}
                             >
                                 {
                                     subMenu.subMenu && !(subMenu.subMenu instanceof Menu) &&
                                         <SubMenuComponent
-                                            className='menu'
                                             menu={subMenu}
                                             selections={selections}
                                             disabled={disabled}
+                                            open={open}
                                             handleClick={handleClick}
                                         />
                                 }
@@ -246,11 +250,34 @@ export function SubMenuComponent({ menu, selections, disabled, handleClick = () 
 MenuComponent.propTypes = {
     menu: PropTypes.instanceOf(Menu).isRequired,
     selections: PropTypes.object,
+    initiallyOpen: PropTypes.object,
     disabled: PropTypes.object,
     handleClick: PropTypes.func.isRequired
 };
 
-export default function MenuComponent({ menu, selections= {}, disabled = {}, handleClick }) {
+export default function MenuComponent({ menu, selections= {}, disabled = {}, initiallyOpen = {}, handleClick }) {
+    const [open, setOpen] = useState(initiallyOpen);
+
+    const _handleClick = (event, menuItem) => {
+        console.log(`_handleClick for ${menuItem.id}: ${menuItem.subMenu}`);
+
+        event.stopPropagation();
+
+        if (menuItem.isLeaf()) {
+            console.log('leaf');
+            (menuItem.actionFn || handleClick)(menuItem);
+        } else {
+            const newOpen = {
+                ...open,
+                [menuItem.id]: !open[menuItem.id]
+            };
+
+            setOpen(newOpen);
+
+            console.log(`newOpen: ${JSON.stringify(newOpen, null, 4)}`);
+        }
+    };
+
     return (
         <>
             {
@@ -259,21 +286,22 @@ export default function MenuComponent({ menu, selections= {}, disabled = {}, han
                         menu.map(subMenu => (
                             <SubMenuComponent
                                 key={subMenu.id}
-                                className='menu'
+                                className='menu open'
                                 menu={subMenu}
                                 selections={selections}
                                 disabled={disabled}
-                                handleClick={handleClick}
+                                open={open}
+                                handleClick={_handleClick}
                             />
                         ))
                     :
                         <SubMenuComponent
-                            className='menu'
+                            className='menu open'
                             menu={menu}
                             selections={selections}
                             disabled={disabled}
-
-                            handleClick={handleClick}
+                            open={open}
+                            handleClick={_handleClick}
                         />
             }
         </>
