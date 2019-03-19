@@ -98,6 +98,12 @@ $icon-font-size: 16px;
                 background-color: $light-theme-hilight-background-color;
             }
         }
+
+        .close-button {
+            &:hover {
+                background-color: $light-theme-hilight-background-color;
+            }
+        }
     }
 }
 
@@ -243,26 +249,6 @@ $icon-font-size: 16px;
             font-weight: normal;
             color: $nielsen-blue;
 
-            // .iconBackground {
-            //     grid-area: gutter;
-            //     padding: 0;
-            //     margin: 0;
-            //     pointer-events: none;
-            // }
-
-            // .icon {
-            //     grid-area: gutter;
-            //     margin: auto;
-            //     font-family: $icon-font;
-            //     font-weight: $icon-font-weight;
-            //     font-size: $icon-font-size;
-            //     text-align: center;
-            // }
-            // .option {
-            //     grid-column: menu-option;
-            //     margin: 8px 8px;
-            // }
-
             .selectable {
                 .option:before {
                     font-family: $icon-font;
@@ -346,19 +332,32 @@ $icon-font-size: 16px;
             padding: 0 10px 0 10px;
             color: $nielsen-blue;
             overflow: hidden;
-
-            // &:hover {
-            //     background-color: white;//$background-color-hilight;
-            // }
         }
     }
 }
 
 .side-menu-container {
+    grid-area: side-bar-menu;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: all;
+    grid-template-rows: 1fr auto;
+    grid-template-areas: 'side-bar-menu-content side-bar-menu-button';
+
+    .close-button {
+        grid-area: side-bar-menu-button;
+        height: 100vh;
+        outline: none;
+        border: none;
+        margin: auto;
+        padding: 0 2px;
+        cursor: pointer;
+        text-decoration: none;
+        color: $nielsen-blue;
+
+        &:focus {
+            outline: 0;
+        }
+    }
 
     .item-content {
         display: grid;
@@ -437,7 +436,7 @@ $icon-font-size: 16px;
     }
 
     >.menu {
-        grid-area: all;
+        grid-area: side-bar-menu-content;
         width: auto;
         padding: 0;
         margin: 4px;

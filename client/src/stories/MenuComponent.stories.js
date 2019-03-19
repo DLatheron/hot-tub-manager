@@ -1,9 +1,13 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { State, Store } from '@sambego/storybook-state';
 import { storiesOf } from '@storybook/react';
 import { BrowserRouter as Router } from "react-router-dom";
 import classNames from 'classnames';
 import useComponentSize from '@rehooks/component-size'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+    faAngleDoubleLeft,
+} from '@fortawesome/free-solid-svg-icons'
 
 import MenuComponent, { Menu, Separator, ProfileItemComponent } from '../components/MenuComponent';
 import { ThemeContext, Themes } from '../components/ThemeContext';
@@ -15,17 +19,17 @@ import '../../node_modules/@fortawesome/free-solid-svg-icons/'
 
 const icons = {
     none: '\u0020',
-    uas: '\uf03d',          // fa-video
-    channels: '\uf0cb',     // fa-list-ol
-    devices: '\uf26c',      // fa-tv
-    creative: '\uf1fc',     // fa-paint-brush
-    harvesting: '\uf565',   // fa-crop-alt
-    metadata: '\uf0ca',     // fa-list-ul
-    approval: '\uf0ae',     // fa-tasks
-    reports: '\uf080',      // fa-chart-bar
-    dashboard: '\uf3fd',    // fa-tachometer-alt
-    kpis: '\uf084',         // fa-key
-    milestones: '\uf140',   // fa-bullseye
+    uas: '\uf03d',              // fa-video
+    channels: '\uf0cb',         // fa-list-ol
+    devices: '\uf26c',          // fa-tv
+    creative: '\uf1fc',         // fa-paint-brush
+    harvesting: '\uf565',       // fa-crop-alt
+    metadata: '\uf0ca',         // fa-list-ul
+    approval: '\uf0ae',         // fa-tasks
+    reports: '\uf080',          // fa-chart-bar
+    dashboard: '\uf3fd',        // fa-tachometer-alt
+    kpis: '\uf084',             // fa-key
+    milestones: '\uf140',       // fa-bullseye
 };
 
 const creativeMenu = new Menu('creative', { defaultActive: 'creative_uas', subMenu: [
@@ -99,13 +103,20 @@ const store = new Store({
     },
     lastSelection: {},
     sideMenu,
+    forceHideSideMenu: false,
     profileMenu,
     profileMenuOpen: false,
     user: User
 });
 
 const setMenu = (id) => {
-    store.set({ selections: { ...store.get('selections'), header: id }});
+    store.set({
+        selections: {
+            ...store.get('selections'),
+            header: id
+        },
+        forceHideSideMenu: false
+    });
 };
 
 // Set the default menu.
@@ -188,6 +199,82 @@ const handleProfileMenuClick = (menuItem) => {
     return true;
 }
 
+function RenderSideMenuForMeasurement({ sideBarRef, props }) {
+    return (
+        <div
+            className='side-menu'
+            style={{
+                visibility: 'collapse',
+                position: 'absolute'
+            }}
+        >
+            <div
+                ref={sideBarRef}
+                className='side-menu-container'
+            >
+                {
+                    props.sideMenu.map(menu => (
+                        <MenuComponent
+                            key={menu.id}
+                            menu={menu}
+                            isVisible={false}
+                            selections={props.selections}
+                            disabled={props.disabled}
+                            initiallyOpen={props.initiallyOpen}
+                            handleClick={() => {}}
+                        />
+                    ))
+                }
+                <button className='close-button'>
+                    <FontAwesomeIcon className='icon' icon={faAngleDoubleLeft} />
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function RenderSideMenu({ hideSideMenu, props, width }) {
+    return (
+        <div
+            className={classNames(
+                'side-menu',
+                hideSideMenu && 'hide'
+            )}
+            style={{
+                maxWidth: hideSideMenu ? 0 : width
+            }}
+        >
+            <div
+                className='side-menu-container'
+                style={{ width }}
+            >
+                {
+                    props.sideMenu.map(menu => (
+                        <MenuComponent
+                            key={menu.id}
+                            menu={menu}
+                            isVisible={menu.id === props.selections.header}
+                            selections={props.selections}
+                            disabled={props.disabled}
+                            initiallyOpen={props.initiallyOpen}
+                            handleClick={handleSideMenuClick}
+                        />
+                    ))
+                }
+                <button
+                    className='close-button'
+                    onClick={() => store.set({ forceHideSideMenu: true })}
+                >
+                    <FontAwesomeIcon
+                        className='icon'
+                        icon={faAngleDoubleLeft}
+                    />
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function MainMenu(props) {
     const theme = Themes[props.selections['theme']];
     const locale = Locales[props.selections['locale']];
@@ -196,7 +283,7 @@ function MainMenu(props) {
     const sideBarRef = useRef(null);
     const { width } = useComponentSize(sideBarRef);
 
-    const hideSideMenu = !sideMenu.find(menuItem => menuItem.id === props.selections.header);
+    const hideSideMenu = props.forceHideSideMenu || !sideMenu.find(menuItem => menuItem.id === props.selections.header);
 
     return (
         <Router>
@@ -241,60 +328,9 @@ function MainMenu(props) {
                                 </div>
                             </div>
 
-                            <div
-                                className='side-menu'
-                                style={{
-                                    visibility: 'collapse',
-                                    position: 'absolute'
-                                }}
-                            >
-                                <div
-                                    ref={sideBarRef}
-                                    className='side-menu-container'
-                                >
-                                    {
-                                        props.sideMenu.map(menu => (
-                                            <MenuComponent
-                                                key={menu.id}
-                                                menu={menu}
-                                                selections={props.selections}
-                                                disabled={props.disabled}
-                                                initiallyOpen={props.initiallyOpen}
-                                                handleClick={handleSideMenuClick}
-                                            />
-                                        ))
-                                    }
-                                </div>
-                            </div>
+                            { RenderSideMenuForMeasurement({ sideBarRef, props } )}
+                            { RenderSideMenu({ hideSideMenu, props, width })}
 
-                            <div
-                                className={classNames(
-                                    'side-menu',
-                                    hideSideMenu && 'hide'
-                                )}
-                                style={{
-                                    maxWidth: hideSideMenu ? 0 : width
-                                }}
-                            >
-                                <div
-                                    className='side-menu-container'
-                                    style={{ width }}
-                                >
-                                    {
-                                        props.sideMenu.map(menu => (
-                                            <MenuComponent
-                                                key={menu.id}
-                                                menu={menu}
-                                                isVisible={menu.id === props.selections.header}
-                                                selections={props.selections}
-                                                disabled={props.disabled}
-                                                initiallyOpen={props.initiallyOpen}
-                                                handleClick={handleSideMenuClick}
-                                            />
-                                        ))
-                                    }
-                                </div>
-                            </div>
                             <div
                                 className='body'
                             >
