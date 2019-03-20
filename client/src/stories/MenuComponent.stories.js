@@ -96,8 +96,13 @@ const store = new Store({
         locale: 'en-GB'
     },
     disabled: {
-        reporting_internal_kpis: true,
-        admin: true
+        // reporting_internal_kpis: true,
+        // reporting_internal: true,
+        // creative_uas: true,
+        // admin: true,
+        // logout: true,
+        // toggle_locale: true,
+        // admin_channels: true
     },
     initiallyOpen: {
         'creative_uas': true,

@@ -167,7 +167,8 @@ export function SubMenuComponent({
                 'menu',
                 className,
                 menu.classes,
-                open[menu.id] && 'open'
+                open[menu.id] && 'open',
+                disabled[menu.id] && 'disabled'
             )}
         >
             <div

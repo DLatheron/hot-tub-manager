@@ -36,35 +36,42 @@ $icon-font-size: 16px;
         background-color: $lightTheme_BackgroundColor;
 
         .menu {
-            .item:not(.selected) {
-                .item-content {
-                    background-color: $lightTheme_BackgroundColor;
-
-                    &:hover {
-                        background-color: $light-theme-hilight-background-color;
-
-                        .iconBackground {
-                            background-color: $light-theme-menu-icon-hilight-background-color;
-                        }
-                    }
-
-                    .iconBackground {
-                        background-color: $light-theme-menu-icon-background-color;
-                    }
+            .item {
+                &.disabled {
+                    color: $lightTheme_DisabledColor;
                 }
-            }
-            .item.selected {
-                .item-content {
-                    &:hover {
+
+                &:not(.selected), &:not(.disabled) {
+                    .item-content {
                         background-color: $lightTheme_BackgroundColor;
+
+                        &:hover {
+                            background-color: $light-theme-hilight-background-color;
+
+                            .iconBackground {
+                                background-color: $light-theme-menu-icon-hilight-background-color;
+                            }
+                        }
 
                         .iconBackground {
                             background-color: $light-theme-menu-icon-background-color;
                         }
                     }
+                }
 
-                    .iconBackground {
-                        background-color: $light-theme-menu-icon-background-color;
+                &.selected, &.disabled {
+                    .item-content {
+                        &:hover {
+                            background-color: $lightTheme_BackgroundColor;
+
+                            .iconBackground {
+                                background-color: $light-theme-menu-icon-background-color;
+                            }
+                        }
+
+                        .iconBackground {
+                            background-color: $light-theme-menu-icon-background-color;
+                        }
                     }
                 }
             }
@@ -74,16 +81,20 @@ $icon-font-size: 16px;
         .menu {
             .item {
                 &.disabled {
+                    color: $lightTheme_DisabledColor;
 
+                    &:hover {
+                        background-color: $lightTheme_BackgroundColor;
+                    }
                 }
 
-                &:not(.selected) {
+                &:not(.selected):not(.disabled) {
                     &:hover {
                         background-color: $light-theme-hilight-background-color;
                     }
                 }
 
-                .selected {
+                &.selected {
                     color: white;
                     background-color: $nielsen-blue;
 
@@ -116,6 +127,8 @@ $icon-font-size: 16px;
         }
 
         .close-button {
+            background-color: $lightTheme_BackgroundColor;
+
             &:hover {
                 background-color: $light-theme-hilight-background-color;
             }
@@ -128,35 +141,42 @@ $icon-font-size: 16px;
         background-color: $darkTheme_BackgroundColor;
 
         .menu {
-            .item:not(.selected) {
-                .item-content {
-                    background-color: $darkTheme_BackgroundColor;
-
-                    &:hover {
-                        background-color: $dark-theme-hilight-background-color;
-
-                        .iconBackground {
-                            background-color: $dark-theme-menu-icon-hilight-background-color;
-                        }
-                    }
-
-                    .iconBackground {
-                        background-color: $dark-theme-menu-icon-background-color;
-                    }
+            .item {
+                &.disabled {
+                    color: $darkTheme_DisabledColor;
                 }
-            }
-            .item.selected {
-                .item-content {
-                    &:hover {
+
+                &:not(.selected), &:not(.disabled) {
+                    .item-content {
                         background-color: $darkTheme_BackgroundColor;
+
+                        &:hover {
+                            background-color: $dark-theme-hilight-background-color;
+
+                            .iconBackground {
+                                background-color: $dark-theme-menu-icon-hilight-background-color;
+                            }
+                        }
 
                         .iconBackground {
                             background-color: $dark-theme-menu-icon-background-color;
                         }
                     }
+                }
 
-                    .iconBackground {
-                        background-color: $dark-theme-menu-icon-background-color;
+                &.selected, &.disabled {
+                    .item-content {
+                        &:hover {
+                            background-color: $darkTheme_BackgroundColor;
+
+                            .iconBackground {
+                                background-color: $dark-theme-menu-icon-background-color;
+                            }
+                        }
+
+                        .iconBackground {
+                            background-color: $dark-theme-menu-icon-background-color;
+                        }
                     }
                 }
             }
@@ -164,18 +184,28 @@ $icon-font-size: 16px;
     }
     .top-menu {
         .menu {
-            .item:not(.selected) {
-                &:hover {
-                    background-color: $dark-theme-hilight-background-color;
+            .item {
+                &.disabled {
+                    color: $darkTheme_DisabledColor;
+
+                    &:hover {
+                        background-color: $lightTheme_BackgroundColor;
+                    }
                 }
-            }
 
-            .item.selected {
-                color: white;
-                background-color: $nielsen-blue;
+                &:not(.selected):not(.disabled) {
+                    &:hover {
+                        background-color: $dark-theme-hilight-background-color;
+                    }
+                }
 
-                &:hover {
-                    background-color: $nielsen-blue-hilight
+                &.selected {
+                    color: white;
+                    background-color: $nielsen-blue;
+
+                    &:hover {
+                        background-color: $nielsen-blue-hilight
+                    }
                 }
             }
         }
@@ -187,6 +217,7 @@ $icon-font-size: 16px;
             &.disabled:not(.selected) {
                 color: $darkTheme_DisabledColor;
                 background-color: $darkTheme_BackgroundColor;
+
                 &:hover {
                     background-color: $darkTheme_BackgroundColor;
                 }
@@ -198,6 +229,14 @@ $icon-font-size: 16px;
                 &:hover {
                     background-color: $dark-theme-hilight-background-color;
                 }
+            }
+        }
+
+        .close-button {
+            background-color: $darkTheme_BackgroundColor;
+
+            &:hover {
+                background-color: $dark-theme-hilight-background-color;
             }
         }
     }
@@ -316,7 +355,11 @@ $icon-font-size: 16px;
         }
 
         .item {
-            &:hover {
+            &.disabled, &.selected {
+                cursor: not-allowed;
+            }
+
+            &:hover:not(.disabled) {
                 .menu {
                     opacity: 1;
                     pointer-events: initial;
@@ -335,10 +378,11 @@ $icon-font-size: 16px;
             }
         }
     }
-}
-.profile-menu.open {
-    opacity: 1;
-    transition: opacity $profile-menu-opacity-transition-duration;
+
+    &.open {
+        opacity: 1;
+        transition: opacity $profile-menu-opacity-transition-duration;
+    }
 }
 
 .top-menu {
@@ -358,6 +402,10 @@ $icon-font-size: 16px;
             padding: 0 10px 0 10px;
             color: $nielsen-blue;
             overflow: hidden;
+
+            &.disabled {
+                cursor: not-allowed;
+            }
         }
     }
 }
@@ -419,44 +467,46 @@ $icon-font-size: 16px;
         }
     }
 
-    .item.hasSubMenu:not(.open) {
-        >.item-content {
-            .icon:before {
-                font-family: $icon-font;
-                font-weight: 900;
-                font-size: $icon-font-size;
-                content: '\f0fe';   // plus-square.
-                display: inline-block;
-                margin-left: 8px;
-                margin-right: 8px;
+    .item {
+        &.hasSubMenu:not(.open), &.hasSubMenu.disabled {
+            >.item-content {
+                .icon:before {
+                    font-family: $icon-font;
+                    font-weight: 900;
+                    font-size: $icon-font-size;
+                    content: '\f0fe';   // plus-square.
+                    display: inline-block;
+                    margin-left: 8px;
+                    margin-right: 8px;
+                }
             }
         }
-    }
 
-    .item.hasSubMenu.open {
-        >.item-content {
-            >.icon:before {
-                font-family: $icon-font;
-                font-weight: 900;
-                font-size: $icon-font-size;
-                content: '\f146';   // minus-square.
-                display: inline-block;
-                margin-left: 8px;
-                margin-right: 8px;
+        &.hasSubMenu.open:not(.disabled) {
+            >.item-content {
+                >.icon:before {
+                    font-family: $icon-font;
+                    font-weight: 900;
+                    font-size: $icon-font-size;
+                    content: '\f146';   // minus-square.
+                    display: inline-block;
+                    margin-left: 8px;
+                    margin-right: 8px;
+                }
             }
         }
-    }
 
-    .item.leaf {
-        >.item-content {
-            >.icon:before {
-                font-family: $icon-font;
-                font-weight: 900;
-                font-size: $icon-font-size;
-                content: '\f0da';   // caret-right.
-                display: inline-block;
-                margin-left: 8px;
-                margin-right: 8px;
+        &.leaf {
+            >.item-content {
+                >.icon:before {
+                    font-family: $icon-font;
+                    font-weight: 900;
+                    font-size: $icon-font-size;
+                    content: '\f0da';   // caret-right.
+                    display: inline-block;
+                    margin-left: 8px;
+                    margin-right: 8px;
+                }
             }
         }
     }
@@ -499,11 +549,15 @@ $icon-font-size: 16px;
             color: $nielsen-blue;
             overflow: hidden;
 
-            .menu:not(.open) {
+            &.disabled {
+                cursor: not-allowed;
+            }
+
+            .menu:not(.open), .menu.disabled {
                 max-height: 0px;
                 transition: max-height $max-height-transition-duration;
             }
-            .menu.open {
+            .menu.open:not(.disabled) {
                 max-height: 7em;
                 transition: max-height $max-height-transition-duration;
             }
