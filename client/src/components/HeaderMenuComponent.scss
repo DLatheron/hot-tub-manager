@@ -72,18 +72,24 @@ $icon-font-size: 16px;
     }
     .top-menu {
         .menu {
-            .item:not(.selected) {
-                &:hover {
-                    background-color: $light-theme-hilight-background-color;
+            .item {
+                &.disabled {
+
                 }
-            }
 
-            .item.selected {
-                color: white;
-                background-color: $nielsen-blue;
+                &:not(.selected) {
+                    &:hover {
+                        background-color: $light-theme-hilight-background-color;
+                    }
+                }
 
-                &:hover {
-                    background-color: $nielsen-blue-hilight
+                .selected {
+                    color: white;
+                    background-color: $nielsen-blue;
+
+                    &:hover {
+                        background-color: $nielsen-blue-hilight
+                    }
                 }
             }
         }
@@ -91,11 +97,21 @@ $icon-font-size: 16px;
     .side-menu-container {
         background-color: $lightTheme_BackgroundColor;
 
-        .item-content:not(.selected) {
-            background-color: $lightTheme_BackgroundColor;
+        .item-content {
+            &.disabled:not(.selected) {
+                color: $lightTheme-DisabledColor;
+                background-color: $lightTheme_BackgroundColor;
+                &:hover {
+                    background-color: $lightTheme_BackgroundColor;
+                }
+            }
 
-            &:hover {
-                background-color: $light-theme-hilight-background-color;
+            &:not(.disabled):not(.selected) {
+                background-color: $lightTheme_BackgroundColor;
+
+                &:hover {
+                    background-color: $light-theme-hilight-background-color;
+                }
             }
         }
 
@@ -167,11 +183,21 @@ $icon-font-size: 16px;
     .side-menu-container {
         background-color: $darkTheme_BackgroundColor;
 
-        .item-content:not(.selected) {
-            background-color: $darkTheme_BackgroundColor;
+        .item-content {
+            &.disabled:not(.selected) {
+                color: $darkTheme_DisabledColor;
+                background-color: $darkTheme_BackgroundColor;
+                &:hover {
+                    background-color: $darkTheme_BackgroundColor;
+                }
+            }
 
-            &:hover {
-                background-color: $dark-theme-hilight-background-color;
+            &:not(.disabled):not(.selected) {
+                background-color: $darkTheme_BackgroundColor;
+
+                &:hover {
+                    background-color: $dark-theme-hilight-background-color;
+                }
             }
         }
     }
@@ -393,7 +419,7 @@ $icon-font-size: 16px;
         }
     }
 
-    .item.hasSubMenu.closed {
+    .item.hasSubMenu:not(.open) {
         >.item-content {
             .icon:before {
                 font-family: $icon-font;

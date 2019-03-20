@@ -95,7 +95,10 @@ const store = new Store({
         theme: 'light',
         locale: 'en-GB'
     },
-    disabled: { reporting_internal_kpis: true },
+    disabled: {
+        reporting_internal_kpis: true,
+        admin: true
+    },
     initiallyOpen: {
         'creative_uas': true,
         'reporting_internal': true,

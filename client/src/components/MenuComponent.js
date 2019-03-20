@@ -102,7 +102,7 @@ export function MenuItemComponent({
         <div
             className={classNames(
                 'item',
-                isOpen ? 'open' : 'closed',
+                isOpen && 'open',
                 menu.isLeaf() ? 'leaf' : 'hasSubMenu',
                 (isSelected === menu.id) && 'selected',
                 (isSelected !== undefined) && 'selectable',
@@ -115,6 +115,7 @@ export function MenuItemComponent({
                 className={classNames(
                     'item-content',
                     (isSelected === menu.id) && 'selected',
+                    isDisabled && 'disabled'
                 )}
             >
                 {
@@ -179,7 +180,7 @@ export function SubMenuComponent({
                                 key={subMenu.id}
                                 menu={subMenu}
                                 isSelected={selections[subMenu.firstSelectProp()]}
-                                disabled={disabled[subMenu.id]}
+                                isDisabled={disabled[subMenu.id]}
                                 isOpen={open[subMenu.id]}
                                 handleClick={handleClick}
                             >
@@ -222,9 +223,14 @@ export default function MenuComponent({
     const [open, setOpen] = useState(initiallyOpen);
 
     const _handleClick = (event, menuItem) => {
-        console.log(`_handleClick for ${menuItem.id}: ${menuItem.subMenu}`);
-
         event.stopPropagation();
+
+        if (disabled[menuItem.id]) {
+            console.log(`${menuItem.id} is disabled - click ignored`);
+            return;
+        }
+
+        console.log(`_handleClick for ${menuItem.id}: ${menuItem.subMenu}`);
 
         if (menuItem.isLeaf()) {
             console.log('leaf');
