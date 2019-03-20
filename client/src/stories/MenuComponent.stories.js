@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { State, Store } from '@sambego/storybook-state';
 import { storiesOf } from '@storybook/react';
 import { BrowserRouter as Router } from "react-router-dom";
@@ -7,6 +7,7 @@ import useComponentSize from '@rehooks/component-size'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
     faAngleDoubleLeft,
+    faAngleDoubleRight
 } from '@fortawesome/free-solid-svg-icons'
 
 import MenuComponent, { Menu, Separator, ProfileItemComponent } from '../components/MenuComponent';
@@ -209,7 +210,7 @@ function RenderSideMenu(props) {
                 hideSideMenu && 'hide'
             )}
             style={{
-                marginLeft: hideSideMenu ? -width : 0
+                marginLeft: hideSideMenu ? -(width * 1.1) : 0
             }}
         >
             <div
@@ -246,7 +247,21 @@ function RenderSideMenu(props) {
 function MainMenu(props) {
     const theme = Themes[props.selections['theme']];
     const locale = Locales[props.selections['locale']];
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
     const { translations } = locale;
+    const menuRef = useRef();
+
+    const handleMenuScroll = () => {
+        const element = menuRef.current;
+        const leftEdge = element.scrollLeft;
+        const rightEdge = leftEdge + element.clientWidth;
+
+        setCanScrollLeft(leftEdge > 0);
+        setCanScrollRight(rightEdge < element.scrollWidth)
+    };
+
+    useEffect(() => handleMenuScroll());
 
     return (
         <Router>
@@ -260,7 +275,12 @@ function MainMenu(props) {
                             }}>
                             <div className='header'>
                                 <img className='logo' src='n-tab.png' alt='Nielsen logo' />
-                                <div className='top-menu'>
+
+                                <div
+                                    ref={menuRef}
+                                    className='top-menu'
+                                    onScroll={handleMenuScroll}
+                                >
                                     <MenuComponent
                                         menu={props.menu}
                                         selections={props.selections}
@@ -269,6 +289,29 @@ function MainMenu(props) {
                                         handleClick={handleHeaderMenuClick}
                                     />
                                 </div>
+                                <div className='top-menu-indicators'>
+                                    <div className={classNames(
+                                            'scroll-indicator',
+                                            'scroll-left-indicator',
+                                            canScrollLeft && 'show-indicator'
+                                    )}>
+                                        <FontAwesomeIcon
+                                            className='icon'
+                                            icon={faAngleDoubleLeft}
+                                        />
+                                    </div>
+                                    <div className={classNames(
+                                        'scroll-indicator',
+                                        'scroll-right-indicator',
+                                        canScrollRight && 'show-indicator'
+                                    )}>
+                                        <FontAwesomeIcon
+                                            className='icon'
+                                            icon={faAngleDoubleRight}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className='profile'>
                                 </div>
                                 <div className='profile'>

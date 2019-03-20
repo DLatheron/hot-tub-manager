@@ -180,7 +180,7 @@ export function SubMenuComponent({
                             <MenuItemComponent
                                 key={subMenu.id}
                                 menu={subMenu}
-                                isSelected={selections[subMenu.firstSelectProp()]}
+                                isSelected={selections[subMenu.firstSelectProp()] === subMenu.id}
                                 isDisabled={disabled[subMenu.id]}
                                 isOpen={open[subMenu.id]}
                                 handleClick={handleClick}

@@ -385,6 +385,41 @@ $icon-font-size: 16px;
     }
 }
 
+.top-menu-indicators {
+    grid-area: top-menu;
+    display: block;
+    position: relative;
+    user-select: none;
+    pointer-events: none;
+
+    .scroll-indicator {
+        margin: auto;
+        height: 65px;
+        line-height: 65px;
+        color: $nielsen-blue;
+        padding: 0 2px;
+        background-color: $light-theme-hilight-background-color;
+
+        opacity: 0.0;
+        transition: opacity $opacity-transition-duration;
+    }
+
+    .scroll-left-indicator {
+        position: absolute;
+        left: 0;
+    }
+
+    .scroll-right-indicator {
+        position: absolute;
+        right: 0;
+    }
+
+    .show-indicator {
+        opacity: 1.0;
+        transition: opacity $opacity-transition-duration;
+    }
+}
+
 .top-menu {
     .menu {
         background-color: inherit;
@@ -419,7 +454,7 @@ $icon-font-size: 16px;
 
     .close-button {
         grid-area: side-bar-menu-button;
-        height: 100vh;
+        height: calc(100vh - 65px - 40px);
         outline: none;
         border: none;
         margin: auto;
