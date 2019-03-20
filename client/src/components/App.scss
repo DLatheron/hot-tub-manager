@@ -61,23 +61,26 @@ $transition-duration: 1s;
 
     .side-menu {
         grid-area: side-menu;
-        height: 100vh;
+        height: calc(100vh - 65px - 40px);
         z-index: 2;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        transition: max-width $transition-duration;
         position: relative;
         overflow: hidden;
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+
+        margin-left: 0;
+        transition: margin-left $transition-duration;
     }
 
     .side-menu.hide {
-        max-width: 0px;
-        transition: max-width $transition-duration;
+        transition: margin-left $transition-duration;
     }
 
     .body {
         grid-area: body;
-        height: calc(100vh - 65px - 40px);
         padding: 8px;
+        height: calc(100vh - 65px - 40px - 16px);   // Remember to include padding.
     }
 
     .footer {

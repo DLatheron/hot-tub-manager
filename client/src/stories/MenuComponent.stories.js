@@ -89,7 +89,6 @@ const profileMenu = new Menu('profile', { subMenu: [
 
 const store = new Store({
     menu,
-    // defaultMenuId: 'creative',
     selections: {
         header: 'creative',
         theme: 'light',
@@ -118,34 +117,24 @@ const store = new Store({
 });
 
 const setMenu = (id) => {
+
+};
+
+const handleHeaderMenuClick = (menuItem) => {
+    const { id } = menuItem;
+
+    console.log(`Clicked ${id}`);
+
+    const selectPropsObj = menuItem.getSelectPropObject();
+
     store.set({
         selections: {
             ...store.get('selections'),
+            ...(selectPropsObj || {}),
             header: id
         },
         forceHideSideMenu: false
     });
-};
-
-// Set the default menu.
-if (store.get('selections').header) {
-    setMenu(store.get('selections').header);
-}
-
-const handleHeaderMenuClick = (menuItem) => {
-    setMenu(menuItem.id);
-
-    console.log(`Clicked ${menuItem.id}`);
-
-    const selectPropsObj = menuItem.getSelectPropObject();
-    if (selectPropsObj) {
-        store.set({
-            selections: {
-                ...store.get('selections'),
-                ...selectPropsObj
-            }
-        });
-    }
 
     return true;
 }
@@ -207,41 +196,12 @@ const handleProfileMenuClick = (menuItem) => {
     return true;
 }
 
-function RenderSideMenuForMeasurement({ sideBarRef, props }) {
-    return (
-        <div
-            className='side-menu'
-            style={{
-                visibility: 'collapse',
-                position: 'absolute'
-            }}
-        >
-            <div
-                ref={sideBarRef}
-                className='side-menu-container'
-            >
-                {
-                    props.sideMenu.map(menu => (
-                        <MenuComponent
-                            key={menu.id}
-                            menu={menu}
-                            isVisible={false}
-                            selections={props.selections}
-                            disabled={props.disabled}
-                            initiallyOpen={props.initiallyOpen}
-                            handleClick={() => {}}
-                        />
-                    ))
-                }
-                <button className='close-button'>
-                    <FontAwesomeIcon className='icon' icon={faAngleDoubleLeft} />
-                </button>
-            </div>
-        </div>
-    );
-}
+function RenderSideMenu(props) {
+    const sideBarRef = useRef(null);
+    const { width } = useComponentSize(sideBarRef);
 
-function RenderSideMenu({ hideSideMenu, props, width }) {
+    const hideSideMenu = props.forceHideSideMenu || !sideMenu.find(menuItem => menuItem.id === props.selections.header);
+
     return (
         <div
             className={classNames(
@@ -249,12 +209,12 @@ function RenderSideMenu({ hideSideMenu, props, width }) {
                 hideSideMenu && 'hide'
             )}
             style={{
-                maxWidth: hideSideMenu ? 0 : width
+                marginLeft: hideSideMenu ? -width : 0
             }}
         >
             <div
+                ref={sideBarRef}
                 className='side-menu-container'
-                style={{ width }}
             >
                 {
                     props.sideMenu.map(menu => (
@@ -287,11 +247,6 @@ function MainMenu(props) {
     const theme = Themes[props.selections['theme']];
     const locale = Locales[props.selections['locale']];
     const { translations } = locale;
-
-    const sideBarRef = useRef(null);
-    const { width } = useComponentSize(sideBarRef);
-
-    const hideSideMenu = props.forceHideSideMenu || !sideMenu.find(menuItem => menuItem.id === props.selections.header);
 
     return (
         <Router>
@@ -336,8 +291,7 @@ function MainMenu(props) {
                                 </div>
                             </div>
 
-                            { RenderSideMenuForMeasurement({ sideBarRef, props } )}
-                            { RenderSideMenu({ hideSideMenu, props, width })}
+                            {RenderSideMenu(props)}
 
                             <div
                                 className='body'
