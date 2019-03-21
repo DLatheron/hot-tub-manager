@@ -117,14 +117,18 @@ const store = new Store({
     user: User
 });
 
-const setMenu = (id) => {
-
-};
-
-const handleHeaderMenuClick = (menuItem) => {
+const handleHeaderMenuClick = (menuItem, event) => {
     const { id } = menuItem;
 
     console.log(`Clicked ${id}`);
+
+    if (event.target) {
+        event.target.scrollIntoView({
+            block: 'nearest',    // This does not work properly under Chrome, but is need for 'smooth'.
+            inline: 'center',  // This does not work properly under Chrome, but is need for 'smooth'.
+            behavior: 'smooth'
+        });
+    }
 
     const selectPropsObj = menuItem.getSelectPropObject();
 
@@ -210,7 +214,7 @@ function RenderSideMenu(props) {
                 hideSideMenu && 'hide'
             )}
             style={{
-                marginLeft: hideSideMenu ? -(width * 1.1) : 0
+                marginLeft: hideSideMenu ? -width : 0
             }}
         >
             <div
@@ -276,6 +280,33 @@ function MainMenu(props) {
                             <div className='header'>
                                 <img className='logo' src='n-tab.png' alt='Nielsen logo' />
 
+                                <div className='top-menu-indicators'>
+                                    <div
+                                        className={classNames(
+                                            'scroll-indicator',
+                                            'scroll-left-indicator',
+                                            canScrollLeft && 'show-indicator'
+                                        )}
+                                    >
+                                        <FontAwesomeIcon
+                                            className='icon'
+                                            icon={faAngleDoubleLeft}
+                                        />
+                                    </div>
+                                    <div
+                                        className={classNames(
+                                            'scroll-indicator',
+                                            'scroll-right-indicator',
+                                            canScrollRight && 'show-indicator'
+                                        )}
+                                    >
+                                        <FontAwesomeIcon
+                                            className='icon'
+                                            icon={faAngleDoubleRight}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div
                                     ref={menuRef}
                                     className='top-menu'
@@ -289,31 +320,7 @@ function MainMenu(props) {
                                         handleClick={handleHeaderMenuClick}
                                     />
                                 </div>
-                                <div className='top-menu-indicators'>
-                                    <div className={classNames(
-                                            'scroll-indicator',
-                                            'scroll-left-indicator',
-                                            canScrollLeft && 'show-indicator'
-                                    )}>
-                                        <FontAwesomeIcon
-                                            className='icon'
-                                            icon={faAngleDoubleLeft}
-                                        />
-                                    </div>
-                                    <div className={classNames(
-                                        'scroll-indicator',
-                                        'scroll-right-indicator',
-                                        canScrollRight && 'show-indicator'
-                                    )}>
-                                        <FontAwesomeIcon
-                                            className='icon'
-                                            icon={faAngleDoubleRight}
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className='profile'>
-                                </div>
                                 <div className='profile'>
                                     <ProfileItemComponent
                                         menu={props.profileMenu}

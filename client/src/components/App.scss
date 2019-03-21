@@ -12,8 +12,6 @@ $transition-duration: 1s;
 }
 
 .app {
-    box-sizing: content-box;
-
     display: grid;
     grid-template-columns: auto 1fr;
     grid-template-rows: 65px 1fr 40px;
@@ -61,7 +59,7 @@ $transition-duration: 1s;
 
     .side-menu {
         grid-area: side-menu;
-        height: calc(100vh - 65px - 40px);
+        height: 100%;
         z-index: 2;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         position: relative;

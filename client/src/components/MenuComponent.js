@@ -104,7 +104,7 @@ export function MenuItemComponent({
                 'item',
                 isOpen && 'open',
                 menu.isLeaf() ? 'leaf' : 'hasSubMenu',
-                (isSelected === menu.id) && 'selected',
+                isSelected && 'selected',
                 (isSelected !== undefined) && 'selectable',
                 isDisabled && 'disabled',
                 menu.classes
@@ -114,7 +114,7 @@ export function MenuItemComponent({
             <div
                 className={classNames(
                     'item-content',
-                    (isSelected === menu.id) && 'selected',
+                    isSelected && 'selected',
                     isDisabled && 'disabled'
                 )}
             >
@@ -235,7 +235,7 @@ export default function MenuComponent({
 
         if (menuItem.isLeaf()) {
             console.log('leaf');
-            (menuItem.actionFn || handleClick)(menuItem);
+            (menuItem.actionFn || handleClick)(menuItem, event);
         } else {
             const newOpen = {
                 ...open,
